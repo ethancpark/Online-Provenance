@@ -1,33 +1,16 @@
 {
-  "_comment": "Reference seal/flag images per tribe. The fetch_reference_images.py script downloads these, computes CLIP embeddings, and uploads to Supabase. URLs should point to public, freely-licensed images (Wikipedia Commons preferred). 'wiki_search' is the fallback search term used if no direct URL is provided yet.",
-  "_schema": {
-    "tribe_canonical_name": {
-      "assets": [
-        {
-          "asset_type": "seal | flag | logo",
-          "description": "Human-readable label, e.g. 'Cherokee Nation seal'",
-          "image_url": "Direct URL to the image (preferred)",
-          "wiki_search": "Wikipedia search term (used if image_url is empty)",
-          "source_url": "Where this image was originally found"
-        }
-      ]
-    }
-  },
+  "_comment": "Reference seal/flag images per tribe. Each asset's `wiki_filename` is the Wikimedia Commons file name (without the 'File:' prefix). The fetch script uses the MediaWiki API to resolve it to a real image URL. Add tribes here as you find their assets on Wikipedia Commons.",
   "Navajo Nation": {
     "assets": [
       {
         "asset_type": "seal",
         "description": "Great Seal of the Navajo Nation",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Great_Seal_of_the_Navajo_Nation.svg/800px-Great_Seal_of_the_Navajo_Nation.svg.png",
-        "wiki_search": "Great Seal of the Navajo Nation",
-        "source_url": "https://en.wikipedia.org/wiki/Seal_of_the_Navajo_Nation"
+        "wiki_filename": "Great Seal of the Navajo Nation.svg"
       },
       {
         "asset_type": "flag",
         "description": "Flag of the Navajo Nation",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Flag_of_the_Navajo_Nation.svg/800px-Flag_of_the_Navajo_Nation.svg.png",
-        "wiki_search": "Flag of the Navajo Nation",
-        "source_url": "https://en.wikipedia.org/wiki/Flag_of_the_Navajo_Nation"
+        "wiki_filename": "Flag of the Navajo Nation.svg"
       }
     ]
   },
@@ -36,52 +19,30 @@
       {
         "asset_type": "seal",
         "description": "Great Seal of the Cherokee Nation",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Great_Seal_of_the_Cherokee_Nation.svg/800px-Great_Seal_of_the_Cherokee_Nation.svg.png",
-        "wiki_search": "Great Seal of the Cherokee Nation",
-        "source_url": "https://en.wikipedia.org/wiki/Great_Seal_of_the_Cherokee_Nation"
+        "wiki_filename": "Great Seal of the Cherokee Nation.svg"
       },
       {
         "asset_type": "flag",
         "description": "Flag of the Cherokee Nation",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Flag_of_the_Cherokee_Nation.svg/800px-Flag_of_the_Cherokee_Nation.svg.png",
-        "wiki_search": "Flag of the Cherokee Nation",
-        "source_url": "https://en.wikipedia.org/wiki/Flag_of_the_Cherokee_Nation"
+        "wiki_filename": "Flag of the Cherokee Nation.svg"
       }
     ]
   },
   "Choctaw Nation of Oklahoma": {
     "assets": [
       {
-        "asset_type": "seal",
-        "description": "Great Seal of the Choctaw Nation of Oklahoma",
-        "image_url": "",
-        "wiki_search": "Great Seal of the Choctaw Nation of Oklahoma",
-        "source_url": "https://en.wikipedia.org/wiki/Choctaw_Nation_of_Oklahoma"
-      },
-      {
         "asset_type": "flag",
         "description": "Flag of the Choctaw Nation of Oklahoma",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Flag_of_the_Choctaw_Nation.svg/800px-Flag_of_the_Choctaw_Nation.svg.png",
-        "wiki_search": "Flag of the Choctaw Nation of Oklahoma",
-        "source_url": "https://en.wikipedia.org/wiki/Choctaw_Nation_of_Oklahoma"
+        "wiki_filename": "Flag of the Choctaw Nation.svg"
       }
     ]
   },
   "Chickasaw Nation": {
     "assets": [
       {
-        "asset_type": "seal",
-        "description": "Great Seal of the Chickasaw Nation",
-        "image_url": "",
-        "wiki_search": "Great Seal of the Chickasaw Nation",
-        "source_url": "https://en.wikipedia.org/wiki/Chickasaw_Nation"
-      },
-      {
         "asset_type": "flag",
         "description": "Flag of the Chickasaw Nation",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Flag_of_the_Chickasaw_Nation.svg/800px-Flag_of_the_Chickasaw_Nation.svg.png",
-        "wiki_search": "Flag of the Chickasaw Nation",
-        "source_url": "https://en.wikipedia.org/wiki/Chickasaw_Nation"
+        "wiki_filename": "Flag of the Chickasaw Nation.svg"
       }
     ]
   },
@@ -90,9 +51,52 @@
       {
         "asset_type": "flag",
         "description": "Flag of the Muscogee Nation",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Flag_of_the_Muscogee_Nation.svg/800px-Flag_of_the_Muscogee_Nation.svg.png",
-        "wiki_search": "Flag of the Muscogee Creek Nation",
-        "source_url": "https://en.wikipedia.org/wiki/Muscogee_Nation"
+        "wiki_filename": "Flag of the Muscogee Nation.svg"
+      }
+    ]
+  },
+  "Seminole Tribe of Florida": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Seminole Tribe of Florida",
+        "wiki_filename": "Flag of the Seminole Tribe of Florida.svg"
+      }
+    ]
+  },
+  "Hopi Tribe": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Hopi Tribe",
+        "wiki_filename": "Flag of the Hopi Reservation.svg"
+      }
+    ]
+  },
+  "Tohono O'odham Nation": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Tohono O'odham Nation",
+        "wiki_filename": "Flag of the Tohono O'odham Nation.svg"
+      }
+    ]
+  },
+  "Eastern Band of Cherokee Indians": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Eastern Band of Cherokee Indians",
+        "wiki_filename": "Flag of the Eastern Band of Cherokee Indians.svg"
+      }
+    ]
+  },
+  "Crow Tribe of Indians": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Crow Tribe",
+        "wiki_filename": "Flag of the Crow Tribe.svg"
       }
     ]
   }

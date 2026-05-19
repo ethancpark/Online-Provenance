@@ -7,11 +7,11 @@ Jinja2==3.1.4
 # Supabase client
 supabase==2.9.1
 
-# Image matching
-torch==2.4.1
-open-clip-torch==2.26.1
-Pillow==10.4.0
-numpy==2.1.1
+# Image matching — versions kept flexible for Python 3.14 compatibility
+torch>=2.9
+open-clip-torch>=2.26
+Pillow>=10.0
+numpy>=2.0
 
 # Anthropic for takedown notice generation
-anthropic==0.39.0
+anthropic>=0.39
