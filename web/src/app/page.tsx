@@ -65,12 +65,17 @@ export default async function Home({ searchParams }: PageProps) {
     matches = (matchRows ?? []) as unknown as MatchRow[];
   }
 
+  // Treat presence of ?tribe= as the "signed in" signal until real auth
+  // is wired up. The login page sets this when its form is submitted.
+  const signedIn = !!tribeParam;
+
   return (
     <Dashboard
       tribes={tribeList}
       selectedTribe={selectedTribe}
       summary={summary}
       matches={matches}
+      signedIn={signedIn}
     />
   );
 }

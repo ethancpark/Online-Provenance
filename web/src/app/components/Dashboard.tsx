@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Tribe, MatchRow, TribeSummary } from "@/lib/types";
 import StatsHeader from "./StatsHeader";
@@ -12,9 +13,16 @@ type Props = {
   selectedTribe: Tribe | null;
   summary: TribeSummary | null;
   matches: MatchRow[];
+  signedIn: boolean;
 };
 
-export default function Dashboard({ tribes, selectedTribe, summary, matches }: Props) {
+export default function Dashboard({
+  tribes,
+  selectedTribe,
+  summary,
+  matches,
+  signedIn,
+}: Props) {
   const router = useRouter();
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(
     matches[0]?.id ?? null,
@@ -63,13 +71,44 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
               )}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <button className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800">
               ↻ Run scan
             </button>
             <button className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800">
               ⚙ Tribes &amp; assets
             </button>
+            <span className="mx-1 h-5 w-px bg-zinc-800" aria-hidden />
+            {signedIn && selectedTribe ? (
+              <>
+                <Link
+                  href={`/profile?tribe=${encodeURIComponent(selectedTribe.name)}`}
+                  className="flex items-center gap-2 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800"
+                >
+                  <span
+                    className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-900/60 text-[10px] font-semibold text-sky-300"
+                    aria-hidden
+                  >
+                    {selectedTribe.name.charAt(0)}
+                  </span>
+                  <span className="hidden sm:inline">{selectedTribe.name}</span>
+                  <span className="text-xs text-zinc-500">· Profile</span>
+                </Link>
+                <Link
+                  href="/"
+                  className="text-xs text-zinc-500 hover:text-zinc-300"
+                >
+                  Sign out
+                </Link>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-md border border-sky-700 bg-sky-900/40 px-3 py-1.5 text-sm font-medium text-sky-300 hover:bg-sky-900/60"
+              >
+                Sign in
+              </Link>
+            )}
           </div>
         </div>
 
