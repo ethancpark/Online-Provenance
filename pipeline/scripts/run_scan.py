@@ -23,7 +23,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.db import get_client
 from src.amazon_search import search as amazon_search
+from src.alibaba_search import search as alibaba_search
 from src.image_matcher import match_listing_image
+
+# Minimum CLIP similarity required to STORE a match. Below this, the listing is
+# almost certainly unrelated (a generic flag, jewelry, a book cover) and would
+# only pollute the review queue — so we drop it instead of writing noise.
+# Per the band design: >=0.85 high, 0.70-0.85 medium, <0.70 probably unrelated.
+# Tunable via env if you want a wider net for a specific scan.
+MATCH_MIN_CONFIDENCE = float(os.getenv("MATCH_MIN_CONFIDENCE", "0.70"))
 
 
 def _query_terms_for(tribe_name: str) -> list[str]:
@@ -85,12 +93,33 @@ def _upsert_match(client, listing_id: str, match) -> None:
     client.table("matches").upsert(payload, on_conflict="listing_id,reference_asset_id").execute()
 
 
-def run_scan(name_filter: str | None = None, max_per_query: int = 10) -> dict:
+def _searchers_for(marketplace: str) -> list:
+    """Return the list of (label, search_fn) to run for a marketplace choice."""
+    amazon = ("amazon", lambda q, n: amazon_search(q, fetch_sellers=False, max_results=n))
+    alibaba = ("alibaba", lambda q, n: alibaba_search(q, max_results=n))
+    if marketplace == "amazon":
+        return [amazon]
+    if marketplace == "alibaba":
+        return [alibaba]
+    return [amazon, alibaba]  # "both"
+
+
+def run_scan(
+    name_filter: str | None = None,
+    max_per_query: int = 10,
+    marketplace: str = "both",
+) -> dict:
     client = get_client()
     tribes = _tribes_with_reference_assets(client, name_filter)
-    print(f"Scanning {len(tribes)} tribe(s) with reference assets...\n")
+    searchers = _searchers_for(marketplace)
+    print(
+        f"Scanning {len(tribes)} tribe(s) with reference assets "
+        f"across: {', '.join(label for label, _ in searchers)}\n"
+    )
 
-    stats = {"tribes": 0, "queries": 0, "listings": 0, "matches": 0, "high": 0, "medium": 0, "low": 0}
+    print(f"  (storing matches with confidence >= {MATCH_MIN_CONFIDENCE:.2f})\n")
+    stats = {"tribes": 0, "queries": 0, "listings": 0, "matches": 0,
+             "high": 0, "medium": 0, "low": 0, "suppressed": 0}
 
     for tribe in tribes:
         stats["tribes"] += 1
@@ -98,44 +127,51 @@ def run_scan(name_filter: str | None = None, max_per_query: int = 10) -> dict:
         print(f"=== {tribe['name']} ({len(ref_assets)} reference asset(s)) ===")
 
         for query in _query_terms_for(tribe["name"]):
-            stats["queries"] += 1
-            try:
-                listings = amazon_search(query, fetch_sellers=False, max_results=max_per_query)
-            except Exception as e:
-                print(f"  search failed: {e}")
-                continue
-
-            for listing in listings:
-                if not listing.image_url:
-                    continue
-
-                match, listing_emb = match_listing_image(listing.image_url, ref_assets)
-                if not match:
-                    continue
-
-                stats["listings"] += 1
+            for mp_label, search_fn in searchers:
+                stats["queries"] += 1
                 try:
-                    listing_id = _upsert_listing(client, tribe["id"], listing, listing_emb)
-                    _upsert_match(client, listing_id, match)
-                    stats["matches"] += 1
-                    stats[match.confidence_band] += 1
-                    print(
-                        f"  [{match.confidence_band:6}] {match.confidence:.3f}  "
-                        f"{listing.title[:70]}"
-                    )
+                    listings = search_fn(query, max_per_query)
                 except Exception as e:
-                    print(f"  DB write failed: {e}")
+                    print(f"  [{mp_label}] search failed: {e}")
+                    continue
 
-            time.sleep(0.5)  # polite pacing between queries
+                for listing in listings:
+                    if not listing.image_url:
+                        continue
+
+                    match, listing_emb = match_listing_image(listing.image_url, ref_assets)
+                    if not match:
+                        continue
+
+                    # Suppress noise: only store plausibly-related matches.
+                    if match.confidence < MATCH_MIN_CONFIDENCE:
+                        stats["suppressed"] += 1
+                        continue
+
+                    stats["listings"] += 1
+                    try:
+                        listing_id = _upsert_listing(client, tribe["id"], listing, listing_emb)
+                        _upsert_match(client, listing_id, match)
+                        stats["matches"] += 1
+                        stats[match.confidence_band] += 1
+                        print(
+                            f"  [{mp_label}/{match.confidence_band:6}] {match.confidence:.3f}  "
+                            f"{listing.title[:70]}"
+                        )
+                    except Exception as e:
+                        print(f"  DB write failed: {e}")
+
+                time.sleep(0.5)  # polite pacing between queries
 
     print("\n=== Scan complete ===")
     print(
         f"  tribes scanned:   {stats['tribes']}\n"
         f"  queries run:      {stats['queries']}\n"
-        f"  listings matched: {stats['listings']}\n"
+        f"  listings stored:  {stats['listings']}\n"
         f"  HIGH matches:     {stats['high']}\n"
         f"  MEDIUM matches:   {stats['medium']}\n"
-        f"  LOW matches:      {stats['low']}"
+        f"  LOW matches:      {stats['low']}\n"
+        f"  suppressed (noise below {MATCH_MIN_CONFIDENCE:.2f}): {stats['suppressed']}"
     )
     return stats
 
@@ -144,5 +180,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("tribe", nargs="?", default=None, help="Limit scan to one tribe by name")
     parser.add_argument("--max-per-query", type=int, default=10)
+    parser.add_argument(
+        "--marketplace",
+        choices=["amazon", "alibaba", "both"],
+        default="both",
+        help="Which marketplace(s) to scan (default: both)",
+    )
     args = parser.parse_args()
-    run_scan(name_filter=args.tribe, max_per_query=args.max_per_query)
+    run_scan(
+        name_filter=args.tribe,
+        max_per_query=args.max_per_query,
+        marketplace=args.marketplace,
+    )

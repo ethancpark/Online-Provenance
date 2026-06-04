@@ -61,6 +61,20 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
                   </span>
                 </>
               )}
+              {selectedTribe?.uspto_search_url && (
+                <>
+                  <span>·</span>
+                  <a
+                    href={selectedTribe.uspto_search_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sky-400 hover:underline"
+                    title={selectedTribe.uspto_notes ?? "Search USPTO trademark records"}
+                  >
+                    USPTO trademark search ↗
+                  </a>
+                </>
+              )}
             </div>
           </div>
           <div className="flex gap-2">
@@ -83,7 +97,7 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
             selectedMatchId={selectedMatch?.id ?? null}
             onSelect={setSelectedMatchId}
           />
-          <ListingDetail match={selectedMatch} />
+          <ListingDetail match={selectedMatch} tribe={selectedTribe} />
         </div>
 
         <p className="mt-8 text-center text-xs text-zinc-500">

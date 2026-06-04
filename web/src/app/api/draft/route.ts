@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getServerClient } from "@/lib/supabase";
+import { getTribalLegalContact, type TribalLegalContact } from "@/lib/tribalLegal";
 
 type Body = {
   match_id: string;
@@ -37,27 +38,30 @@ placeholders like [insert name] — write it as if from a tribal IP representati
   `.trim(),
 
   ag_notification: (ctx: DraftContext) => `
-You are drafting a notification letter to a state Attorney General's office about
-potential unauthorized commercial use of a federally recognized tribe's
-intellectual property (seal, flag, or other tribal mark) on an online marketplace.
+Write a concise, professional email alerting ${ctx.ag_office ?? "the tribe's own Attorney General / legal office"}
+that the tribe's own mark is being sold without authorization, so their counsel can act.
+The recipient IS the tribe's legal office — write to them as an ally flagging an
+issue with THEIR mark, not as an outside complainant.
 
-Be professional and factual. Include:
-- The tribe's name and federally recognized status
-- A description of the reproduced asset
-- Details of the listing(s) involved
-- A request that the AG's office consider whether action is warranted under
-  state consumer protection and trademark laws
-- A statement that this is a notification, not a formal complaint
+STRICT REQUIREMENTS:
+- Under 150 words. Tight and scannable. No filler, no hedging, no restating the obvious.
+- Open with a one-line greeting, then ONE sentence stating what was found.
+- Include a compact, labeled block listing: Product, Marketplace, Seller, Listing, Match confidence.
+- One sentence on suggested next step: a marketplace takedown / cease-and-desist${ctx.uspto_registered ? ", citing the tribe's USPTO trademark registration" : ""}.
+- One short closing line noting this was auto-flagged and should be human-verified before action.
+- Sign off as "Indigenous Scraper — automated IP monitoring".
+- Plain text only. No subject line (it's sent separately). No [placeholders].
 
+FACTS:
 Tribe: ${ctx.tribe_name}
-USPTO registered: ${ctx.uspto_registered ? "yes" : "no"}
-Asset reproduced: ${ctx.asset_description}
+Recipient: ${ctx.ag_office ?? "Office of the Attorney General"}
+Reproduced asset: ${ctx.asset_description}
 Product: ${ctx.listing_title}
 Listing URL: ${ctx.listing_url}
 Marketplace: ${ctx.marketplace}
 Seller: ${ctx.seller ?? "unknown"}
-
-Output the letter as plain text ready to be reviewed and sent.
+Match confidence: ${Math.round(ctx.confidence * 100)}%
+USPTO registered: ${ctx.uspto_registered ? "yes" : "no"}
   `.trim(),
 };
 
@@ -70,6 +74,7 @@ type DraftContext = {
   marketplace: string;
   seller: string | null;
   confidence: number;
+  ag_office: string | null;
 };
 
 export async function POST(req: Request) {
@@ -84,7 +89,7 @@ export async function POST(req: Request) {
   const { data: match, error: matchErr } = await supabase
     .from("matches")
     .select(
-      "*, listings!inner(*, tribes!inner(*)), reference_assets!inner(description)"
+      "*, listings!inner(*, tribes!inner(name, canonical_name, has_registered_mark)), reference_assets!inner(description)"
     )
     .eq("id", body.match_id)
     .maybeSingle();
@@ -100,7 +105,11 @@ export async function POST(req: Request) {
       listing_url: string;
       marketplace: string;
       seller: string | null;
-      tribes: { name: string; has_registered_mark: boolean };
+      tribes: {
+        name: string;
+        canonical_name: string | null;
+        has_registered_mark: boolean;
+      };
     };
     reference_assets: { description: string };
     confidence: number;
@@ -108,6 +117,10 @@ export async function POST(req: Request) {
   const listing = m.listings;
   const tribe = listing.tribes;
   const asset = m.reference_assets;
+
+  // Resolve the tribe's OWN legal office for AG notifications
+  const agContact: TribalLegalContact | null =
+    body.draft_type === "ag_notification" ? getTribalLegalContact(tribe) : null;
 
   const ctx: DraftContext = {
     tribe_name: tribe.name,
@@ -118,6 +131,7 @@ export async function POST(req: Request) {
     marketplace: listing.marketplace,
     seller: listing.seller,
     confidence: match.confidence,
+    ag_office: agContact?.office ?? null,
   };
 
   const prompt = PROMPTS[body.draft_type](ctx);
@@ -127,7 +141,7 @@ export async function POST(req: Request) {
   try {
     const resp = await client.messages.create({
       model: "claude-sonnet-4-5",
-      max_tokens: 1500,
+      max_tokens: 700,
       messages: [{ role: "user", content: prompt }],
     });
     draftBody = resp.content
@@ -146,7 +160,10 @@ export async function POST(req: Request) {
     .insert({
       match_id: body.match_id,
       draft_type: body.draft_type,
-      recipient: body.draft_type === "marketplace_takedown" ? listing.marketplace : "state_ag",
+      recipient:
+        body.draft_type === "marketplace_takedown"
+          ? listing.marketplace
+          : agContact?.email ?? agContact?.office ?? "tribal_legal_office",
       body: draftBody,
       status: "draft",
     })
@@ -156,5 +173,13 @@ export async function POST(req: Request) {
   if (insertErr) {
     return NextResponse.json({ error: insertErr.message }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, draft });
+  return NextResponse.json({
+    ok: true,
+    draft,
+    ag_contact: agContact,
+    subject:
+      body.draft_type === "ag_notification"
+        ? `Notice of unauthorized commercial use of ${tribe.name} intellectual property`
+        : `Takedown request: unauthorized use of ${tribe.name} mark`,
+  });
 }
