@@ -54,9 +54,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # CPU-only PyTorch — a fraction of the default CUDA build's size,
-          # so the install is much faster on the runner.
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          # CPU-only PyTorch — a fraction of the default CUDA build's size, so
+          # the install is much faster. torch + torchvision MUST be installed
+          # together from the same index, or their compiled ops mismatch
+          # ("operator torchvision::nms does not exist").
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
           pip install -r requirements.txt
 
       - name: Run scan
