@@ -8,8 +8,11 @@ name: Infringement scan
 #   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SCRAPER_API_KEY
 
 on:
-  # On-demand only — no schedule, so it burns zero Actions minutes until you
-  # trigger it (from the dashboard "Run scan" button or the Actions tab).
+  # Daily refresh so the dashboard stays current on its own. A run takes only a
+  # few minutes, so this uses ~150 of the 2,000 free Action-minutes/month.
+  schedule:
+    - cron: "0 13 * * *" # every day at 13:00 UTC
+  # Manual trigger from the GitHub Actions tab (free, no token needed).
   workflow_dispatch:
     inputs:
       tribe:

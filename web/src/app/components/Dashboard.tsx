@@ -19,29 +19,6 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(
     matches[0]?.id ?? null,
   );
-  const [scanState, setScanState] = useState<"idle" | "running" | "done" | "error">("idle");
-  const [scanMsg, setScanMsg] = useState<string | null>(null);
-
-  async function runScan() {
-    setScanState("running");
-    setScanMsg(null);
-    try {
-      const resp = await fetch("/api/run-scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // Scan just the tribe you're viewing — much faster than all of them.
-        body: JSON.stringify({ tribe: selectedTribe?.name ?? "" }),
-      });
-      if (!resp.ok) throw new Error(await resp.text());
-      setScanState("done");
-      setScanMsg(
-        `Scan started for ${selectedTribe?.name ?? "all tribes"} — results appear here in a few minutes. Refresh to see them.`,
-      );
-    } catch (e) {
-      setScanState("error");
-      setScanMsg(`Couldn't start scan: ${(e as Error).message}`);
-    }
-  }
 
   // Re-sync if a different tribe is selected
   const visibleMatches = matches;
@@ -102,28 +79,8 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
               )}
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex gap-2">
-              <button
-                onClick={runScan}
-                disabled={scanState === "running"}
-                className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800 disabled:opacity-50"
-              >
-                {scanState === "running" ? "Starting…" : "↻ Run scan"}
-              </button>
-              <button className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800">
-                ⚙ Tribes &amp; assets
-              </button>
-            </div>
-            {scanMsg && (
-              <p
-                className={`max-w-xs text-right text-xs ${
-                  scanState === "error" ? "text-rose-400" : "text-emerald-400"
-                }`}
-              >
-                {scanMsg}
-              </p>
-            )}
+          <div className="text-right text-xs text-zinc-500">
+            Auto-updated daily
           </div>
         </div>
 
