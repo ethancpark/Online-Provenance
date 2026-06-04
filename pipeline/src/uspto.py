@@ -13,7 +13,12 @@ trademark dataset from bulkdata.uspto.gov and parse locally.
 
 import urllib.parse
 
-TMSEARCH_BASE = "https://tmsearch.uspto.gov/search/search-information"
+# USPTO.gov has no deep-linkable search: the modern TMSearch is an Angular SPA
+# that loads blank from a URL (it ignores query params), and the old TESS is
+# retired. So for tribes WITHOUT a specific registered seal we link to Justia's
+# trademark mirror, which renders the real USPTO record listing (mark images,
+# serial numbers, status) and actually loads from a URL.
+JUSTIA_SEARCH_BASE = "https://trademarks.justia.com/search"
 
 # Tribes confirmed to hold USPTO-registered marks (based on public record).
 # status: "registered" | "pending" | "unknown"
@@ -58,13 +63,50 @@ KNOWN_MARKS: dict[str, dict] = {
         "status": "registered",
         "notes": "Registered marks",
     },
+    "Osage Nation": {
+        "status": "registered",
+        "notes": "Registered seal mark",
+    },
 }
+
+# Tribes whose actual seal mark we can deep-link to the specific USPTO record.
+# These are the marks that correspond to the seal image we match against.
+# serial = USPTO serial number; reg = registration number (if registered).
+SEAL_MARKS: dict[str, dict] = {
+    "Navajo Nation": {"serial": "90877301", "mark": "GREAT SEAL OF THE NAVAJO NATION"},
+    "Choctaw Nation of Oklahoma": {
+        "serial": "78139345",
+        "mark": "THE GREAT SEAL OF THE CHOCTAW NATION",
+    },
+    "Chickasaw Nation": {
+        "serial": "89000957",
+        "mark": "THE GREAT SEAL OF THE CHICKASAW NATION",
+    },
+    "Eastern Band of Cherokee Indians": {
+        "serial": "75481065",
+        "reg": "2308610",
+        "mark": "SEAL OF THE EASTERN BAND OF THE CHEROKEE NATION",
+    },
+    "Osage Nation": {
+        "serial": "77860702",
+        "reg": "3855869",
+        "mark": "SEAL OF OSAGE NATION",
+    },
+}
+
+# Official USPTO TSDR deep link — loads the specific case by serial number.
+TSDR_BASE = "https://tsdr.uspto.gov/"
 
 
 def _build_search_url(tribe_name: str) -> str:
-    """Build a direct tmsearch.uspto.gov URL for a tribe name."""
-    params = urllib.parse.urlencode({"searchInput": tribe_name, "searchType": "basic"})
-    return f"{TMSEARCH_BASE}?{params}"
+    """Build a Justia trademark-search URL listing the tribe's USPTO records."""
+    params = urllib.parse.urlencode({"q": tribe_name})
+    return f"{JUSTIA_SEARCH_BASE}?{params}"
+
+
+def _build_record_url(serial: str) -> str:
+    """Deep link to a specific trademark record in USPTO TSDR by serial number."""
+    return f"{TSDR_BASE}#caseNumber={serial}&caseType=SERIAL_NO&searchType=statusSearch"
 
 
 def lookup_trademark(tribe: dict) -> dict:
@@ -76,6 +118,23 @@ def lookup_trademark(tribe: dict) -> dict:
     canonical = tribe.get("canonical_name", name)
 
     known = KNOWN_MARKS.get(name) or KNOWN_MARKS.get(canonical)
+    seal = SEAL_MARKS.get(name) or SEAL_MARKS.get(canonical)
+
+    # Best case: we know the tribe's specific seal mark — deep-link to that exact
+    # USPTO record instead of a generic search.
+    if seal:
+        notes = f'{seal["mark"]} — USPTO Serial No. {seal["serial"]}'
+        if seal.get("reg"):
+            notes += f' (Reg. No. {seal["reg"]})'
+        return {
+            "tribe_name": name,
+            "has_registered_mark": bool(seal.get("reg")) or (known and known["status"] == "registered"),
+            "status": "registered" if seal.get("reg") else (known["status"] if known else "filed"),
+            "notes": notes,
+            "search_url": _build_record_url(seal["serial"]),
+            "uspto_serial": seal["serial"],
+            "source": "seal_record",
+        }
 
     if known:
         return {
@@ -91,7 +150,7 @@ def lookup_trademark(tribe: dict) -> dict:
         "tribe_name": name,
         "has_registered_mark": False,
         "status": "unknown",
-        "notes": "Trademark status not confirmed. Verify via the search URL.",
+        "notes": "No registered seal mark on file. Use the search to verify.",
         "search_url": _build_search_url(name),
         "source": "manual_check_required",
     }

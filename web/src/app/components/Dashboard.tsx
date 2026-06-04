@@ -19,6 +19,24 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(
     matches[0]?.id ?? null,
   );
+  const [scanState, setScanState] = useState<"idle" | "running" | "done" | "error">("idle");
+  const [scanMsg, setScanMsg] = useState<string | null>(null);
+
+  async function runScan() {
+    setScanState("running");
+    setScanMsg(null);
+    try {
+      const resp = await fetch("/api/run-scan", { method: "POST" });
+      if (!resp.ok) throw new Error(await resp.text());
+      setScanState("done");
+      setScanMsg(
+        "Scan started on GitHub Actions — results appear here in a few minutes. Refresh to see them.",
+      );
+    } catch (e) {
+      setScanState("error");
+      setScanMsg(`Couldn't start scan: ${(e as Error).message}`);
+    }
+  }
 
   // Re-sync if a different tribe is selected
   const visibleMatches = matches;
@@ -69,21 +87,38 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sky-400 hover:underline"
-                    title={selectedTribe.uspto_notes ?? "Search USPTO trademark records"}
+                    title={selectedTribe.uspto_notes ?? "USPTO trademark records"}
                   >
-                    USPTO trademark search ↗
+                    {selectedTribe.uspto_search_url.includes("tsdr.uspto.gov")
+                      ? "USPTO seal registration ↗"
+                      : "USPTO trademark records ↗"}
                   </a>
                 </>
               )}
             </div>
           </div>
-          <div className="flex gap-2">
-            <button className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800">
-              ↻ Run scan
-            </button>
-            <button className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800">
-              ⚙ Tribes &amp; assets
-            </button>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex gap-2">
+              <button
+                onClick={runScan}
+                disabled={scanState === "running"}
+                className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800 disabled:opacity-50"
+              >
+                {scanState === "running" ? "Starting…" : "↻ Run scan"}
+              </button>
+              <button className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-800">
+                ⚙ Tribes &amp; assets
+              </button>
+            </div>
+            {scanMsg && (
+              <p
+                className={`max-w-xs text-right text-xs ${
+                  scanState === "error" ? "text-rose-400" : "text-emerald-400"
+                }`}
+              >
+                {scanMsg}
+              </p>
+            )}
           </div>
         </div>
 

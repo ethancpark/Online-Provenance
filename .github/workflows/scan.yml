@@ -1,0 +1,56 @@
+name: Infringement scan
+
+# Runs the scraping + CLIP-matching pipeline in the cloud on a schedule, so the
+# dashboard stays fresh without anyone running commands locally. Results are
+# written to Supabase; the Next.js dashboard just reads them.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SCRAPER_API_KEY
+
+on:
+  # On-demand only — no schedule, so it burns zero Actions minutes until you
+  # trigger it (from the dashboard "Run scan" button or the Actions tab).
+  workflow_dispatch:
+    inputs:
+      marketplace:
+        description: "Marketplace to scan"
+        type: choice
+        options: [amazon, alibaba, both]
+        default: amazon
+      max_per_query:
+        description: "Max listings per search query"
+        default: "10"
+
+# Don't let two scans run at once (they'd write the same rows).
+concurrency:
+  group: infringement-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: pipeline/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scan
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
+        run: |
+          python -m scripts.run_scan \
+            --marketplace "${{ github.event.inputs.marketplace || 'amazon' }}" \
+            --max-per-query "${{ github.event.inputs.max_per_query || '10' }}"
