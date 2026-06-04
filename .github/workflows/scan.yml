@@ -12,6 +12,9 @@ on:
   # trigger it (from the dashboard "Run scan" button or the Actions tab).
   workflow_dispatch:
     inputs:
+      tribe:
+        description: "Single tribe to scan (blank = all tribes)"
+        default: ""
       marketplace:
         description: "Marketplace to scan"
         type: choice
@@ -42,8 +45,19 @@ jobs:
           cache: "pip"
           cache-dependency-path: pipeline/requirements.txt
 
+      # Cache the CLIP model weights (~600MB) so repeat runs skip the download.
+      - name: Cache CLIP model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: clip-vit-b32-laion2b
+
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          # CPU-only PyTorch — a fraction of the default CUDA build's size,
+          # so the install is much faster on the runner.
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
 
       - name: Run scan
         env:
@@ -51,6 +65,6 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
         run: |
-          python -m scripts.run_scan \
+          python -m scripts.run_scan "${{ github.event.inputs.tribe }}" \
             --marketplace "${{ github.event.inputs.marketplace || 'amazon' }}" \
             --max-per-query "${{ github.event.inputs.max_per_query || '10' }}"

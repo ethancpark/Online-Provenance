@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 //   GITHUB_REF             branch to run on (default: main)
 
 type Body = {
+  tribe?: string; // single tribe name; blank/omitted = scan all
   marketplace?: "amazon" | "alibaba" | "both";
   max_per_query?: string;
 };
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         ref,
         inputs: {
+          tribe: body.tribe ?? "",
           marketplace: body.marketplace ?? "amazon",
           max_per_query: body.max_per_query ?? "10",
         },

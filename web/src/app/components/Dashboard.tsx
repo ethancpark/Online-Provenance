@@ -26,11 +26,16 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
     setScanState("running");
     setScanMsg(null);
     try {
-      const resp = await fetch("/api/run-scan", { method: "POST" });
+      const resp = await fetch("/api/run-scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Scan just the tribe you're viewing — much faster than all of them.
+        body: JSON.stringify({ tribe: selectedTribe?.name ?? "" }),
+      });
       if (!resp.ok) throw new Error(await resp.text());
       setScanState("done");
       setScanMsg(
-        "Scan started on GitHub Actions — results appear here in a few minutes. Refresh to see them.",
+        `Scan started for ${selectedTribe?.name ?? "all tribes"} — results appear here in a few minutes. Refresh to see them.`,
       );
     } catch (e) {
       setScanState("error");
