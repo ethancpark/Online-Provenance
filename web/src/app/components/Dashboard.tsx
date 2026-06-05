@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Tribe, MatchRow, TribeSummary } from "@/lib/types";
+import AboutProject from "./AboutProject";
 import StatsHeader from "./StatsHeader";
 import ReviewQueue from "./ReviewQueue";
 import ListingDetail from "./ListingDetail";
@@ -72,6 +73,9 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
             </button>
           </div>
         </div>
+
+        {/* About this project */}
+        <AboutProject />
 
         {/* KPI cards */}
         <StatsHeader summary={summary} />
