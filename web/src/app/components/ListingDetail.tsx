@@ -354,20 +354,7 @@ export default function ListingDetail({ match, tribe }: Props) {
           </p>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            disabled={busy !== null}
-            onClick={() =>
-              action(
-                "/api/match-action",
-                { match_id: match.id, status: "confirmed" },
-                "Marked as infringing",
-              )
-            }
-            className="rounded-md border border-emerald-700 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-900/50 disabled:opacity-50"
-          >
-            ✓ Confirm infringing
-          </button>
+        <div className="mt-3">
           <button
             disabled={busy !== null}
             onClick={() =>
@@ -377,7 +364,7 @@ export default function ListingDetail({ match, tribe }: Props) {
                 "Dismissed",
               )
             }
-            className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
+            className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
           >
             ✕ Dismiss
           </button>

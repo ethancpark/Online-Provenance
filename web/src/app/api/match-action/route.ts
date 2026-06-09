@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase";
 
-type Body = { match_id: string; status: "confirmed" | "dismissed" };
+type Body = { match_id: string; status: "dismissed" };
 
 export async function POST(req: Request) {
   const body = (await req.json()) as Body;
-  if (!body.match_id || !["confirmed", "dismissed"].includes(body.status)) {
+  if (!body.match_id || body.status !== "dismissed") {
     return NextResponse.json({ error: "bad payload" }, { status: 400 });
   }
 
