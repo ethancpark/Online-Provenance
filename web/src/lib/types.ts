@@ -33,7 +33,7 @@ export type Listing = {
 };
 
 export type ConfidenceBand = "low" | "medium" | "high";
-export type MatchStatus = "awaiting_review" | "confirmed" | "dismissed";
+export type MatchStatus = "awaiting_review" | "dismissed";
 
 export type Match = {
   id: string;
