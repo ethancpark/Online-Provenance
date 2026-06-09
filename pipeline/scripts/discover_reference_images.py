@@ -162,12 +162,16 @@ def discover_for_tribe(name: str) -> list[dict]:
             titles = []
         match = _best_match(titles, core, kind)
         # Fallback: pull the asset from the tribe's Wikipedia article infobox,
-        # which often hosts a seal/flag the Commons keyword search misses.
+        # AND from a dedicated "Flag of the X" / "Seal of the X" article, which
+        # often hosts a seal/flag the Commons keyword search misses.
         if not match:
-            article_titles = [
-                t for t in _article_images(name)
-                if kind in t.lower() and any(tok in t.lower() for tok in core)
-            ]
+            articles = [name, f"{kind.capitalize()} of the {name}", f"{kind.capitalize()} of {name}"]
+            article_titles = []
+            for art in articles:
+                article_titles += [
+                    t for t in _article_images(art)
+                    if kind in t.lower() and any(tok in t.lower() for tok in core)
+                ]
             match = _best_match(article_titles, core, kind)
         if not match:
             continue

@@ -29,9 +29,14 @@ from src.image_matcher import match_listing_image
 # Minimum CLIP similarity required to STORE a match. Below this, the listing is
 # almost certainly unrelated (a generic flag, jewelry, a book cover) and would
 # only pollute the review queue — so we drop it instead of writing noise.
-# Per the band design: >=0.85 high, 0.70-0.85 medium, <0.70 probably unrelated.
-# Tunable via env if you want a wider net for a specific scan.
-MATCH_MIN_CONFIDENCE = float(os.getenv("MATCH_MIN_CONFIDENCE", "0.70"))
+#
+# Set to 0.60 (not 0.70): real merchandise where the seal/flag is photographed
+# on a pole, with perspective and a sky/white background, scores noticeably
+# lower than a flat reference render — often 0.60-0.69 — so a 0.70 floor was
+# silently dropping genuine flags (e.g. the Osage flags on Amazon). The obvious
+# junk (random national flags, jewelry) scored 0.15-0.41, well below 0.60, so it
+# stays filtered. Tunable via env.
+MATCH_MIN_CONFIDENCE = float(os.getenv("MATCH_MIN_CONFIDENCE", "0.60"))
 
 
 def _query_terms_for(tribe_name: str) -> list[str]:
