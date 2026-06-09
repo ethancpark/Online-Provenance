@@ -286,41 +286,31 @@ export default function ListingDetail({ match, tribe }: Props) {
           </dd>
         </dl>
 
-        {/* Generate a draft notice (in-app preview + Gmail/copy) */}
+        {/* Notify the tribe's own legal office (in-app draft preview + Gmail/copy) */}
         <div className="mt-5">
           <div className="mb-2 text-xs uppercase tracking-wide text-zinc-400">
-            Generate response
+            Notify the tribe
           </div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <button
-              disabled={busy !== null}
-              onClick={() => generateDraft("marketplace_takedown")}
-              className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
-            >
-              {busy === "/api/draft:marketplace_takedown"
-                ? "Drafting…"
-                : "📄 Draft marketplace takedown"}
-            </button>
-            <button
-              disabled={busy !== null}
-              onClick={() => generateDraft("ag_notification")}
-              className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
-            >
-              {busy === "/api/draft:ag_notification"
-                ? "Drafting…"
-                : "✉ Draft tribal legal notice"}
-            </button>
-          </div>
-          {agContact && (
-            <p className="mt-2 text-xs text-zinc-500">
-              Recipient: {agContact.office}
-              {agContact.email
-                ? ` · ${agContact.email}`
-                : agContact.phone
-                  ? ` · ${agContact.phone} (no public email)`
-                  : " · no public email"}
-            </p>
-          )}
+          <button
+            disabled={busy !== null}
+            onClick={() => generateDraft("ag_notification")}
+            className="w-full rounded-md border border-sky-700 bg-sky-900/30 px-3 py-2 text-sm text-sky-200 hover:bg-sky-900/50 disabled:opacity-50"
+          >
+            {busy === "/api/draft:ag_notification"
+              ? "Drafting…"
+              : "✉ Draft tribal legal notice"}
+          </button>
+          <p className="mt-1 text-xs text-zinc-500">
+            {agContact
+              ? `Drafts a notice to ${agContact.office}${
+                  agContact.email
+                    ? ` (${agContact.email})`
+                    : agContact.phone
+                      ? ` (${agContact.phone}, no public email)`
+                      : " (no public email)"
+                }.`
+              : "Drafts a notice to the tribe's own legal office for review."}
+          </p>
         </div>
 
         {/* Report straight to the marketplace (DMCA email / IPP portal) */}

@@ -21,6 +21,9 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
     matches[0]?.id ?? null,
   );
 
+  // Tribes listed alphabetically in the dropdown
+  const sortedTribes = [...tribes].sort((a, b) => a.name.localeCompare(b.name));
+
   // Re-sync if a different tribe is selected
   const visibleMatches = matches;
   const selectedMatch = useMemo(
@@ -46,7 +49,7 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
                 onChange={handleTribeChange}
                 className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-zinc-100 focus:border-zinc-500 focus:outline-none"
               >
-                {tribes.map((t) => (
+                {sortedTribes.map((t) => (
                   <option key={t.id} value={t.name}>
                     {t.name}
                   </option>
