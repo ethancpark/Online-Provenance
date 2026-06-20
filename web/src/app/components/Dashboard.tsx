@@ -101,7 +101,7 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
             selectedMatchId={selectedMatch?.id ?? null}
             onSelect={setSelectedMatchId}
           />
-          <ListingDetail match={selectedMatch} tribe={selectedTribe} />
+          <ListingDetail match={selectedMatch} />
         </div>
 
         <p className="mt-8 text-center text-xs text-zinc-500">

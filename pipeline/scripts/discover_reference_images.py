@@ -14,6 +14,7 @@ Run from the pipeline/ directory:
 import argparse
 import os
 import sys
+import time
 
 import requests
 
@@ -189,15 +190,26 @@ def discover_for_tribe(name: str) -> list[dict]:
     return found
 
 
-def run(name_filter: str | None, dry_run: bool):
+def run(name_filter: str | None, dry_run: bool, refresh: bool = False):
     client = get_client()
     tribes = client.table("tribes").select("id,name,canonical_name").order("rank").execute().data
     if name_filter:
         tribes = [t for t in tribes if t["name"] == name_filter]
 
+    # Only fill gaps: skip tribes that already have a reference asset, so we
+    # don't clobber existing Wikimedia refs or the authoritative USPTO seals.
+    if not refresh and not name_filter:
+        existing = client.table("reference_assets").select("tribe_id").execute().data
+        have = {a["tribe_id"] for a in existing}
+        before = len(tribes)
+        tribes = [t for t in tribes if t["id"] not in have]
+        print(f"Skipping {before - len(tribes)} tribes that already have a reference; "
+              f"sourcing the remaining {len(tribes)}.\n")
+
     stored = 0
     tribes_with_assets = 0
     for t in tribes:
+        time.sleep(0.4)  # be polite to Wikimedia / avoid 429 rate-limiting
         assets = discover_for_tribe(t["name"])
         if not assets:
             print(f"✗ {t['name']}: nothing found on Commons")
@@ -234,5 +246,6 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("tribe", nargs="?", default=None)
     p.add_argument("--dry-run", action="store_true", help="search & print, don't store")
+    p.add_argument("--refresh", action="store_true", help="re-process tribes that already have a reference")
     args = p.parse_args()
-    run(args.tribe, args.dry_run)
+    run(args.tribe, args.dry_run, args.refresh)

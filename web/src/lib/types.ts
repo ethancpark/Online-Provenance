@@ -21,7 +21,7 @@ export type ReferenceAsset = {
 export type Listing = {
   id: string;
   tribe_id: string;
-  marketplace: "amazon" | "alibaba";
+  marketplace: "amazon" | "temu";
   marketplace_id: string | null;
   title: string;
   seller: string | null;

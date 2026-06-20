@@ -1,21 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { MatchRow, Tribe } from "@/lib/types";
-import { getTribalLegalContact } from "@/lib/tribalLegal";
+import type { MatchRow } from "@/lib/types";
 
-type Props = { match: MatchRow | null; tribe: Tribe | null };
-
-type DraftPreview = {
-  title: string;
-  recipientLabel: string;
-  email: string | null;
-  phone: string | null;
-  contactUrl: string | null;
-  contactNote: string | null;
-  subject: string;
-  body: string;
-};
+type Props = { match: MatchRow | null };
 
 type Reporter = {
   name: string;
@@ -51,7 +39,7 @@ function loadStoredReporter(): Reporter {
 
 function marketplaceLabel(mp: string) {
   if (mp === "amazon") return "Amazon US";
-  if (mp === "alibaba") return "Alibaba";
+  if (mp === "temu") return "Temu";
   return mp;
 }
 
@@ -61,27 +49,11 @@ function bandColor(band: string) {
   return "text-zinc-400";
 }
 
-// Open Gmail's web compose window pre-filled — no native mail client involved.
-function openInGmail(draft: DraftPreview) {
-  const params = new URLSearchParams({ view: "cm", fs: "1" });
-  if (draft.email) params.set("to", draft.email);
-  if (draft.subject) params.set("su", draft.subject);
-  if (draft.body) params.set("body", draft.body);
-  window.open(
-    `https://mail.google.com/mail/?${params.toString()}`,
-    "_blank",
-    "noopener,noreferrer",
-  );
-}
-
-export default function ListingDetail({ match, tribe }: Props) {
+export default function ListingDetail({ match }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [draft, setDraft] = useState<DraftPreview | null>(null);
-  const [copied, setCopied] = useState<string | null>(null);
   const [reporterModalOpen, setReporterModalOpen] = useState(false);
   const [reporter, setReporter] = useState<Reporter>(EMPTY_REPORTER);
-  const agContact = tribe ? getTribalLegalContact(tribe) : null;
 
   if (!match) {
     return (
@@ -106,6 +78,7 @@ export default function ListingDetail({ match, tribe }: Props) {
       });
       if (!resp.ok) throw new Error(await resp.text());
       setFeedback(successMsg);
+      // Refresh data
       setTimeout(() => window.location.reload(), 600);
     } catch (e) {
       setFeedback(`Failed: ${(e as Error).message}`);
@@ -114,78 +87,6 @@ export default function ListingDetail({ match, tribe }: Props) {
     }
   }
 
-  // Generate a draft and show it in an in-app preview with copy buttons.
-  // No mail client involved — the user copies and sends however they like.
-  async function generateDraft(
-    draftType: "ag_notification" | "marketplace_takedown",
-  ) {
-    if (!match) return;
-    const key = `/api/draft:${draftType}`;
-    setBusy(key);
-    setFeedback(null);
-    try {
-      const resp = await fetch("/api/draft", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ match_id: match.id, draft_type: draftType }),
-      });
-      if (!resp.ok) throw new Error(await resp.text());
-      const data = (await resp.json()) as {
-        draft?: { body?: string };
-        ag_contact?: {
-          email: string | null;
-          office: string;
-          contactUrl: string;
-          phone?: string | null;
-          note?: string;
-        } | null;
-        subject?: string;
-      };
-      const bodyText = data.draft?.body ?? "";
-      const subject = data.subject ?? "";
-
-      if (draftType === "ag_notification") {
-        const c = data.ag_contact ?? null;
-        setDraft({
-          title: "Tribal legal-office notification",
-          recipientLabel: c?.office ?? "Tribe's legal office",
-          email: c?.email ?? null,
-          phone: c?.phone ?? null,
-          contactUrl: c?.contactUrl ?? null,
-          contactNote: c?.note ?? null,
-          subject,
-          body: bodyText,
-        });
-      } else {
-        setDraft({
-          title: "Marketplace takedown notice",
-          recipientLabel: `${marketplaceLabel(listing.marketplace)} — Brand Protection / IP team`,
-          email: null,
-          phone: null,
-          contactUrl: listing.listing_url,
-          contactNote: null,
-          subject,
-          body: bodyText,
-        });
-      }
-    } catch (e) {
-      setFeedback(`Failed: ${(e as Error).message}`);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function copy(text: string, key: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(key);
-      setTimeout(() => setCopied((c) => (c === key ? null : c)), 1500);
-    } catch {
-      setCopied(null);
-    }
-  }
-
-  // Friend's feature: file a DMCA / IPP report to the marketplace itself.
   async function reportToMarketplace(reporterToSend: Reporter) {
     setBusy("/api/report");
     setFeedback(null);
@@ -223,7 +124,7 @@ export default function ListingDetail({ match, tribe }: Props) {
         }
         window.open(d.portal_url, "_blank", "noopener,noreferrer");
         setFeedback(
-          `Notice copied to clipboard. Alibaba's IPP portal opened in a new tab — paste into the complaint form.`,
+          `Notice copied to clipboard. Temu's IP portal opened in a new tab — paste into the complaint form.`,
         );
       }
     } catch (e) {
@@ -286,34 +187,40 @@ export default function ListingDetail({ match, tribe }: Props) {
           </dd>
         </dl>
 
-        {/* Notify the tribe's own legal office (in-app draft preview + Gmail/copy) */}
         <div className="mt-5">
           <div className="mb-2 text-xs uppercase tracking-wide text-zinc-400">
-            Notify the tribe
+            Generate response
           </div>
-          <button
-            disabled={busy !== null}
-            onClick={() => generateDraft("ag_notification")}
-            className="w-full rounded-md border border-sky-700 bg-sky-900/30 px-3 py-2 text-sm text-sky-200 hover:bg-sky-900/50 disabled:opacity-50"
-          >
-            {busy === "/api/draft:ag_notification"
-              ? "Drafting…"
-              : "✉ Draft tribal legal notice"}
-          </button>
-          <p className="mt-1 text-xs text-zinc-500">
-            {agContact
-              ? `Drafts a notice to ${agContact.office}${
-                  agContact.email
-                    ? ` (${agContact.email})`
-                    : agContact.phone
-                      ? ` (${agContact.phone}, no public email)`
-                      : " (no public email)"
-                }.`
-              : "Drafts a notice to the tribe's own legal office for review."}
-          </p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button
+              disabled={busy !== null}
+              onClick={() =>
+                action(
+                  "/api/draft",
+                  { match_id: match.id, draft_type: "marketplace_takedown" },
+                  "Marketplace takedown drafted",
+                )
+              }
+              className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
+            >
+              {busy === "/api/draft" ? "Drafting…" : "📄 Draft marketplace takedown"}
+            </button>
+            <button
+              disabled={busy !== null}
+              onClick={() =>
+                action(
+                  "/api/draft",
+                  { match_id: match.id, draft_type: "ag_notification" },
+                  "AG notification drafted",
+                )
+              }
+              className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
+            >
+              📁 Draft AG notification
+            </button>
+          </div>
         </div>
 
-        {/* Report straight to the marketplace (DMCA email / IPP portal) */}
         <div className="mt-5">
           <div className="mb-2 text-xs uppercase tracking-wide text-zinc-400">
             Report to marketplace
@@ -331,20 +238,33 @@ export default function ListingDetail({ match, tribe }: Props) {
               ? "Preparing notice…"
               : listing.marketplace === "amazon"
                 ? "🚩 Report to Amazon (DMCA email)"
-                : listing.marketplace === "alibaba"
-                  ? "🚩 Report to Alibaba (IPP portal)"
+                : listing.marketplace === "temu"
+                  ? "🚩 Report to Temu (IP portal)"
                   : "🚩 Report to marketplace"}
           </button>
           <p className="mt-1 text-xs text-zinc-500">
             {listing.marketplace === "amazon"
               ? "Opens your email client with a DMCA notice addressed to notice@amazon.com. Review before sending."
-              : listing.marketplace === "alibaba"
-                ? "Copies the complaint to your clipboard and opens the Alibaba IPP portal in a new tab."
+              : listing.marketplace === "temu"
+                ? "Copies the complaint to your clipboard and opens the Temu IP portal in a new tab."
                 : "Prepares a complaint for this marketplace."}
           </p>
         </div>
 
-        <div className="mt-3">
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            disabled={busy !== null}
+            onClick={() =>
+              action(
+                "/api/match-action",
+                { match_id: match.id, status: "confirmed" },
+                "Marked as infringing",
+              )
+            }
+            className="rounded-md border border-emerald-700 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-900/50 disabled:opacity-50"
+          >
+            ✓ Confirm infringing
+          </button>
           <button
             disabled={busy !== null}
             onClick={() =>
@@ -354,7 +274,7 @@ export default function ListingDetail({ match, tribe }: Props) {
                 "Dismissed",
               )
             }
-            className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
+            className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
           >
             ✕ Dismiss
           </button>
@@ -367,19 +287,10 @@ export default function ListingDetail({ match, tribe }: Props) {
         )}
 
         <p className="mt-4 text-xs text-zinc-500">
-          Drafts and notices are prepared for your review — nothing is sent until you
-          confirm in your email client or the marketplace portal.
+          The Report button pre-fills the notice — nothing is sent until you confirm in
+          your email client or the IP portal.
         </p>
       </div>
-
-      {draft && (
-        <DraftModal
-          draft={draft}
-          copied={copied}
-          onCopy={copy}
-          onClose={() => setDraft(null)}
-        />
-      )}
 
       {reporterModalOpen && (
         <ReporterModal
@@ -397,115 +308,6 @@ export default function ListingDetail({ match, tribe }: Props) {
           }}
         />
       )}
-    </div>
-  );
-}
-
-function DraftModal({
-  draft,
-  copied,
-  onCopy,
-  onClose,
-}: {
-  draft: DraftPreview;
-  copied: string | null;
-  onCopy: (text: string, key: string) => void;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="flex max-h-[88vh] w-full max-w-2xl flex-col rounded-lg border border-zinc-700 bg-zinc-900 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-zinc-800 px-5 py-4">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-100">{draft.title}</h3>
-            <p className="mt-1 text-xs text-zinc-400">
-              To: <span className="text-zinc-300">{draft.recipientLabel}</span>
-            </p>
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-              {draft.email ? (
-                <span className="text-emerald-300">{draft.email}</span>
-              ) : (
-                <span className="text-amber-300">no public email</span>
-              )}
-              {draft.phone && <span className="text-zinc-400">{draft.phone}</span>}
-              {draft.contactUrl && (
-                <a
-                  href={draft.contactUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sky-400 hover:underline"
-                >
-                  contact page ↗
-                </a>
-              )}
-            </div>
-            {draft.contactNote && (
-              <p className="mt-1 text-xs text-zinc-500">{draft.contactNote}</p>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-md border border-zinc-700 px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-800"
-          >
-            ✕ Close
-          </button>
-        </div>
-
-        {/* Subject */}
-        <div className="border-b border-zinc-800 px-5 py-3">
-          <div className="text-[11px] uppercase tracking-wide text-zinc-500">Subject</div>
-          <div className="mt-0.5 text-sm text-zinc-200">{draft.subject || "—"}</div>
-        </div>
-
-        {/* Body */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          <textarea
-            readOnly
-            value={draft.body}
-            className="h-72 w-full resize-none rounded-md border border-zinc-800 bg-zinc-950 p-3 font-mono text-xs leading-relaxed text-zinc-200 focus:border-zinc-600 focus:outline-none"
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-wrap items-center gap-2 border-t border-zinc-800 px-5 py-4">
-          <button
-            onClick={() => openInGmail(draft)}
-            className="rounded-md border border-rose-700 bg-rose-900/30 px-3 py-2 text-sm font-medium text-rose-200 hover:bg-rose-900/50"
-          >
-            ✉ Open in Gmail
-          </button>
-          <button
-            onClick={() => onCopy(draft.body, "body")}
-            className="rounded-md border border-sky-700 bg-sky-900/30 px-3 py-2 text-sm text-sky-200 hover:bg-sky-900/50"
-          >
-            {copied === "body" ? "✓ Copied" : "📋 Copy letter"}
-          </button>
-          {draft.email && (
-            <button
-              onClick={() => onCopy(draft.email!, "email")}
-              className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700"
-            >
-              {copied === "email" ? "✓ Copied" : "📋 Copy address"}
-            </button>
-          )}
-          <button
-            onClick={() => onCopy(draft.subject, "subject")}
-            className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700"
-          >
-            {copied === "subject" ? "✓ Copied" : "📋 Copy subject"}
-          </button>
-          <span className="ml-auto text-xs text-zinc-500">
-            Saved to drafts · review before sending
-          </span>
-        </div>
-      </div>
     </div>
   );
 }

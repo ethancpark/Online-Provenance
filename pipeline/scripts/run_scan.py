@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.db import get_client
 from src.amazon_search import search as amazon_search
-from src.alibaba_search import search as alibaba_search
+from src.temu_search import search as temu_search
 from src.image_matcher import match_listing_image
 
 # Minimum CLIP similarity required to STORE a match. Below this, the listing is
@@ -101,12 +101,12 @@ def _upsert_match(client, listing_id: str, match) -> None:
 def _searchers_for(marketplace: str) -> list:
     """Return the list of (label, search_fn) to run for a marketplace choice."""
     amazon = ("amazon", lambda q, n: amazon_search(q, fetch_sellers=False, max_results=n))
-    alibaba = ("alibaba", lambda q, n: alibaba_search(q, max_results=n))
+    temu = ("temu", lambda q, n: temu_search(q, max_results=n))
     if marketplace == "amazon":
         return [amazon]
-    if marketplace == "alibaba":
-        return [alibaba]
-    return [amazon, alibaba]  # "both"
+    if marketplace == "temu":
+        return [temu]
+    return [amazon, temu]  # "both"
 
 
 def run_scan(
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     parser.add_argument("--max-per-query", type=int, default=10)
     parser.add_argument(
         "--marketplace",
-        choices=["amazon", "alibaba", "both"],
+        choices=["amazon", "temu", "both"],
         default="both",
         help="Which marketplace(s) to scan (default: both)",
     )

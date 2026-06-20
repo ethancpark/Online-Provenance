@@ -21,7 +21,7 @@ on:
       marketplace:
         description: "Marketplace to scan"
         type: choice
-        options: [amazon, alibaba, both]
+        options: [amazon, temu, both]
         default: amazon
       max_per_query:
         description: "Max listings per search query"

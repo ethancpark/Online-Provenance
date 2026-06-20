@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Indigenous Scraper — Infringement monitor",
   description:
-    "Surface unauthorized merchandise reproducing federally recognized tribes' seals and flags on Amazon and Alibaba.",
+    "Surface unauthorized merchandise reproducing federally recognized tribes' seals and flags on Amazon and Temu.",
 };
 
 export default function RootLayout({

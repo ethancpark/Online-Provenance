@@ -18,7 +18,7 @@ type NoticeContext = {
   asset_description: string;
   listing_title: string;
   listing_url: string;
-  marketplace: "amazon" | "alibaba" | string;
+  marketplace: "amazon" | "temu" | string;
   seller: string | null;
 };
 
@@ -84,12 +84,12 @@ function buildAmazonNotice(ctx: NoticeContext, r: Reporter): string {
     .join("\n");
 }
 
-function buildAlibabaNotice(ctx: NoticeContext, r: Reporter): string {
+function buildTemuNotice(ctx: NoticeContext, r: Reporter): string {
   const today = new Date().toISOString().slice(0, 10);
   return [
     `Subject: Intellectual Property Infringement Complaint — ${ctx.tribe_name}`,
     ``,
-    `To: Alibaba Group Intellectual Property Protection (IPP) Platform`,
+    `To: Temu Intellectual Property Protection Team`,
     `Date: ${today}`,
     ``,
     `Rights holder: ${ctx.tribe_name}${ctx.uspto_registered ? " (USPTO-registered mark)" : ""}`,
@@ -101,7 +101,7 @@ function buildAlibabaNotice(ctx: NoticeContext, r: Reporter): string {
     `  Seller: ${ctx.seller ?? "unknown"}`,
     ``,
     `Complaint:`,
-    `The above listing reproduces ${ctx.tribe_name}'s ${ctx.asset_description} without authorization. We request that the listing be removed pursuant to Alibaba's intellectual property protection policies.`,
+    `The above listing reproduces ${ctx.tribe_name}'s ${ctx.asset_description} without authorization. We request that the listing be removed pursuant to Temu's intellectual property protection policies.`,
     ``,
     `Complainant information:`,
     `  Name: ${r.name}`,
@@ -175,7 +175,7 @@ export async function POST(req: Request) {
     listings: {
       title: string;
       listing_url: string;
-      marketplace: "amazon" | "alibaba" | string;
+      marketplace: "amazon" | "temu" | string;
       seller: string | null;
       tribes: { name: string; has_registered_mark: boolean };
     };
@@ -205,16 +205,17 @@ export async function POST(req: Request) {
       body: noticeBody,
     };
     recipientLabel = "amazon:notice@amazon.com";
-  } else if (ctx.marketplace === "alibaba") {
-    const noticeBody = buildAlibabaNotice(ctx, reporter);
+  } else if (ctx.marketplace === "temu") {
+    const noticeBody = buildTemuNotice(ctx, reporter);
     const subject = `IP Infringement Complaint — ${ctx.tribe_name}`;
     dispatch = {
       method: "portal",
-      portal_url: "https://ipp.alibabagroup.com",
+      // Temu's IP complaint portal — verify the exact submission URL.
+      portal_url: "https://www.temu.com/intellectual-property-and-takedown-policy.html",
       subject,
       body: noticeBody,
     };
-    recipientLabel = "alibaba:ipp_portal";
+    recipientLabel = "temu:ip_portal";
   } else {
     return NextResponse.json(
       { error: `Unsupported marketplace: ${ctx.marketplace}` },

@@ -28,7 +28,7 @@ export default function AboutProject() {
             American tribes by identifying and reporting unauthorized commercial use
             of tribal flags, emblems, and protected cultural assets on online
             marketplaces. The platform will maintain a verified database of federally
-            recognized tribes, monitor e-commerce sites such as Amazon and Alibaba
+            recognized tribes, monitor e-commerce sites such as Amazon and Temu
             for potential misuse, trademark violations, and copyright infringements,
             and streamline the process of documenting and reporting violations to the
             appropriate tribal authorities and legal entities.

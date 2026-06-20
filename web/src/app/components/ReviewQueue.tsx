@@ -24,7 +24,7 @@ function bandBadge(band: ConfidenceBand, confidence: number) {
 
 function marketplaceIcon(mp: string) {
   if (mp === "amazon") return "🛒";
-  if (mp === "alibaba") return "📦";
+  if (mp === "temu") return "📦";
   return "•";
 }
 
@@ -33,7 +33,7 @@ export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Prop
     <div className="rounded-lg border border-zinc-800 bg-zinc-900">
       <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
         <h2 className="text-sm font-medium">Review queue</h2>
-        <span className="text-xs text-zinc-500">Amazon, Alibaba</span>
+        <span className="text-xs text-zinc-500">Amazon, Temu</span>
       </div>
 
       <div className="max-h-[560px] overflow-y-auto">
