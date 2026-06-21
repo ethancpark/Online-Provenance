@@ -1,0 +1,302 @@
+[
+  {
+    "rank": 1,
+    "name": "Navajo Nation",
+    "canonical_name": "Navajo Nation",
+    "matched": false
+  },
+  {
+    "rank": 2,
+    "name": "Cherokee Nation",
+    "canonical_name": "Cherokee Nation",
+    "matched": false
+  },
+  {
+    "rank": 3,
+    "name": "Choctaw Nation of Oklahoma",
+    "canonical_name": "Choctaw Nation of Oklahoma",
+    "matched": false
+  },
+  {
+    "rank": 4,
+    "name": "Chickasaw Nation",
+    "canonical_name": "Chickasaw Nation",
+    "matched": false
+  },
+  {
+    "rank": 5,
+    "name": "Muscogee (Creek) Nation",
+    "canonical_name": "Muscogee (Creek) Nation",
+    "matched": false
+  },
+  {
+    "rank": 6,
+    "name": "Blackfeet Tribe of the Blackfeet Indian Reservation",
+    "canonical_name": "Blackfeet Tribe of the Blackfeet Indian Reservation",
+    "matched": false
+  },
+  {
+    "rank": 7,
+    "name": "Osage Nation",
+    "canonical_name": "Osage Nation",
+    "matched": false
+  },
+  {
+    "rank": 8,
+    "name": "Crow Tribe of Indians",
+    "canonical_name": "Crow Tribe of Indians",
+    "matched": false
+  },
+  {
+    "rank": 9,
+    "name": "Standing Rock Sioux Tribe",
+    "canonical_name": "Standing Rock Sioux Tribe",
+    "matched": false
+  },
+  {
+    "rank": 10,
+    "name": "Oglala Sioux Tribe",
+    "canonical_name": "Oglala Sioux Tribe",
+    "matched": false
+  },
+  {
+    "rank": 11,
+    "name": "Rosebud Sioux Tribe",
+    "canonical_name": "Rosebud Sioux Tribe",
+    "matched": false
+  },
+  {
+    "rank": 12,
+    "name": "Fort Peck Assiniboine and Sioux Tribes",
+    "canonical_name": "Fort Peck Assiniboine and Sioux Tribes",
+    "matched": false
+  },
+  {
+    "rank": 13,
+    "name": "Cheyenne River Sioux Tribe",
+    "canonical_name": "Cheyenne River Sioux Tribe",
+    "matched": false
+  },
+  {
+    "rank": 14,
+    "name": "Sisseton-Wahpeton Oyate of the Lake Traverse Reservation",
+    "canonical_name": "Sisseton-Wahpeton Oyate of the Lake Traverse Reservation",
+    "matched": false
+  },
+  {
+    "rank": 15,
+    "name": "Turtle Mountain Band of Chippewa Indians",
+    "canonical_name": "Turtle Mountain Band of Chippewa Indians",
+    "matched": false
+  },
+  {
+    "rank": 16,
+    "name": "White Earth Band of the Minnesota Chippewa Tribe",
+    "canonical_name": "White Earth Band of the Minnesota Chippewa Tribe",
+    "matched": false
+  },
+  {
+    "rank": 17,
+    "name": "Red Lake Band of Chippewa Indians",
+    "canonical_name": "Red Lake Band of Chippewa Indians",
+    "matched": false
+  },
+  {
+    "rank": 18,
+    "name": "Leech Lake Band of Ojibwe",
+    "canonical_name": "Leech Lake Band of Ojibwe",
+    "matched": false
+  },
+  {
+    "rank": 19,
+    "name": "Mille Lacs Band of Ojibwe",
+    "canonical_name": "Mille Lacs Band of Ojibwe",
+    "matched": false
+  },
+  {
+    "rank": 20,
+    "name": "Fond du Lac Band of Lake Superior Chippewa",
+    "canonical_name": "Fond du Lac Band of Lake Superior Chippewa",
+    "matched": false
+  },
+  {
+    "rank": 21,
+    "name": "Bois Forte Band of Chippewa",
+    "canonical_name": "Bois Forte Band of Chippewa",
+    "matched": false
+  },
+  {
+    "rank": 22,
+    "name": "Oneida Indian Nation",
+    "canonical_name": "Oneida Indian Nation",
+    "matched": false
+  },
+  {
+    "rank": 23,
+    "name": "Menominee Indian Tribe of Wisconsin",
+    "canonical_name": "Menominee Indian Tribe of Wisconsin",
+    "matched": false
+  },
+  {
+    "rank": 24,
+    "name": "Ho-Chunk Nation of Wisconsin",
+    "canonical_name": "Ho-Chunk Nation of Wisconsin",
+    "matched": false
+  },
+  {
+    "rank": 25,
+    "name": "Lac du Flambeau Band of Lake Superior Chippewa Indians",
+    "canonical_name": "Lac du Flambeau Band of Lake Superior Chippewa Indians",
+    "matched": false
+  },
+  {
+    "rank": 26,
+    "name": "Lac Courte Oreilles Band of Lake Superior Chippewa Indians",
+    "canonical_name": "Lac Courte Oreilles Band of Lake Superior Chippewa Indians",
+    "matched": false
+  },
+  {
+    "rank": 27,
+    "name": "Bad River Band of the Lake Superior Tribe of Chippewa Indians",
+    "canonical_name": "Bad River Band of the Lake Superior Tribe of Chippewa Indians",
+    "matched": false
+  },
+  {
+    "rank": 28,
+    "name": "Pueblo of Zuni",
+    "canonical_name": "Pueblo of Zuni",
+    "matched": false
+  },
+  {
+    "rank": 29,
+    "name": "Jicarilla Apache Nation",
+    "canonical_name": "Jicarilla Apache Nation",
+    "matched": false
+  },
+  {
+    "rank": 30,
+    "name": "Mescalero Apache Tribe",
+    "canonical_name": "Mescalero Apache Tribe",
+    "matched": false
+  },
+  {
+    "rank": 31,
+    "name": "White Mountain Apache Tribe",
+    "canonical_name": "White Mountain Apache Tribe",
+    "matched": false
+  },
+  {
+    "rank": 32,
+    "name": "San Carlos Apache Tribe",
+    "canonical_name": "San Carlos Apache Tribe",
+    "matched": false
+  },
+  {
+    "rank": 33,
+    "name": "Tohono O'odham Nation",
+    "canonical_name": "Tohono O'odham Nation",
+    "matched": false
+  },
+  {
+    "rank": 34,
+    "name": "Gila River Indian Community",
+    "canonical_name": "Gila River Indian Community",
+    "matched": false
+  },
+  {
+    "rank": 35,
+    "name": "Salt River Pima-Maricopa Indian Community",
+    "canonical_name": "Salt River Pima-Maricopa Indian Community",
+    "matched": false
+  },
+  {
+    "rank": 36,
+    "name": "Hopi Tribe",
+    "canonical_name": "Hopi Tribe",
+    "matched": false
+  },
+  {
+    "rank": 37,
+    "name": "Pueblo of Acoma",
+    "canonical_name": "Pueblo of Acoma",
+    "matched": false
+  },
+  {
+    "rank": 38,
+    "name": "Pueblo of Laguna",
+    "canonical_name": "Pueblo of Laguna",
+    "matched": false
+  },
+  {
+    "rank": 39,
+    "name": "Taos Pueblo",
+    "canonical_name": "Taos Pueblo",
+    "matched": false
+  },
+  {
+    "rank": 40,
+    "name": "Seminole Tribe of Florida",
+    "canonical_name": "Seminole Tribe of Florida",
+    "matched": false
+  },
+  {
+    "rank": 41,
+    "name": "Miccosukee Tribe of Indians of Florida",
+    "canonical_name": "Miccosukee Tribe of Indians of Florida",
+    "matched": false
+  },
+  {
+    "rank": 42,
+    "name": "Eastern Band of Cherokee Indians",
+    "canonical_name": "Eastern Band of Cherokee Indians",
+    "matched": false
+  },
+  {
+    "rank": 43,
+    "name": "Mississippi Band of Choctaw Indians",
+    "canonical_name": "Mississippi Band of Choctaw Indians",
+    "matched": false
+  },
+  {
+    "rank": 44,
+    "name": "Poarch Band of Creek Indians",
+    "canonical_name": "Poarch Band of Creek Indians",
+    "matched": false
+  },
+  {
+    "rank": 45,
+    "name": "Saginaw Chippewa Indian Tribe of Michigan",
+    "canonical_name": "Saginaw Chippewa Indian Tribe of Michigan",
+    "matched": false
+  },
+  {
+    "rank": 46,
+    "name": "Little Traverse Bay Bands of Odawa Indians",
+    "canonical_name": "Little Traverse Bay Bands of Odawa Indians",
+    "matched": false
+  },
+  {
+    "rank": 47,
+    "name": "Sault Ste. Marie Tribe of Chippewa Indians",
+    "canonical_name": "Sault Ste. Marie Tribe of Chippewa Indians",
+    "matched": false
+  },
+  {
+    "rank": 48,
+    "name": "Bay Mills Indian Community",
+    "canonical_name": "Bay Mills Indian Community",
+    "matched": false
+  },
+  {
+    "rank": 49,
+    "name": "Keweenaw Bay Indian Community",
+    "canonical_name": "Keweenaw Bay Indian Community",
+    "matched": false
+  },
+  {
+    "rank": 50,
+    "name": "Confederated Tribes of the Umatilla Indian Reservation",
+    "canonical_name": "Confederated Tribes of the Umatilla Indian Reservation",
+    "matched": false
+  }
+]

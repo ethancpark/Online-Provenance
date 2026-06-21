@@ -1,0 +1,75 @@
+name: Infringement scan
+
+# Runs the scraping + CLIP-matching pipeline in the cloud on a schedule, so the
+# dashboard stays fresh without anyone running commands locally. Results are
+# written to Supabase; the Next.js dashboard just reads them.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SCRAPER_API_KEY
+
+on:
+  # Daily refresh so the dashboard stays current on its own. A run takes only a
+  # few minutes, so this uses ~150 of the 2,000 free Action-minutes/month.
+  schedule:
+    - cron: "0 13 * * *" # every day at 13:00 UTC
+  # Manual trigger from the GitHub Actions tab (free, no token needed).
+  workflow_dispatch:
+    inputs:
+      tribe:
+        description: "Single tribe to scan (blank = all tribes)"
+        default: ""
+      marketplace:
+        description: "Marketplace to scan"
+        type: choice
+        options: [amazon, temu, both]
+        default: amazon
+      max_per_query:
+        description: "Max listings per search query"
+        default: "10"
+
+# Don't let two scans run at once (they'd write the same rows).
+concurrency:
+  group: infringement-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: pipeline/requirements.txt
+
+      # Cache the CLIP model weights (~600MB) so repeat runs skip the download.
+      - name: Cache CLIP model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: clip-vit-b32-laion2b
+
+      - name: Install dependencies
+        run: |
+          # CPU-only PyTorch — a fraction of the default CUDA build's size, so
+          # the install is much faster. torch + torchvision MUST be installed
+          # together from the same index, or their compiled ops mismatch
+          # ("operator torchvision::nms does not exist").
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
+      - name: Run scan
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
+        run: |
+          python -m scripts.run_scan "${{ github.event.inputs.tribe }}" \
+            --marketplace "${{ github.event.inputs.marketplace || 'amazon' }}" \
+            --max-per-query "${{ github.event.inputs.max_per_query || '10' }}"

@@ -1,0 +1,103 @@
+{
+  "_comment": "Reference seal/flag images per tribe. Each asset's `wiki_filename` is the Wikimedia Commons file name (without the 'File:' prefix). The fetch script uses the MediaWiki API to resolve it to a real image URL. Add tribes here as you find their assets on Wikipedia Commons.",
+  "Navajo Nation": {
+    "assets": [
+      {
+        "asset_type": "seal",
+        "description": "Great Seal of the Navajo Nation",
+        "wiki_filename": "Great Seal of the Navajo Nation.svg"
+      },
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Navajo Nation",
+        "wiki_filename": "Flag of the Navajo Nation.svg"
+      }
+    ]
+  },
+  "Cherokee Nation": {
+    "assets": [
+      {
+        "asset_type": "seal",
+        "description": "Great Seal of the Cherokee Nation",
+        "wiki_filename": "Great Seal of the Cherokee Nation.svg"
+      },
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Cherokee Nation",
+        "wiki_filename": "Flag of the Cherokee Nation.svg"
+      }
+    ]
+  },
+  "Choctaw Nation of Oklahoma": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Choctaw Nation of Oklahoma",
+        "wiki_filename": "Flag of the Choctaw Nation.svg"
+      }
+    ]
+  },
+  "Chickasaw Nation": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Chickasaw Nation",
+        "wiki_filename": "Flag of the Chickasaw Nation.svg"
+      }
+    ]
+  },
+  "Muscogee (Creek) Nation": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Muscogee Nation",
+        "wiki_filename": "Flag of the Muscogee Nation.svg"
+      }
+    ]
+  },
+  "Seminole Tribe of Florida": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Seminole Tribe of Florida",
+        "wiki_filename": "Flag of the Seminole Tribe of Florida.svg"
+      }
+    ]
+  },
+  "Hopi Tribe": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Hopi Tribe",
+        "wiki_filename": "Flag of the Hopi Reservation.svg"
+      }
+    ]
+  },
+  "Tohono O'odham Nation": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Tohono O'odham Nation",
+        "wiki_filename": "Flag of the Tohono O'odham Nation.svg"
+      }
+    ]
+  },
+  "Eastern Band of Cherokee Indians": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Eastern Band of Cherokee Indians",
+        "wiki_filename": "Flag of the Eastern Band of Cherokee Indians.svg"
+      }
+    ]
+  },
+  "Crow Tribe of Indians": {
+    "assets": [
+      {
+        "asset_type": "flag",
+        "description": "Flag of the Crow Tribe",
+        "wiki_filename": "Flag of the Crow Tribe.svg"
+      }
+    ]
+  }
+}
