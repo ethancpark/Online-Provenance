@@ -33,7 +33,7 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
 
   function handleTribeChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const name = e.target.value;
-    router.push(`/?tribe=${encodeURIComponent(name)}`);
+    router.push(`/dashboard?tribe=${encodeURIComponent(name)}`);
   }
 
   return (
