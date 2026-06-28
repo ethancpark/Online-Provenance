@@ -1,42 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Landmark, Flag, Check, X, ExternalLink } from "lucide-react";
-import type { MatchRow } from "@/lib/types";
+import { Award, ExternalLink, Flag, Image as ImageIcon, Landmark, Zap } from "lucide-react";
+import type { MatchRow, Tribe } from "@/lib/types";
+import { getTribalLegalContact } from "@/lib/tribalLegal";
 
-type Props = { match: MatchRow | null };
-
-type Reporter = {
-  name: string;
-  title: string;
-  organization: string;
-  address: string;
-  email: string;
-  phone: string;
-};
-
-const EMPTY_REPORTER: Reporter = {
-  name: "",
-  title: "",
-  organization: "",
-  address: "",
-  email: "",
-  phone: "",
-};
-
-const REPORTER_STORAGE_KEY = "online-provenance:reporter";
-
-function loadStoredReporter(): Reporter {
-  if (typeof window === "undefined") return EMPTY_REPORTER;
-  try {
-    const raw = window.localStorage.getItem(REPORTER_STORAGE_KEY);
-    if (!raw) return EMPTY_REPORTER;
-    const parsed = JSON.parse(raw) as Partial<Reporter>;
-    return { ...EMPTY_REPORTER, ...parsed };
-  } catch {
-    return EMPTY_REPORTER;
-  }
-}
+type Props = { match: MatchRow | null; tribe: Tribe | null };
 
 function marketplaceLabel(mp: string) {
   if (mp === "amazon") return "Amazon US";
@@ -44,29 +13,112 @@ function marketplaceLabel(mp: string) {
   return mp;
 }
 
-function bandTextColor(band: string) {
-  if (band === "high") return "var(--signal-high-tint-text)";
-  if (band === "medium") return "var(--signal-med-tint-text)";
-  return "var(--color-text-muted)";
+// Short marketplace name for button copy and links ("Report to Amazon").
+function marketplaceName(mp: string) {
+  if (mp === "amazon") return "Amazon";
+  if (mp === "temu") return "Temu";
+  return mp.charAt(0).toUpperCase() + mp.slice(1);
 }
 
-// Shared button styles (design.md §7)
-const secondaryBtn: React.CSSProperties = {
-  background: "var(--color-surface)",
-  border: "1px solid var(--color-border)",
-  color: "var(--color-ink)",
-};
+// Confidence badge — reuse the signal palette (design.md §4): high → vermillion,
+// medium → amber, low → neutral.
+function bandBadgeStyle(band: string): React.CSSProperties {
+  if (band === "high") return { background: "var(--signal-high-tint-bg)", color: "var(--signal-high-tint-text)" };
+  if (band === "medium") return { background: "var(--signal-med-tint-bg)", color: "var(--signal-med-tint-text)" };
+  return { background: "var(--color-parchment)", color: "var(--color-text-muted)" };
+}
+
 const eyebrow: React.CSSProperties = {
   color: "var(--color-text-muted)",
   letterSpacing: "0.04em",
   fontWeight: 500,
 };
 
-export default function ListingDetail({ match }: Props) {
-  const [busy, setBusy] = useState<string | null>(null);
+type NoticeArgs = {
+  tribeName: string;
+  assetDescription: string;
+  listingTitle: string;
+  listingUrl: string;
+  marketplace: string;
+  seller: string | null;
+  usptoRegistered: boolean;
+  confidencePct: number;
+};
+
+// DMCA-style notice to the marketplace. The complaining-party block is left blank
+// for the sender to complete in their email client before sending.
+function buildMarketplaceNotice(a: NoticeArgs) {
+  const mp = marketplaceName(a.marketplace);
+  const today = new Date().toISOString().slice(0, 10);
+  const subject = `DMCA takedown notice — unauthorized use of ${a.tribeName} intellectual property`;
+  const body = [
+    `To: ${mp} legal department / copyright agent`,
+    `Date: ${today}`,
+    ``,
+    `To whom it may concern,`,
+    ``,
+    `This is a formal notification under the Digital Millennium Copyright Act (17 U.S.C. § 512) of infringement occurring on ${mp}.`,
+    ``,
+    `1. Work being infringed:`,
+    `   ${a.assetDescription}, owned by ${a.tribeName}${a.usptoRegistered ? " (USPTO-registered mark)" : ""}.`,
+    ``,
+    `2. Infringing listing:`,
+    `   Title: ${a.listingTitle}`,
+    `   URL: ${a.listingUrl}`,
+    `   Seller: ${a.seller ?? "unknown"}`,
+    `   Match confidence: ${a.confidencePct}%`,
+    ``,
+    `3. Complaining party (complete before sending):`,
+    `   Name:`,
+    `   Title:`,
+    `   Organization:`,
+    `   Address:`,
+    `   Email:`,
+    `   Phone:`,
+    ``,
+    `I have a good-faith belief that the use described above is not authorized by the rights holder, its agent, or the law, and the information in this notice is accurate.`,
+    ``,
+    `Please remove or disable access to the listed material promptly.`,
+  ].join("\r\n");
+  return { subject, body, recipient: a.marketplace === "amazon" ? "notice@amazon.com" : "" };
+}
+
+// Notice to the tribe's own attorney general / legal office so their counsel can act
+// on the infringement of their mark.
+function buildAgNotice(a: NoticeArgs, office: string, email: string | null, contactUrl: string) {
+  const subject = `Notice of unauthorized commercial use of ${a.tribeName} intellectual property`;
+  const body = [
+    `To: ${office}`,
+    email ? null : `Suggested recipient — confirm current contact: ${contactUrl}`,
+    ``,
+    `Hello,`,
+    ``,
+    `An automated marketplace scan flagged a product reproducing ${a.tribeName}'s ${a.assetDescription} without authorization.`,
+    ``,
+    `Product: ${a.listingTitle}`,
+    `Marketplace: ${marketplaceName(a.marketplace)}`,
+    `Seller: ${a.seller ?? "unknown"}`,
+    `Listing: ${a.listingUrl}`,
+    `Match confidence: ${a.confidencePct}%`,
+    ``,
+    `Suggested next step: a marketplace takedown or cease-and-desist${a.usptoRegistered ? ", citing the tribe's USPTO trademark registration" : ""}.`,
+    ``,
+    `This match was auto-flagged and should be human-verified before any action.`,
+    ``,
+    `— Online Provenance, automated IP monitoring`,
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\r\n");
+  return { subject, body, recipient: email ?? "" };
+}
+
+function openMailto(recipient: string, subject: string, body: string) {
+  const href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = href;
+}
+
+export default function ListingDetail({ match, tribe }: Props) {
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [reporterModalOpen, setReporterModalOpen] = useState(false);
-  const [reporter, setReporter] = useState<Reporter>(EMPTY_REPORTER);
 
   if (!match) {
     return (
@@ -82,375 +134,226 @@ export default function ListingDetail({ match }: Props) {
   const listing = match.listings;
   const asset = match.reference_assets;
   const pct = Math.round(match.confidence * 100);
+  const tribeName = tribe?.name ?? "the tribe";
+  const hasSeal = Boolean(asset.image_url);
+  const mpName = marketplaceName(listing.marketplace);
 
-  async function action(path: string, body: object, successMsg: string) {
-    setBusy(path);
-    setFeedback(null);
-    try {
-      const resp = await fetch(path, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!resp.ok) throw new Error(await resp.text());
-      setFeedback(successMsg);
-      setTimeout(() => window.location.reload(), 600);
-    } catch (e) {
-      setFeedback(`Failed: ${(e as Error).message}`);
-    } finally {
-      setBusy(null);
-    }
+  const noticeArgs: NoticeArgs = {
+    tribeName,
+    assetDescription: asset.description,
+    listingTitle: listing.title,
+    listingUrl: listing.listing_url,
+    marketplace: listing.marketplace,
+    seller: listing.seller,
+    usptoRegistered: tribe?.has_registered_mark ?? false,
+    confidencePct: pct,
+  };
+
+  function handleReportMarketplace() {
+    const n = buildMarketplaceNotice(noticeArgs);
+    openMailto(n.recipient, n.subject, n.body);
+    setFeedback(
+      n.recipient
+        ? `Opened your email client with a draft to ${n.recipient}.`
+        : `Opened your email client — add the ${mpName} recipient before sending.`,
+    );
   }
 
-  async function reportToMarketplace(reporterToSend: Reporter) {
-    setBusy("/api/report");
-    setFeedback(null);
-    try {
-      const resp = await fetch("/api/report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ match_id: match!.id, reporter: reporterToSend }),
-      });
-      const json = (await resp.json()) as
-        | {
-            ok: true;
-            dispatch:
-              | { method: "mailto"; recipient: string; subject: string; body: string }
-              | { method: "portal"; portal_url: string; subject: string; body: string };
-          }
-        | { error: string };
-      if (!resp.ok || "error" in json) {
-        throw new Error("error" in json ? json.error : "unknown error");
-      }
-      const d = json.dispatch;
-      if (d.method === "mailto") {
-        const href = `mailto:${encodeURIComponent(d.recipient)}?subject=${encodeURIComponent(
-          d.subject,
-        )}&body=${encodeURIComponent(d.body)}`;
-        window.location.href = href;
-        setFeedback(
-          `Opened your email client with a pre-filled DMCA notice to ${d.recipient}. Review before sending.`,
-        );
-      } else {
-        try {
-          await navigator.clipboard.writeText(d.body);
-        } catch {
-          /* clipboard may be unavailable; user can still paste from the portal page */
-        }
-        window.open(d.portal_url, "_blank", "noopener,noreferrer");
-        setFeedback(
-          `Notice copied to clipboard. Temu's IP portal opened in a new tab — paste into the complaint form.`,
-        );
-      }
-    } catch (e) {
-      setFeedback(`Failed: ${(e as Error).message}`);
-    } finally {
-      setBusy(null);
-    }
+  function handleNotifyAg() {
+    const contact = tribe ? getTribalLegalContact(tribe) : null;
+    const office = contact?.office ?? "Office of the attorney general";
+    const n = buildAgNotice(noticeArgs, office, contact?.email ?? null, contact?.contactUrl ?? "");
+    openMailto(n.recipient, n.subject, n.body);
+    setFeedback(
+      n.recipient
+        ? `Opened your email client with a draft to ${office}.`
+        : `Opened your email client — add the recipient for ${office} before sending.`,
+    );
   }
 
   return (
     <div
-      className="rounded-xl"
+      className="rounded-xl p-6"
       style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
     >
-      <div className="px-5 py-3" style={{ borderBottom: "1px solid var(--color-border)" }}>
-        <h2 className="text-sm" style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}>
-          Listing detail
-        </h2>
+      {/* 1. Comparison */}
+      <div className="mb-3 text-xs" style={eyebrow}>
+        Compare to the registered seal
       </div>
-
-      <div className="p-5">
-        <div
-          className="aspect-[16/9] w-full overflow-hidden rounded-md"
-          style={{ border: "1px solid var(--color-border)", background: "var(--color-parchment)" }}
-        >
-          {listing.image_url ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={listing.image_url} alt={listing.title} className="h-full w-full object-contain" />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm" style={{ color: "var(--color-text-muted)" }}>
-              no image
-            </div>
-          )}
-        </div>
-
-        <dl className="mt-4 grid grid-cols-2 gap-y-2 text-sm">
-          <dt style={{ color: "var(--color-text-muted)" }}>Marketplace</dt>
-          <dd className="text-right">{marketplaceLabel(listing.marketplace)}</dd>
-
-          <dt style={{ color: "var(--color-text-muted)" }}>Asset matched</dt>
-          <dd className="text-right">{asset.description}</dd>
-
-          <dt style={{ color: "var(--color-text-muted)" }}>Match confidence</dt>
-          <dd className="op-data text-right" style={{ color: bandTextColor(match.confidence_band), fontWeight: 500 }}>
-            {pct}% · {match.confidence_band}
-          </dd>
-
-          <dt style={{ color: "var(--color-text-muted)" }}>Seller</dt>
-          <dd className="truncate text-right">{listing.seller ?? "—"}</dd>
-
-          <dt style={{ color: "var(--color-text-muted)" }}>Price</dt>
-          <dd className="op-data text-right">{listing.price ?? "—"}</dd>
-
-          <dt style={{ color: "var(--color-text-muted)" }}>Listing</dt>
-          <dd className="truncate text-right">
-            <a
-              href={listing.listing_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="op-data inline-flex items-center gap-1 hover:underline"
-              style={{ color: "var(--color-navy)" }}
-            >
-              {listing.listing_url.replace(/^https?:\/\//, "").slice(0, 30)}…
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </dd>
-        </dl>
-
-        {/* Generate response — secondary actions */}
-        <div className="mt-6">
-          <div className="mb-2 text-xs" style={eyebrow}>
-            Generate response
-          </div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <button
-              disabled={busy !== null}
-              onClick={() =>
-                action(
-                  "/api/draft",
-                  { match_id: match.id, draft_type: "marketplace_takedown" },
-                  "Marketplace takedown drafted",
-                )
-              }
-              className="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--color-parchment)] disabled:opacity-50"
-              style={secondaryBtn}
-            >
-              <FileText className="h-4 w-4" />
-              {busy === "/api/draft" ? "Drafting…" : "Draft marketplace takedown"}
-            </button>
-            <button
-              disabled={busy !== null}
-              onClick={() =>
-                action(
-                  "/api/draft",
-                  { match_id: match.id, draft_type: "ag_notification" },
-                  "AG notification drafted",
-                )
-              }
-              className="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--color-parchment)] disabled:opacity-50"
-              style={secondaryBtn}
-            >
-              <Landmark className="h-4 w-4" />
-              Draft AG notification
-            </button>
-          </div>
-        </div>
-
-        {/* Report — primary enforcement action (vermillion) */}
-        <div className="mt-5">
-          <div className="mb-2 text-xs" style={eyebrow}>
-            Report to marketplace
-          </div>
-          <button
-            disabled={busy !== null}
-            onClick={() => {
-              setFeedback(null);
-              setReporter(loadStoredReporter());
-              setReporterModalOpen(true);
-            }}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: "var(--signal-high-solid-bg)", color: "var(--signal-high-solid-text)" }}
-          >
-            <Flag className="h-4 w-4" />
-            {busy === "/api/report"
-              ? "Preparing notice…"
-              : listing.marketplace === "amazon"
-                ? "Report to Amazon (DMCA email)"
-                : listing.marketplace === "temu"
-                  ? "Report to Temu (IP portal)"
-                  : "Report to marketplace"}
-          </button>
-          <p className="mt-1.5 text-xs" style={{ color: "var(--color-text-muted)" }}>
-            {listing.marketplace === "amazon"
-              ? "Opens your email client with a DMCA notice addressed to notice@amazon.com. Review before sending."
-              : listing.marketplace === "temu"
-                ? "Copies the complaint to your clipboard and opens the Temu IP portal in a new tab."
-                : "Prepares a complaint for this marketplace."}
-          </p>
-        </div>
-
-        {/* Review decision */}
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            disabled={busy !== null}
-            onClick={() =>
-              action("/api/match-action", { match_id: match.id, status: "confirmed" }, "Marked as infringing")
-            }
-            className="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: "var(--signal-high-tint-bg)", color: "var(--signal-high-tint-text)", border: "1px solid var(--signal-high-tint-bg)" }}
-          >
-            <Check className="h-4 w-4" />
-            Confirm infringing
-          </button>
-          <button
-            disabled={busy !== null}
-            onClick={() =>
-              action("/api/match-action", { match_id: match.id, status: "dismissed" }, "Dismissed")
-            }
-            className="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--color-parchment)] disabled:opacity-50"
-            style={secondaryBtn}
-          >
-            <X className="h-4 w-4" />
-            Dismiss
-          </button>
-        </div>
-
-        {feedback && (
-          <div
-            className="mt-3 rounded-md px-3 py-2 text-sm"
-            style={{ background: "var(--color-parchment)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
-          >
-            {feedback}
-          </div>
+      <div className={hasSeal ? "grid grid-cols-2 gap-4" : "grid grid-cols-1"}>
+        {hasSeal && (
+          <Frame
+            label="registered seal"
+            labelColor="var(--signal-ok-tint-text)"
+            imageUrl={asset.image_url}
+            alt={asset.description}
+            fallbackIcon={<Award className="h-10 w-10" style={{ color: "var(--color-text-muted)" }} />}
+          />
         )}
-
-        <p className="mt-4 text-xs" style={{ color: "var(--color-text-muted)" }}>
-          The report button pre-fills the notice — nothing is sent until you confirm in your email
-          client or the IP portal.
-        </p>
+        <Frame
+          label="flagged listing"
+          labelColor="var(--signal-high-tint-text)"
+          imageUrl={listing.image_url}
+          alt={listing.title}
+          fallbackIcon={<ImageIcon className="h-10 w-10" style={{ color: "var(--color-text-muted)" }} />}
+        />
       </div>
 
-      {reporterModalOpen && (
-        <ReporterModal
-          initial={reporter}
-          onCancel={() => setReporterModalOpen(false)}
-          onSubmit={(r) => {
-            try {
-              window.localStorage.setItem(REPORTER_STORAGE_KEY, JSON.stringify(r));
-            } catch {
-              /* localStorage may be blocked; proceed anyway */
-            }
-            setReporter(r);
-            setReporterModalOpen(false);
-            reportToMarketplace(r);
-          }}
-        />
+      {/* 2. Record */}
+      <dl className="mt-6">
+        <Row label="Match confidence">
+          <span
+            className="op-data inline-flex items-center rounded-full px-2.5 py-0.5 text-xs"
+            style={{ ...bandBadgeStyle(match.confidence_band), fontWeight: 500 }}
+          >
+            {pct}% · {match.confidence_band}
+          </span>
+        </Row>
+        <Row label="Marketplace">
+          <span className="op-data text-sm">{marketplaceLabel(listing.marketplace)}</span>
+        </Row>
+        <Row label="Asset matched">
+          <span className="op-data text-sm">{asset.description}</span>
+        </Row>
+        <Row label="Seller">
+          <span className="op-data text-sm">{listing.seller ?? "—"}</span>
+        </Row>
+        <Row label="Price">
+          <span className="op-data text-sm">{listing.price ?? "—"}</span>
+        </Row>
+        <Row label="Listing" last>
+          <a
+            href={listing.listing_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="op-data inline-flex items-center gap-1 text-sm hover:underline"
+            style={{ color: "var(--color-navy)" }}
+          >
+            View on {mpName}
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        </Row>
+      </dl>
+
+      {/* 3. Take action */}
+      <div className="mt-6">
+        <div className="mb-3 flex items-center gap-1.5 text-xs" style={eyebrow}>
+          <Zap className="h-3.5 w-3.5" />
+          Take action
+        </div>
+
+        <div className="flex flex-col" style={{ gap: 10 }}>
+          <ActionButton
+            background="var(--signal-high-solid-bg)"
+            textColor="var(--signal-high-solid-text)"
+            icon={<Flag className="h-5 w-5" />}
+            label={`Report to ${mpName}`}
+            description="Drafts a DMCA takedown email to the marketplace"
+            onClick={handleReportMarketplace}
+          />
+          <ActionButton
+            background="var(--color-navy)"
+            textColor="var(--color-on-navy-strong)"
+            descColor="var(--color-on-navy)"
+            icon={<Landmark className="h-5 w-5" />}
+            label="Notify the attorney general"
+            description="Drafts a notice to the state AG's office"
+            onClick={handleNotifyAg}
+          />
+        </div>
+      </div>
+
+      {feedback && (
+        <div
+          className="mt-3 rounded-md px-3 py-2 text-sm"
+          style={{ background: "var(--color-parchment)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
+        >
+          {feedback}
+        </div>
       )}
+
+      {/* Shared disclaimer */}
+      <p className="mt-4 text-xs" style={{ color: "var(--color-text-muted)", lineHeight: 1.5 }}>
+        Each button opens your email client with a pre-filled notice. Nothing is sent until you
+        review and send it yourself. These are automated, unconfirmed matches, and whoever sends a
+        notice is responsible for its accuracy.
+      </p>
     </div>
   );
 }
 
-type ReporterModalProps = {
-  initial: Reporter;
-  onCancel: () => void;
-  onSubmit: (r: Reporter) => void;
+type FrameProps = {
+  label: string;
+  labelColor: string;
+  imageUrl: string | null;
+  alt: string;
+  fallbackIcon: React.ReactNode;
 };
 
-function ReporterModal({ initial, onCancel, onSubmit }: ReporterModalProps) {
-  const [draft, setDraft] = useState<Reporter>(initial);
-  const [error, setError] = useState<string | null>(null);
+function Frame({ label, labelColor, imageUrl, alt, fallbackIcon }: FrameProps) {
+  return (
+    <figure>
+      <div
+        className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-md"
+        style={{ border: "1px solid var(--color-border)", background: "var(--color-parchment)" }}
+      >
+        {imageUrl ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src={imageUrl} alt={alt} className="h-full w-full object-contain" />
+        ) : (
+          fallbackIcon
+        )}
+      </div>
+      <figcaption className="op-data mt-2 text-center text-sm" style={{ color: labelColor }}>
+        {label}
+      </figcaption>
+    </figure>
+  );
+}
 
-  function update<K extends keyof Reporter>(key: K, value: string) {
-    setDraft((d) => ({ ...d, [key]: value }));
-  }
-
-  function handleSubmit(e: React.SyntheticEvent) {
-    e.preventDefault();
-    const trimmed: Reporter = {
-      name: draft.name.trim(),
-      title: draft.title.trim(),
-      organization: draft.organization.trim(),
-      address: draft.address.trim(),
-      email: draft.email.trim(),
-      phone: draft.phone.trim(),
-    };
-    const missing = (["name", "address", "email"] as const).filter((k) => !trimmed[k]);
-    if (missing.length > 0) {
-      setError(`Required: ${missing.join(", ")}`);
-      return;
-    }
-    onSubmit(trimmed);
-  }
-
+function Row({ label, children, last }: { label: string; children: React.ReactNode; last?: boolean }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(21, 23, 28, 0.55)" }}
+      className="flex items-center justify-between gap-4 py-2.5"
+      style={last ? undefined : { borderBottom: "1px solid var(--color-border)" }}
     >
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-xl p-6"
-        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
-      >
-        <h3 className="text-lg" style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-navy)" }}>
-          Claimant info
-        </h3>
-        <p className="mt-1 text-xs" style={{ color: "var(--color-text-muted)" }}>
-          This is signed under penalty of perjury and pasted into the notice. Saved in your browser
-          so you only enter it once.
-        </p>
-
-        <div className="mt-4 space-y-3">
-          <Field label="Full name *" value={draft.name} onChange={(v) => update("name", v)} />
-          <Field label="Title" value={draft.title} onChange={(v) => update("title", v)} />
-          <Field label="Organization" value={draft.organization} onChange={(v) => update("organization", v)} />
-          <Field label="Mailing address *" value={draft.address} onChange={(v) => update("address", v)} />
-          <Field label="Email *" value={draft.email} type="email" onChange={(v) => update("email", v)} />
-          <Field label="Phone" value={draft.phone} type="tel" onChange={(v) => update("phone", v)} />
-        </div>
-
-        {error && (
-          <div
-            className="mt-3 rounded-md px-3 py-2 text-xs"
-            style={{ background: "var(--signal-high-tint-bg)", color: "var(--signal-high-tint-text)" }}
-          >
-            {error}
-          </div>
-        )}
-
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--color-parchment)]"
-            style={secondaryBtn}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="rounded-lg px-3 py-2 text-sm font-medium transition-opacity hover:opacity-90"
-            style={{ background: "var(--color-navy)", color: "var(--color-on-navy-strong)" }}
-          >
-            Save &amp; continue
-          </button>
-        </div>
-      </form>
+      <dt className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+        {label}
+      </dt>
+      <dd className="text-right">{children}</dd>
     </div>
   );
 }
 
-type FieldProps = {
+type ActionButtonProps = {
+  background: string;
+  textColor: string;
+  descColor?: string;
+  icon: React.ReactNode;
   label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
+  description: string;
+  onClick: () => void;
 };
 
-function Field({ label, value, onChange, type = "text" }: FieldProps) {
+function ActionButton({ background, textColor, descColor, icon, label, description, onClick }: ActionButtonProps) {
+  const descStyle: React.CSSProperties = descColor
+    ? { color: descColor }
+    : { color: textColor, opacity: 0.82 };
   return (
-    <label className="block">
-      <span className="block text-xs" style={{ color: "var(--color-text-muted)" }}>
-        {label}
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-lg px-4 text-left transition-opacity hover:opacity-90"
+      style={{ background, color: textColor, paddingTop: 14, paddingBottom: 14, minHeight: 56 }}
+    >
+      <span className="flex-none">{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium">{label}</span>
+        <span className="block text-xs" style={descStyle}>
+          {description}
+        </span>
       </span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-lg px-2.5 py-1.5 text-sm focus:outline-none"
-        style={{ background: "var(--color-parchment)", border: "1px solid var(--color-border)", color: "var(--color-ink)" }}
-      />
-    </label>
+      <ExternalLink className="h-4 w-4 flex-none" style={descStyle} />
+    </button>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Info } from "lucide-react";
 
 export default function AboutProject() {
   const [open, setOpen] = useState(false);
@@ -12,20 +12,12 @@ export default function AboutProject() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between rounded-lg px-4 py-2.5 text-sm"
-        style={{
-          background: "var(--color-surface)",
-          border: "1px solid var(--color-border)",
-          color: "var(--color-ink)",
-          fontWeight: 500,
-        }}
+        className="inline-flex items-center gap-1.5 text-xs hover:underline"
+        style={{ color: "var(--color-text-muted)", fontWeight: 500 }}
       >
+        <Info className="h-3.5 w-3.5" aria-hidden="true" />
         About this project
-        {open ? (
-          <ChevronUp className="h-4 w-4" style={{ color: "var(--color-text-muted)" }} />
-        ) : (
-          <ChevronDown className="h-4 w-4" style={{ color: "var(--color-text-muted)" }} />
-        )}
+        {open ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
       </button>
 
       {open && (

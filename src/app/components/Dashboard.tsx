@@ -37,31 +37,34 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
   return (
     <div className="min-h-screen" style={{ background: "var(--color-parchment)", color: "var(--color-ink)" }}>
       <div className="mx-auto max-w-7xl px-6 py-6">
-        {/* Wordmark bar */}
-        <div className="mb-6 flex items-center gap-2" style={{ borderBottom: "1px solid var(--color-border)" }}>
-          <div className="flex items-center gap-2 pb-4">
-            <Seal size={26} />
-            <span
-              className="text-xs"
-              style={{ fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.13em", color: "var(--color-navy)" }}
-            >
-              ONLINE PROVENANCE
-            </span>
-          </div>
-        </div>
-
-        {/* Header */}
-        <div className="mb-6 flex items-start justify-between gap-4">
+        {/* Brand header */}
+        <div
+          className="mb-6 flex items-start justify-between gap-4"
+          style={{ borderBottom: "1px solid var(--color-border)", paddingBottom: "16px" }}
+        >
           <div>
-            <h1 className="text-3xl" style={{ fontFamily: "var(--font-display)", fontWeight: 600, color: "var(--color-navy)" }}>
-              Infringement monitor
-            </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm" style={{ color: "var(--color-text-secondary)" }}>
+            <div className="flex items-center gap-2.5">
+              <Seal size={30} />
+              <h1 className="text-3xl" style={{ fontFamily: "var(--font-display)", fontWeight: 600, color: "var(--color-navy)" }}>
+                Online Provenance
+              </h1>
+            </div>
+            <div className="mt-1.5 text-xs" style={{ color: "var(--color-text-muted)" }}>
+              Monitoring marketplaces for unauthorized use of one nation&apos;s seals and flags.
+            </div>
+            <label
+              className="mt-3 mb-1.5 block text-xs"
+              style={{ color: "var(--color-text-muted)", letterSpacing: "0.04em", fontWeight: 500 }}
+            >
+              Tribal nation
+            </label>
+            <div className="flex flex-wrap items-center gap-3 text-sm" style={{ color: "var(--color-text-secondary)" }}>
               <select
                 value={selectedTribe?.name ?? ""}
                 onChange={handleTribeChange}
-                className="rounded-lg px-2.5 py-1.5 focus:outline-none"
-                style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", color: "var(--color-ink)" }}
+                aria-label="Select tribal nation"
+                className="min-w-[220px] rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", color: "var(--color-ink)", fontWeight: 500 }}
               >
                 {sortedTribes.map((t) => (
                   <option key={t.id} value={t.name}>
@@ -113,7 +116,7 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
             selectedMatchId={selectedMatch?.id ?? null}
             onSelect={setSelectedMatchId}
           />
-          <ListingDetail match={selectedMatch} />
+          <ListingDetail match={selectedMatch} tribe={selectedTribe} />
         </div>
 
         <p className="mt-8 text-center text-xs" style={{ color: "var(--color-text-muted)" }}>
