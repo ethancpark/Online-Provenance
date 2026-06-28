@@ -1,5 +1,6 @@
 "use client";
 
+import { ShoppingCart, Package, Circle } from "lucide-react";
 import type { MatchRow, ConfidenceBand } from "@/lib/types";
 
 type Props = {
@@ -22,10 +23,11 @@ function bandBadge(band: ConfidenceBand, confidence: number) {
   );
 }
 
-function marketplaceIcon(mp: string) {
-  if (mp === "amazon") return "🛒";
-  if (mp === "temu") return "📦";
-  return "•";
+function MarketplaceIcon({ mp }: { mp: string }) {
+  const cls = "inline h-3 w-3 align-[-1px]";
+  if (mp === "amazon") return <ShoppingCart className={cls} />;
+  if (mp === "temu") return <Package className={cls} />;
+  return <Circle className={cls} />;
 }
 
 export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Props) {
@@ -74,7 +76,7 @@ export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Prop
                     “{listing.title}”
                   </div>
                   <div className="mt-0.5 truncate text-xs text-zinc-400">
-                    {marketplaceIcon(listing.marketplace)} {listing.marketplace}
+                    <MarketplaceIcon mp={listing.marketplace} /> {listing.marketplace}
                     {listing.seller ? ` · seller ${listing.seller}` : ""}
                   </div>
                   <div className="mt-1.5 flex items-center gap-2">

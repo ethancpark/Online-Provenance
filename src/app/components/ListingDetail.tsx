@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FileText, Landmark, Flag, Check, X } from "lucide-react";
 import type { MatchRow } from "@/lib/types";
 
 type Props = { match: MatchRow | null };
@@ -201,9 +202,10 @@ export default function ListingDetail({ match }: Props) {
                   "Marketplace takedown drafted",
                 )
               }
-              className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
             >
-              {busy === "/api/draft" ? "Drafting…" : "📄 Draft marketplace takedown"}
+              <FileText className="h-4 w-4" />
+              {busy === "/api/draft" ? "Drafting…" : "Draft marketplace takedown"}
             </button>
             <button
               disabled={busy !== null}
@@ -214,9 +216,10 @@ export default function ListingDetail({ match }: Props) {
                   "AG notification drafted",
                 )
               }
-              className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
             >
-              📁 Draft AG notification
+              <Landmark className="h-4 w-4" />
+              Draft AG notification
             </button>
           </div>
         </div>
@@ -232,15 +235,16 @@ export default function ListingDetail({ match }: Props) {
               setReporter(loadStoredReporter());
               setReporterModalOpen(true);
             }}
-            className="w-full rounded-md border border-rose-700 bg-rose-900/30 px-3 py-2 text-sm text-rose-200 hover:bg-rose-900/50 disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-rose-700 bg-rose-900/30 px-3 py-2 text-sm text-rose-200 hover:bg-rose-900/50 disabled:opacity-50"
           >
+            <Flag className="h-4 w-4" />
             {busy === "/api/report"
               ? "Preparing notice…"
               : listing.marketplace === "amazon"
-                ? "🚩 Report to Amazon (DMCA email)"
+                ? "Report to Amazon (DMCA email)"
                 : listing.marketplace === "temu"
-                  ? "🚩 Report to Temu (IP portal)"
-                  : "🚩 Report to marketplace"}
+                  ? "Report to Temu (IP portal)"
+                  : "Report to marketplace"}
           </button>
           <p className="mt-1 text-xs text-zinc-500">
             {listing.marketplace === "amazon"
@@ -261,9 +265,10 @@ export default function ListingDetail({ match }: Props) {
                 "Marked as infringing",
               )
             }
-            className="rounded-md border border-emerald-700 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-900/50 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-emerald-700 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-900/50 disabled:opacity-50"
           >
-            ✓ Confirm infringing
+            <Check className="h-4 w-4" />
+            Confirm infringing
           </button>
           <button
             disabled={busy !== null}
@@ -274,9 +279,10 @@ export default function ListingDetail({ match }: Props) {
                 "Dismissed",
               )
             }
-            className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
           >
-            ✕ Dismiss
+            <X className="h-4 w-4" />
+            Dismiss
           </button>
         </div>
 

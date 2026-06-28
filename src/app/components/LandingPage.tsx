@@ -1,140 +1,193 @@
-"use client";
-
 import Link from "next/link";
+import { ScanSearch, FileText, ShieldCheck, ArrowRight } from "lucide-react";
+import Seal from "./Seal";
+
+// Institutional landing per design.md: parchment record surface, navy chrome,
+// Fraunces display + Plex body + Plex Mono data, the wax-seal mark, signal
+// colors reserved for the dashboard. No Native imagery, no shadows/gradients.
+
+const wordmark: React.CSSProperties = {
+  fontFamily: "var(--font-display)",
+  fontWeight: 600,
+  letterSpacing: "0.13em",
+  color: "var(--color-navy)",
+};
+
+const STEPS = [
+  {
+    n: "01",
+    Icon: ScanSearch,
+    title: "Find",
+    body: "Continuously scans Amazon, Temu, and Alibaba for tribal seals and trademarked flags listed by third-party sellers.",
+  },
+  {
+    n: "02",
+    Icon: FileText,
+    title: "Document",
+    body: "Flags likely infringements with a confidence score and an on-the-record case file — listing ID, seller, price, and source.",
+  },
+  {
+    n: "03",
+    Icon: ShieldCheck,
+    title: "Help remove",
+    body: "Drafts takedown and trademark notices so tribes can get infringing listings pulled down.",
+  },
+];
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <div className="mx-auto max-w-4xl px-6 py-16">
-        {/* Hero Section */}
-        <div className="text-center">
-          <h1 className="text-5xl font-bold tracking-tight mb-4">
-            Indigenous Scraper
-          </h1>
-          <p className="text-xl text-zinc-400 mb-8">
-            Infringement Monitor for Tribal Intellectual Property
+    <main
+      className="flex min-h-screen flex-col"
+      style={{ background: "var(--color-parchment)", color: "var(--color-ink)" }}
+    >
+      {/* Header */}
+      <header
+        className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5"
+        style={{ borderBottom: "1px solid var(--color-border)" }}
+      >
+        <div className="flex items-center gap-3">
+          <Seal size={30} />
+          <span className="text-sm" style={wordmark}>
+            ONLINE PROVENANCE
+          </span>
+        </div>
+        <Link
+          href="/dashboard"
+          className="text-sm hover:underline"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          View dashboard
+        </Link>
+      </header>
+
+      {/* Hero — navy chrome */}
+      <section style={{ background: "var(--color-navy)" }}>
+        <div className="mx-auto w-full max-w-5xl px-6 py-20 md:py-24">
+          <Seal size={64} variant="reversed" />
+          <p
+            className="mt-8 text-xs"
+            style={{ color: "var(--color-on-navy)", letterSpacing: "0.04em", fontWeight: 500 }}
+          >
+            Provenance · authentication · enforcement
           </p>
-          <div className="inline-block rounded-lg bg-emerald-900/40 px-4 py-2 text-emerald-300 text-sm font-medium mb-12">
-            Research Prototype — Auto-updated Daily
+          <h1
+            className="mt-3 max-w-3xl"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 600,
+              fontSize: "2.75rem",
+              lineHeight: 1.15,
+              color: "var(--color-on-navy-strong)",
+            }}
+          >
+            Protecting the seals and marks of Native American nations
+          </h1>
+          <p
+            className="mt-6 max-w-2xl"
+            style={{ color: "var(--color-on-navy)", lineHeight: 1.65, fontSize: "1rem" }}
+          >
+            Across 574 federally recognized tribes, sacred seals and trademarked flags
+            are sold by third-party sellers on Amazon, Temu, and Alibaba with no consent,
+            credit, or compensation. AI-generated slop has only made the theft faster.
+            Online Provenance finds it, documents it, and helps tribes get it removed.
+          </p>
+          <div className="mt-10 flex items-center gap-6">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium"
+              style={{ background: "var(--color-parchment)", color: "var(--color-navy)" }}
+            >
+              View the monitor
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <a href="#how" className="text-sm" style={{ color: "var(--color-on-navy)" }}>
+              How it works
+            </a>
           </div>
         </div>
+      </section>
 
-        {/* What is this? */}
-        <section className="mb-12 bg-zinc-900 rounded-lg border border-zinc-800 p-8">
-          <h2 className="text-2xl font-semibold mb-4">What is this?</h2>
-          <p className="text-zinc-300 leading-relaxed mb-4">
-            Indigenous Scraper is an automated monitoring system that surfaces unauthorized
-            merchandise reproducing federally recognized tribes' seals and flags on e-commerce
-            platforms like Amazon and Temu.
-          </p>
-          <p className="text-zinc-300 leading-relaxed">
-            This tool helps protect tribal intellectual property rights by identifying potential
-            infringements and streamlining the process of reporting violations to platform holders.
-          </p>
-        </section>
-
-        {/* How it Works */}
-        <section className="mb-12 bg-zinc-900 rounded-lg border border-zinc-800 p-8">
-          <h2 className="text-2xl font-semibold mb-4">How it Works</h2>
-          <ol className="space-y-4 text-zinc-300">
-            <li className="flex gap-4">
-              <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-sky-900/40 text-sky-300 font-semibold">
-                1
-              </span>
-              <div>
-                <strong className="text-zinc-100">Automated Scraping</strong>
-                <p className="text-sm mt-1">
-                  Daily scans of major e-commerce platforms for products matching tribal seals and flags
-                </p>
+      {/* How it works */}
+      <section id="how" className="mx-auto w-full max-w-5xl px-6 py-16 md:py-20">
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 500,
+            fontSize: "1.625rem",
+            lineHeight: 1.25,
+            color: "var(--color-navy)",
+          }}
+        >
+          How it works
+        </h2>
+        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+          {STEPS.map(({ n, Icon, title, body }) => (
+            <div
+              key={n}
+              className="rounded-xl p-6"
+              style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+            >
+              <div className="flex items-center justify-between">
+                <Icon className="h-5 w-5" strokeWidth={1.75} style={{ color: "var(--color-navy)" }} />
+                <span className="op-data text-xs" style={{ color: "var(--color-text-muted)" }}>
+                  {n}
+                </span>
               </div>
-            </li>
-            <li className="flex gap-4">
-              <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-sky-900/40 text-sky-300 font-semibold">
-                2
-              </span>
-              <div>
-                <strong className="text-zinc-100">AI-Powered Matching</strong>
-                <p className="text-sm mt-1">
-                  Advanced image recognition to identify potential unauthorized use of tribal intellectual property
-                </p>
-              </div>
-            </li>
-            <li className="flex gap-4">
-              <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-sky-900/40 text-sky-300 font-semibold">
-                3
-              </span>
-              <div>
-                <strong className="text-zinc-100">Review Queue</strong>
-                <p className="text-sm mt-1">
-                  Human-reviewed flagged listings with confidence scores and visual comparisons
-                </p>
-              </div>
-            </li>
-            <li className="flex gap-4">
-              <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-sky-900/40 text-sky-300 font-semibold">
-                4
-              </span>
-              <div>
-                <strong className="text-zinc-100">Draft Reports</strong>
-                <p className="text-sm mt-1">
-                  Auto-generated infringement reports queued for review before submission
-                </p>
-              </div>
-            </li>
-          </ol>
-        </section>
-
-        {/* Key Features */}
-        <section className="mb-12 bg-zinc-900 rounded-lg border border-zinc-800 p-8">
-          <h2 className="text-2xl font-semibold mb-4">Key Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-md bg-zinc-800/50 border border-zinc-700">
-              <h3 className="font-semibold text-zinc-100 mb-2">Multi-Platform Monitoring</h3>
-              <p className="text-sm text-zinc-400">
-                Tracks listings across Amazon, Temu, and other major e-commerce platforms
+              <h3 className="mt-4 text-lg" style={{ fontWeight: 500 }}>
+                {title}
+              </h3>
+              <p className="mt-2 text-sm" style={{ color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+                {body}
               </p>
             </div>
-            <div className="p-4 rounded-md bg-zinc-800/50 border border-zinc-700">
-              <h3 className="font-semibold text-zinc-100 mb-2">USPTO Integration</h3>
-              <p className="text-sm text-zinc-400">
-                Links to official trademark registrations for tribes with registered marks
-              </p>
-            </div>
-            <div className="p-4 rounded-md bg-zinc-800/50 border border-zinc-700">
-              <h3 className="font-semibold text-zinc-100 mb-2">Confidence Scoring</h3>
-              <p className="text-sm text-zinc-400">
-                AI-powered similarity analysis to prioritize the most likely infringements
-              </p>
-            </div>
-            <div className="p-4 rounded-md bg-zinc-800/50 border border-zinc-700">
-              <h3 className="font-semibold text-zinc-100 mb-2">Safe by Default</h3>
-              <p className="text-sm text-zinc-400">
-                All reports require human review — nothing files automatically
-              </p>
-            </div>
-          </div>
-        </section>
+          ))}
+        </div>
+      </section>
 
-        {/* Get Started */}
-        <section className="text-center mb-12">
-          <Link
-            href="/dashboard"
-            className="inline-block bg-sky-600 hover:bg-sky-500 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+      {/* Currently monitoring */}
+      <section className="mx-auto w-full max-w-5xl px-6 pb-16 md:pb-20">
+        <div
+          className="rounded-xl p-6 md:p-8"
+          style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+        >
+          <p
+            className="text-xs"
+            style={{ color: "var(--color-text-muted)", letterSpacing: "0.04em", fontWeight: 500 }}
           >
-            View Dashboard
-          </Link>
-          <p className="mt-4 text-sm text-zinc-500">
-            Monitor infringements for federally recognized tribes
+            Currently monitoring
           </p>
-        </section>
+          <div className="mt-3 flex flex-wrap items-baseline gap-x-8 gap-y-2">
+            {["Amazon", "Temu", "Alibaba"].map((mp) => (
+              <span
+                key={mp}
+                className="text-2xl"
+                style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-navy)" }}
+              >
+                {mp}
+              </span>
+            ))}
+            <span className="op-data ml-auto text-sm" style={{ color: "var(--color-text-muted)" }}>
+              574 federally recognized tribes
+            </span>
+          </div>
+        </div>
+      </section>
 
-        {/* Footer */}
-        <footer className="text-center text-xs text-zinc-500 pt-8 border-t border-zinc-800">
-          <p>
-            Indigenous Scraper — Research prototype for tribal intellectual property protection
+      {/* Footer — navy */}
+      <footer className="mt-auto" style={{ background: "var(--color-navy)" }}>
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-6 py-10 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <Seal size={26} variant="reversed" />
+            <span className="text-xs" style={{ ...wordmark, color: "var(--color-on-navy-strong)" }}>
+              ONLINE PROVENANCE
+            </span>
+          </div>
+          <p className="max-w-md text-xs" style={{ color: "var(--color-on-navy)", lineHeight: 1.5 }}>
+            Protecting the seals and marks of Native American nations. Research prototype —
+            drafts are reviewed by a human before anything is sent.
           </p>
-        </footer>
-      </div>
-    </div>
+        </div>
+      </footer>
+    </main>
   );
 }
