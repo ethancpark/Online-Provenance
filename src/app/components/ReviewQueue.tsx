@@ -9,16 +9,22 @@ type Props = {
   onSelect: (id: string) => void;
 };
 
-function bandBadge(band: ConfidenceBand, confidence: number) {
+// Signal palette (design.md §4): high → vermillion, medium → amber, low → neutral.
+const BAND_STYLE: Record<ConfidenceBand, React.CSSProperties> = {
+  high: { background: "var(--signal-high-tint-bg)", color: "var(--signal-high-tint-text)" },
+  medium: { background: "var(--signal-med-tint-bg)", color: "var(--signal-med-tint-text)" },
+  low: { background: "var(--color-parchment)", color: "var(--color-text-muted)", border: "1px solid var(--color-border)" },
+};
+
+function BandBadge({ band, confidence }: { band: ConfidenceBand; confidence: number }) {
   const pct = Math.round(confidence * 100);
-  const styles: Record<ConfidenceBand, string> = {
-    high: "bg-rose-900/40 text-rose-300 border-rose-800",
-    medium: "bg-amber-900/40 text-amber-300 border-amber-800",
-    low: "bg-zinc-800 text-zinc-400 border-zinc-700",
-  };
+  const label = band.charAt(0).toUpperCase() + band.slice(1);
   return (
-    <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs ${styles[band]}`}>
-      {band.charAt(0).toUpperCase() + band.slice(1)} match {pct}%
+    <span
+      className="op-data inline-flex items-center rounded-full px-2.5 py-0.5 text-xs"
+      style={BAND_STYLE[band]}
+    >
+      {label} match · {pct}%
     </span>
   );
 }
@@ -32,16 +38,26 @@ function MarketplaceIcon({ mp }: { mp: string }) {
 
 export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Props) {
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900">
-      <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-        <h2 className="text-sm font-medium">Review queue</h2>
-        <span className="text-xs text-zinc-500">Amazon, Temu</span>
+    <div
+      className="rounded-xl"
+      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+    >
+      <div
+        className="flex items-center justify-between px-5 py-3"
+        style={{ borderBottom: "1px solid var(--color-border)" }}
+      >
+        <h2 className="text-sm" style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}>
+          Review queue
+        </h2>
+        <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+          Amazon, Temu
+        </span>
       </div>
 
       <div className="max-h-[560px] overflow-y-auto">
         {matches.length === 0 && (
-          <div className="px-4 py-12 text-center text-sm text-zinc-500">
-            No flagged listings yet. Run a scan to populate the queue.
+          <div className="px-5 py-12 text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
+            No flagged listings yet. The daily scan populates this queue.
           </div>
         )}
 
@@ -52,37 +68,39 @@ export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Prop
             <button
               key={m.id}
               onClick={() => onSelect(m.id)}
-              className={`block w-full border-b border-zinc-800 px-4 py-3 text-left transition ${
-                isSelected
-                  ? "bg-sky-950/50 ring-1 ring-inset ring-sky-700"
-                  : "hover:bg-zinc-800/40"
-              }`}
+              className="block w-full px-5 py-3 text-left transition-colors"
+              style={{
+                borderBottom: "1px solid var(--color-border)",
+                borderLeft: isSelected ? "2px solid var(--color-navy)" : "2px solid transparent",
+                background: isSelected ? "var(--color-parchment)" : "transparent",
+              }}
             >
               <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-md border border-zinc-700 bg-zinc-800">
+                <div
+                  className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-md"
+                  style={{ border: "1px solid var(--color-border)", background: "var(--color-parchment)" }}
+                >
                   {listing.image_url ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={listing.image_url}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
+                    <img src={listing.image_url} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <span className="text-zinc-600">img</span>
+                    <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                      img
+                    </span>
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">
-                    “{listing.title}”
-                  </div>
-                  <div className="mt-0.5 truncate text-xs text-zinc-400">
+                  <div className="truncate text-sm">{listing.title}</div>
+                  <div className="mt-0.5 truncate text-xs" style={{ color: "var(--color-text-muted)" }}>
                     <MarketplaceIcon mp={listing.marketplace} /> {listing.marketplace}
-                    {listing.seller ? ` · seller ${listing.seller}` : ""}
+                    {listing.seller ? ` · ${listing.seller}` : ""}
                   </div>
                   <div className="mt-1.5 flex items-center gap-2">
-                    {bandBadge(m.confidence_band, m.confidence)}
+                    <BandBadge band={m.confidence_band} confidence={m.confidence} />
                     {isSelected && (
-                      <span className="text-xs text-sky-300">Selected</span>
+                      <span className="text-xs" style={{ color: "var(--color-navy)" }}>
+                        Selected
+                      </span>
                     )}
                   </div>
                 </div>

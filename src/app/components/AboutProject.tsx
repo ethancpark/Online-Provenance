@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default function AboutProject() {
   const [open, setOpen] = useState(false);
@@ -11,46 +12,68 @@ export default function AboutProject() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-100 hover:bg-zinc-800"
+        className="flex w-full items-center justify-between rounded-lg px-4 py-2.5 text-sm"
+        style={{
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border)",
+          color: "var(--color-ink)",
+          fontWeight: 500,
+        }}
       >
-        About This Project
-        <span className="text-xs text-zinc-500">{open ? "▲" : "▼"}</span>
+        About this project
+        {open ? (
+          <ChevronUp className="h-4 w-4" style={{ color: "var(--color-text-muted)" }} />
+        ) : (
+          <ChevronDown className="h-4 w-4" style={{ color: "var(--color-text-muted)" }} />
+        )}
       </button>
 
       {open && (
-        <div className="mt-3 flex flex-col gap-4 rounded-md border border-zinc-800 bg-zinc-900/60 p-4 text-sm leading-relaxed text-zinc-300">
-          <h2 className="text-base font-semibold text-zinc-100">
-            About This Project
+        <div
+          className="mt-3 flex flex-col gap-4 rounded-xl p-6 text-sm"
+          style={{
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+            color: "var(--color-text-secondary)",
+            lineHeight: 1.65,
+          }}
+        >
+          <h2
+            className="text-xl"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-navy)" }}
+          >
+            About this project
           </h2>
           <p>
-            This initiative is focused on protecting the intellectual property,
-            cultural symbols, and sovereign rights of federally recognized Native
-            American tribes by identifying and reporting unauthorized commercial use
-            of tribal flags, emblems, and protected cultural assets on online
-            marketplaces. The platform will maintain a verified database of federally
-            recognized tribes, monitor e-commerce sites such as Amazon and Temu
-            for potential misuse, trademark violations, and copyright infringements,
-            and streamline the process of documenting and reporting violations to the
-            appropriate tribal authorities and legal entities.
+            Online Provenance protects the intellectual property, cultural symbols, and
+            sovereign rights of federally recognized Native American tribes by identifying and
+            reporting unauthorized commercial use of tribal flags, emblems, and protected
+            cultural assets on online marketplaces. It maintains a verified database of
+            federally recognized tribes, monitors e-commerce sites such as Amazon and Temu for
+            potential misuse, trademark violations, and copyright infringements, and
+            streamlines documenting and reporting violations to the appropriate tribal
+            authorities and legal entities.
           </p>
           <p>
-            Through automated monitoring, evidence collection, copyright registration
-            support, and notification workflows, the project aims to empower tribes
-            and government agencies to take timely action against unauthorized
-            merchandise and counterfeit products. By facilitating communication with
-            tribal representatives, state Attorneys General, and marketplace
-            operators, the solution helps safeguard tribal identity and ensures that
-            intellectual property rights are respected across digital commerce
-            platforms.
+            Through automated monitoring, evidence collection, copyright-registration support,
+            and notification workflows, the project helps tribes and government agencies take
+            timely action against unauthorized merchandise and counterfeit products. By
+            facilitating communication with tribal representatives, state attorneys general, and
+            marketplace operators, it helps safeguard tribal identity and ensures intellectual
+            property rights are respected across digital commerce.
           </p>
 
-          <h2 className="text-base font-semibold text-zinc-100">Call to Action</h2>
+          <h3
+            className="text-base"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-navy)" }}
+          >
+            Call to action
+          </h3>
           <p>
-            Join us in protecting tribal heritage and intellectual property. Whether
-            you are a tribal representative, legal advocate, government agency, or
-            technology partner, your participation can help identify violations
-            faster, strengthen enforcement efforts, and preserve the integrity of
-            tribal symbols for future generations.
+            Join us in protecting tribal heritage and intellectual property. Whether you are a
+            tribal representative, legal advocate, government agency, or technology partner, your
+            participation can help identify violations faster, strengthen enforcement, and
+            preserve the integrity of tribal symbols for future generations.
           </p>
         </div>
       )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Landmark, Flag, Check, X } from "lucide-react";
+import { FileText, Landmark, Flag, Check, X, ExternalLink } from "lucide-react";
 import type { MatchRow } from "@/lib/types";
 
 type Props = { match: MatchRow | null };
@@ -24,7 +24,7 @@ const EMPTY_REPORTER: Reporter = {
   phone: "",
 };
 
-const REPORTER_STORAGE_KEY = "indigenous-scraper:reporter";
+const REPORTER_STORAGE_KEY = "online-provenance:reporter";
 
 function loadStoredReporter(): Reporter {
   if (typeof window === "undefined") return EMPTY_REPORTER;
@@ -44,11 +44,23 @@ function marketplaceLabel(mp: string) {
   return mp;
 }
 
-function bandColor(band: string) {
-  if (band === "high") return "text-rose-300";
-  if (band === "medium") return "text-amber-300";
-  return "text-zinc-400";
+function bandTextColor(band: string) {
+  if (band === "high") return "var(--signal-high-tint-text)";
+  if (band === "medium") return "var(--signal-med-tint-text)";
+  return "var(--color-text-muted)";
 }
+
+// Shared button styles (design.md §7)
+const secondaryBtn: React.CSSProperties = {
+  background: "var(--color-surface)",
+  border: "1px solid var(--color-border)",
+  color: "var(--color-ink)",
+};
+const eyebrow: React.CSSProperties = {
+  color: "var(--color-text-muted)",
+  letterSpacing: "0.04em",
+  fontWeight: 500,
+};
 
 export default function ListingDetail({ match }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
@@ -58,7 +70,10 @@ export default function ListingDetail({ match }: Props) {
 
   if (!match) {
     return (
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center text-sm text-zinc-500">
+      <div
+        className="rounded-xl p-8 text-center text-sm"
+        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", color: "var(--color-text-muted)" }}
+      >
         Select a listing to see details.
       </div>
     );
@@ -79,7 +94,6 @@ export default function ListingDetail({ match }: Props) {
       });
       if (!resp.ok) throw new Error(await resp.text());
       setFeedback(successMsg);
-      // Refresh data
       setTimeout(() => window.location.reload(), 600);
     } catch (e) {
       setFeedback(`Failed: ${(e as Error).message}`);
@@ -136,60 +150,67 @@ export default function ListingDetail({ match }: Props) {
   }
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900">
-      <div className="border-b border-zinc-800 px-4 py-3">
-        <h2 className="text-sm font-medium">Listing detail</h2>
+    <div
+      className="rounded-xl"
+      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+    >
+      <div className="px-5 py-3" style={{ borderBottom: "1px solid var(--color-border)" }}>
+        <h2 className="text-sm" style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}>
+          Listing detail
+        </h2>
       </div>
 
-      <div className="p-4">
-        <div className="aspect-[16/9] w-full overflow-hidden rounded-md border border-zinc-700 bg-zinc-800">
+      <div className="p-5">
+        <div
+          className="aspect-[16/9] w-full overflow-hidden rounded-md"
+          style={{ border: "1px solid var(--color-border)", background: "var(--color-parchment)" }}
+        >
           {listing.image_url ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={listing.image_url}
-              alt={listing.title}
-              className="h-full w-full object-contain"
-            />
+            <img src={listing.image_url} alt={listing.title} className="h-full w-full object-contain" />
           ) : (
-            <div className="flex h-full items-center justify-center text-zinc-600">
+            <div className="flex h-full items-center justify-center text-sm" style={{ color: "var(--color-text-muted)" }}>
               no image
             </div>
           )}
         </div>
 
         <dl className="mt-4 grid grid-cols-2 gap-y-2 text-sm">
-          <dt className="text-zinc-400">Marketplace</dt>
+          <dt style={{ color: "var(--color-text-muted)" }}>Marketplace</dt>
           <dd className="text-right">{marketplaceLabel(listing.marketplace)}</dd>
 
-          <dt className="text-zinc-400">Asset matched</dt>
+          <dt style={{ color: "var(--color-text-muted)" }}>Asset matched</dt>
           <dd className="text-right">{asset.description}</dd>
 
-          <dt className="text-zinc-400">Match confidence</dt>
-          <dd className={`text-right font-medium ${bandColor(match.confidence_band)}`}>
+          <dt style={{ color: "var(--color-text-muted)" }}>Match confidence</dt>
+          <dd className="op-data text-right" style={{ color: bandTextColor(match.confidence_band), fontWeight: 500 }}>
             {pct}% · {match.confidence_band}
           </dd>
 
-          <dt className="text-zinc-400">Seller</dt>
+          <dt style={{ color: "var(--color-text-muted)" }}>Seller</dt>
           <dd className="truncate text-right">{listing.seller ?? "—"}</dd>
 
-          <dt className="text-zinc-400">Price</dt>
-          <dd className="text-right">{listing.price ?? "—"}</dd>
+          <dt style={{ color: "var(--color-text-muted)" }}>Price</dt>
+          <dd className="op-data text-right">{listing.price ?? "—"}</dd>
 
-          <dt className="text-zinc-400">Listing URL</dt>
+          <dt style={{ color: "var(--color-text-muted)" }}>Listing</dt>
           <dd className="truncate text-right">
             <a
               href={listing.listing_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sky-400 hover:underline"
+              className="op-data inline-flex items-center gap-1 hover:underline"
+              style={{ color: "var(--color-navy)" }}
             >
-              {listing.listing_url.replace(/^https?:\/\//, "").slice(0, 36)}…
+              {listing.listing_url.replace(/^https?:\/\//, "").slice(0, 30)}…
+              <ExternalLink className="h-3 w-3" />
             </a>
           </dd>
         </dl>
 
-        <div className="mt-5">
-          <div className="mb-2 text-xs uppercase tracking-wide text-zinc-400">
+        {/* Generate response — secondary actions */}
+        <div className="mt-6">
+          <div className="mb-2 text-xs" style={eyebrow}>
             Generate response
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -202,7 +223,8 @@ export default function ListingDetail({ match }: Props) {
                   "Marketplace takedown drafted",
                 )
               }
-              className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--color-parchment)] disabled:opacity-50"
+              style={secondaryBtn}
             >
               <FileText className="h-4 w-4" />
               {busy === "/api/draft" ? "Drafting…" : "Draft marketplace takedown"}
@@ -216,7 +238,8 @@ export default function ListingDetail({ match }: Props) {
                   "AG notification drafted",
                 )
               }
-              className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--color-parchment)] disabled:opacity-50"
+              style={secondaryBtn}
             >
               <Landmark className="h-4 w-4" />
               Draft AG notification
@@ -224,8 +247,9 @@ export default function ListingDetail({ match }: Props) {
           </div>
         </div>
 
+        {/* Report — primary enforcement action (vermillion) */}
         <div className="mt-5">
-          <div className="mb-2 text-xs uppercase tracking-wide text-zinc-400">
+          <div className="mb-2 text-xs" style={eyebrow}>
             Report to marketplace
           </div>
           <button
@@ -235,7 +259,8 @@ export default function ListingDetail({ match }: Props) {
               setReporter(loadStoredReporter());
               setReporterModalOpen(true);
             }}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-rose-700 bg-rose-900/30 px-3 py-2 text-sm text-rose-200 hover:bg-rose-900/50 disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ background: "var(--signal-high-solid-bg)", color: "var(--signal-high-solid-text)" }}
           >
             <Flag className="h-4 w-4" />
             {busy === "/api/report"
@@ -246,7 +271,7 @@ export default function ListingDetail({ match }: Props) {
                   ? "Report to Temu (IP portal)"
                   : "Report to marketplace"}
           </button>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1.5 text-xs" style={{ color: "var(--color-text-muted)" }}>
             {listing.marketplace === "amazon"
               ? "Opens your email client with a DMCA notice addressed to notice@amazon.com. Review before sending."
               : listing.marketplace === "temu"
@@ -255,17 +280,15 @@ export default function ListingDetail({ match }: Props) {
           </p>
         </div>
 
+        {/* Review decision */}
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             disabled={busy !== null}
             onClick={() =>
-              action(
-                "/api/match-action",
-                { match_id: match.id, status: "confirmed" },
-                "Marked as infringing",
-              )
+              action("/api/match-action", { match_id: match.id, status: "confirmed" }, "Marked as infringing")
             }
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-emerald-700 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-900/50 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ background: "var(--signal-high-tint-bg)", color: "var(--signal-high-tint-text)", border: "1px solid var(--signal-high-tint-bg)" }}
           >
             <Check className="h-4 w-4" />
             Confirm infringing
@@ -273,13 +296,10 @@ export default function ListingDetail({ match }: Props) {
           <button
             disabled={busy !== null}
             onClick={() =>
-              action(
-                "/api/match-action",
-                { match_id: match.id, status: "dismissed" },
-                "Dismissed",
-              )
+              action("/api/match-action", { match_id: match.id, status: "dismissed" }, "Dismissed")
             }
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--color-parchment)] disabled:opacity-50"
+            style={secondaryBtn}
           >
             <X className="h-4 w-4" />
             Dismiss
@@ -287,14 +307,17 @@ export default function ListingDetail({ match }: Props) {
         </div>
 
         {feedback && (
-          <div className="mt-3 rounded-md bg-zinc-800 px-3 py-2 text-sm text-zinc-300">
+          <div
+            className="mt-3 rounded-md px-3 py-2 text-sm"
+            style={{ background: "var(--color-parchment)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
+          >
             {feedback}
           </div>
         )}
 
-        <p className="mt-4 text-xs text-zinc-500">
-          The Report button pre-fills the notice — nothing is sent until you confirm in
-          your email client or the IP portal.
+        <p className="mt-4 text-xs" style={{ color: "var(--color-text-muted)" }}>
+          The report button pre-fills the notice — nothing is sent until you confirm in your email
+          client or the IP portal.
         </p>
       </div>
 
@@ -351,46 +374,37 @@ function ReporterModal({ initial, onCancel, onSubmit }: ReporterModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(21, 23, 28, 0.55)" }}
+    >
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-lg border border-zinc-700 bg-zinc-900 p-5 shadow-xl"
+        className="w-full max-w-md rounded-xl p-6"
+        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
       >
-        <h3 className="text-sm font-medium">Claimant info</h3>
-        <p className="mt-1 text-xs text-zinc-500">
-          This is signed under penalty of perjury and pasted into the notice. Saved in
-          your browser so you only enter it once.
+        <h3 className="text-lg" style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-navy)" }}>
+          Claimant info
+        </h3>
+        <p className="mt-1 text-xs" style={{ color: "var(--color-text-muted)" }}>
+          This is signed under penalty of perjury and pasted into the notice. Saved in your browser
+          so you only enter it once.
         </p>
 
         <div className="mt-4 space-y-3">
           <Field label="Full name *" value={draft.name} onChange={(v) => update("name", v)} />
           <Field label="Title" value={draft.title} onChange={(v) => update("title", v)} />
-          <Field
-            label="Organization"
-            value={draft.organization}
-            onChange={(v) => update("organization", v)}
-          />
-          <Field
-            label="Mailing address *"
-            value={draft.address}
-            onChange={(v) => update("address", v)}
-          />
-          <Field
-            label="Email *"
-            value={draft.email}
-            type="email"
-            onChange={(v) => update("email", v)}
-          />
-          <Field
-            label="Phone"
-            value={draft.phone}
-            type="tel"
-            onChange={(v) => update("phone", v)}
-          />
+          <Field label="Organization" value={draft.organization} onChange={(v) => update("organization", v)} />
+          <Field label="Mailing address *" value={draft.address} onChange={(v) => update("address", v)} />
+          <Field label="Email *" value={draft.email} type="email" onChange={(v) => update("email", v)} />
+          <Field label="Phone" value={draft.phone} type="tel" onChange={(v) => update("phone", v)} />
         </div>
 
         {error && (
-          <div className="mt-3 rounded-md border border-rose-800 bg-rose-900/30 px-3 py-2 text-xs text-rose-200">
+          <div
+            className="mt-3 rounded-md px-3 py-2 text-xs"
+            style={{ background: "var(--signal-high-tint-bg)", color: "var(--signal-high-tint-text)" }}
+          >
             {error}
           </div>
         )}
@@ -399,15 +413,17 @@ function ReporterModal({ initial, onCancel, onSubmit }: ReporterModalProps) {
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-700"
+            className="rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--color-parchment)]"
+            style={secondaryBtn}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="rounded-md border border-rose-700 bg-rose-900/40 px-3 py-2 text-sm text-rose-200 hover:bg-rose-900/60"
+            className="rounded-lg px-3 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+            style={{ background: "var(--color-navy)", color: "var(--color-on-navy-strong)" }}
           >
-            Save & continue
+            Save &amp; continue
           </button>
         </div>
       </form>
@@ -425,12 +441,15 @@ type FieldProps = {
 function Field({ label, value, onChange, type = "text" }: FieldProps) {
   return (
     <label className="block">
-      <span className="block text-xs text-zinc-400">{label}</span>
+      <span className="block text-xs" style={{ color: "var(--color-text-muted)" }}>
+        {label}
+      </span>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none"
+        className="mt-1 w-full rounded-lg px-2.5 py-1.5 text-sm focus:outline-none"
+        style={{ background: "var(--color-parchment)", border: "1px solid var(--color-border)", color: "var(--color-ink)" }}
       />
     </label>
   );

@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ExternalLink } from "lucide-react";
 import type { Tribe, MatchRow, TribeSummary } from "@/lib/types";
+import Seal from "./Seal";
 import AboutProject from "./AboutProject";
 import StatsHeader from "./StatsHeader";
 import ReviewQueue from "./ReviewQueue";
@@ -17,14 +19,10 @@ type Props = {
 
 export default function Dashboard({ tribes, selectedTribe, summary, matches }: Props) {
   const router = useRouter();
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(
-    matches[0]?.id ?? null,
-  );
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(matches[0]?.id ?? null);
 
-  // Tribes listed alphabetically in the dropdown
   const sortedTribes = [...tribes].sort((a, b) => a.name.localeCompare(b.name));
 
-  // Re-sync if a different tribe is selected
   const visibleMatches = matches;
   const selectedMatch = useMemo(
     () => visibleMatches.find((m) => m.id === selectedMatchId) ?? visibleMatches[0] ?? null,
@@ -37,17 +35,33 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen" style={{ background: "var(--color-parchment)", color: "var(--color-ink)" }}>
       <div className="mx-auto max-w-7xl px-6 py-6">
+        {/* Wordmark bar */}
+        <div className="mb-6 flex items-center gap-2" style={{ borderBottom: "1px solid var(--color-border)" }}>
+          <div className="flex items-center gap-2 pb-4">
+            <Seal size={26} />
+            <span
+              className="text-xs"
+              style={{ fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.13em", color: "var(--color-navy)" }}
+            >
+              ONLINE PROVENANCE
+            </span>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">Infringement monitor</h1>
-            <div className="mt-1 flex items-center gap-3 text-sm text-zinc-400">
+            <h1 className="text-3xl" style={{ fontFamily: "var(--font-display)", fontWeight: 600, color: "var(--color-navy)" }}>
+              Infringement monitor
+            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm" style={{ color: "var(--color-text-secondary)" }}>
               <select
                 value={selectedTribe?.name ?? ""}
                 onChange={handleTribeChange}
-                className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-zinc-100 focus:border-zinc-500 focus:outline-none"
+                className="rounded-lg px-2.5 py-1.5 focus:outline-none"
+                style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", color: "var(--color-ink)" }}
               >
                 {sortedTribes.map((t) => (
                   <option key={t.id} value={t.name}>
@@ -55,35 +69,33 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
                   </option>
                 ))}
               </select>
-              <span>·</span>
-              <span>tribal seal &amp; flag protection</span>
+              <span style={{ color: "var(--color-text-muted)" }}>tribal seal &amp; flag protection</span>
               {selectedTribe?.has_registered_mark && (
-                <>
-                  <span>·</span>
-                  <span className="rounded-md bg-emerald-900/40 px-2 py-0.5 text-emerald-300">
-                    USPTO registered
-                  </span>
-                </>
+                <span
+                  className="rounded-full px-2.5 py-0.5 text-xs"
+                  style={{ background: "var(--signal-ok-tint-bg)", color: "var(--signal-ok-tint-text)" }}
+                >
+                  USPTO registered
+                </span>
               )}
               {selectedTribe?.uspto_search_url && (
-                <>
-                  <span>·</span>
-                  <a
-                    href={selectedTribe.uspto_search_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sky-400 hover:underline"
-                    title={selectedTribe.uspto_notes ?? "USPTO trademark records"}
-                  >
-                    {selectedTribe.uspto_search_url.includes("tsdr.uspto.gov")
-                      ? "USPTO seal registration ↗"
-                      : "USPTO trademark records ↗"}
-                  </a>
-                </>
+                <a
+                  href={selectedTribe.uspto_search_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 hover:underline"
+                  style={{ color: "var(--color-navy)" }}
+                  title={selectedTribe.uspto_notes ?? "USPTO trademark records"}
+                >
+                  {selectedTribe.uspto_search_url.includes("tsdr.uspto.gov")
+                    ? "USPTO seal registration"
+                    : "USPTO trademark records"}
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
               )}
             </div>
           </div>
-          <div className="text-right text-xs text-zinc-500">
+          <div className="text-right text-xs" style={{ color: "var(--color-text-muted)" }}>
             Auto-updated daily
           </div>
         </div>
@@ -91,7 +103,7 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
         {/* About this project */}
         <AboutProject />
 
-        {/* KPI cards */}
+        {/* Metric cards */}
         <StatsHeader summary={summary} />
 
         {/* Two-column body */}
@@ -104,8 +116,8 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
           <ListingDetail match={selectedMatch} />
         </div>
 
-        <p className="mt-8 text-center text-xs text-zinc-500">
-          Indigenous Scraper — research prototype. Drafts are queued for human review before
+        <p className="mt-8 text-center text-xs" style={{ color: "var(--color-text-muted)" }}>
+          Online Provenance — research prototype. Drafts are queued for human review before
           anything is sent. Nothing files automatically.
         </p>
       </div>
