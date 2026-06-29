@@ -64,10 +64,7 @@ export default function LandingPage() {
       <section style={{ background: "var(--color-navy)" }}>
         <div className="mx-auto w-full max-w-5xl px-6 py-20 md:py-24">
           <Seal size={64} variant="reversed" />
-          <p
-            className="mt-8 text-xs"
-            style={{ color: "var(--color-on-navy)", letterSpacing: "0.04em", fontWeight: 500 }}
-          >
+          <p className="op-eyebrow mt-8" style={{ color: "var(--color-on-navy)" }}>
             Provenance · authentication · enforcement
           </p>
           <h1
@@ -84,7 +81,7 @@ export default function LandingPage() {
           </h1>
           <p
             className="mt-6 max-w-2xl"
-            style={{ color: "var(--color-on-navy)", lineHeight: 1.65, fontSize: "1rem" }}
+            style={{ color: "var(--color-on-navy-strong)", lineHeight: 1.65, fontSize: "1rem" }}
           >
             Across 574 federally recognized tribes, sacred seals and trademarked flags
             are sold by third-party sellers on Amazon, Temu, and Alibaba with no consent,
@@ -94,7 +91,7 @@ export default function LandingPage() {
           <div className="mt-10 flex items-center gap-6">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium"
+              className="inline-flex items-center gap-2 rounded-[2px] px-5 py-2.5 text-sm font-medium"
               style={{ background: "var(--color-parchment)", color: "var(--color-navy)" }}
             >
               View the monitor
@@ -124,7 +121,7 @@ export default function LandingPage() {
           {STEPS.map(({ n, Icon, title, body }) => (
             <div
               key={n}
-              className="rounded-xl p-6"
+              className="rounded-[2px] p-6"
               style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
             >
               <div className="flex items-center justify-between">
@@ -133,7 +130,10 @@ export default function LandingPage() {
                   {n}
                 </span>
               </div>
-              <h3 className="mt-4 text-lg" style={{ fontWeight: 500 }}>
+              <h3
+                className="mt-4 text-lg"
+                style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-navy)" }}
+              >
                 {title}
               </h3>
               <p className="mt-2 text-sm" style={{ color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
@@ -147,15 +147,10 @@ export default function LandingPage() {
       {/* Currently monitoring */}
       <section className="mx-auto w-full max-w-5xl px-6 pb-16 md:pb-20">
         <div
-          className="rounded-xl p-6 md:p-8"
+          className="rounded-[2px] p-6 md:p-8"
           style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
         >
-          <p
-            className="text-xs"
-            style={{ color: "var(--color-text-muted)", letterSpacing: "0.04em", fontWeight: 500 }}
-          >
-            Currently monitoring
-          </p>
+          <p className="op-eyebrow">Currently monitoring</p>
           <div className="mt-3 flex flex-wrap items-baseline gap-x-8 gap-y-2">
             {["Amazon", "Temu", "Alibaba"].map((mp) => (
               <span

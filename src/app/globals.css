@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
-/* Institutional base — parchment record surface, ink text, Plex Sans body (design.md §1, §5). */
+/* Institutional base — parchment record surface, ink text, Plex Sans body. */
 body {
   background: var(--color-parchment);
   color: var(--color-ink);
@@ -15,7 +15,51 @@ h2 {
   font-family: var(--font-display);
 }
 
-/* On-the-record data (IDs, scores, timestamps) — forensic layer (§5). */
+/* On-the-record data (IDs, scores, prices, dates) — mono with tabular figures. */
 .op-data {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Section labels / field labels — The Markup uppercase mono eyebrow. */
+.op-eyebrow {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* Status / confidence tags — flat gov.uk rectangle (no pills). Colors set inline. */
+.op-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 8px;
+  border-radius: var(--op-radius);
+}
+
+/* Loud, visible focus on every interactive element — gov.uk style. */
+:focus-visible {
+  outline: 3px solid var(--op-focus);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--op-ink);
+}
+
+/* A records system doesn't animate. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

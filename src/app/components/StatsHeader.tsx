@@ -13,17 +13,13 @@ export default function StatsHeader({ summary }: Props) {
   return (
     <div className="grid grid-cols-2 gap-4">
       {cards.map((c) => (
-        <div key={c.label} className="rounded-xl px-5 py-4" style={{ background: "var(--color-surface)" }}>
-          <div
-            className="text-xs"
-            style={{ color: "var(--color-text-muted)", letterSpacing: "0.04em", fontWeight: 500 }}
-          >
-            {c.label}
-          </div>
-          <div
-            className="mt-1 text-4xl"
-            style={{ fontFamily: "var(--font-display)", fontWeight: 600, color: c.color }}
-          >
+        <div
+          key={c.label}
+          className="rounded-[2px] px-5 py-4"
+          style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+        >
+          <div className="op-eyebrow">{c.label}</div>
+          <div className="op-data mt-1.5 text-4xl" style={{ fontWeight: 500, color: c.color }}>
             {c.value}
           </div>
         </div>

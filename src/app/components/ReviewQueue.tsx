@@ -20,10 +20,7 @@ function BandBadge({ band, confidence }: { band: ConfidenceBand; confidence: num
   const pct = Math.round(confidence * 100);
   const label = band.charAt(0).toUpperCase() + band.slice(1);
   return (
-    <span
-      className="op-data inline-flex items-center rounded-full px-2.5 py-0.5 text-xs"
-      style={BAND_STYLE[band]}
-    >
+    <span className="op-tag" style={BAND_STYLE[band]}>
       {label} match · {pct}%
     </span>
   );
@@ -39,19 +36,15 @@ function MarketplaceIcon({ mp }: { mp: string }) {
 export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Props) {
   return (
     <div
-      className="rounded-xl"
+      className="rounded-[2px]"
       style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
     >
       <div
         className="flex items-center justify-between px-5 py-3"
         style={{ borderBottom: "1px solid var(--color-border)" }}
       >
-        <h2 className="text-sm" style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}>
-          Review queue
-        </h2>
-        <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-          Amazon, Temu
-        </span>
+        <h2 className="op-eyebrow">Review queue</h2>
+        <span className="op-eyebrow">Amazon, Temu</span>
       </div>
 
       <div className="max-h-[560px] overflow-y-auto">
@@ -68,16 +61,17 @@ export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Prop
             <button
               key={m.id}
               onClick={() => onSelect(m.id)}
-              className="block w-full px-5 py-3 text-left transition-colors"
+              className={`block w-full px-5 py-3 text-left transition-colors ${
+                isSelected ? "bg-[var(--color-parchment)]" : "hover:bg-[var(--color-parchment)]"
+              }`}
               style={{
-                borderBottom: "1px solid var(--color-border)",
-                borderLeft: isSelected ? "2px solid var(--color-navy)" : "2px solid transparent",
-                background: isSelected ? "var(--color-parchment)" : "transparent",
+                borderBottom: "1px solid var(--op-rule-soft)",
+                borderLeft: isSelected ? "2px solid var(--op-seal)" : "2px solid transparent",
               }}
             >
               <div className="flex items-start gap-3">
                 <div
-                  className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-md"
+                  className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-[2px]"
                   style={{ border: "1px solid var(--color-border)", background: "var(--color-parchment)" }}
                 >
                   {listing.image_url ? (

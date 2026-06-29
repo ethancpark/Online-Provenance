@@ -20,19 +20,13 @@ function marketplaceName(mp: string) {
   return mp.charAt(0).toUpperCase() + mp.slice(1);
 }
 
-// Confidence badge — reuse the signal palette (design.md §4): high → vermillion,
+// Confidence tag — flat gov.uk rectangle on the signal palette: high → seal,
 // medium → amber, low → neutral.
 function bandBadgeStyle(band: string): React.CSSProperties {
   if (band === "high") return { background: "var(--signal-high-tint-bg)", color: "var(--signal-high-tint-text)" };
   if (band === "medium") return { background: "var(--signal-med-tint-bg)", color: "var(--signal-med-tint-text)" };
   return { background: "var(--color-parchment)", color: "var(--color-text-muted)" };
 }
-
-const eyebrow: React.CSSProperties = {
-  color: "var(--color-text-muted)",
-  letterSpacing: "0.04em",
-  fontWeight: 500,
-};
 
 type NoticeArgs = {
   tribeName: string;
@@ -123,7 +117,7 @@ export default function ListingDetail({ match, tribe }: Props) {
   if (!match) {
     return (
       <div
-        className="rounded-xl p-8 text-center text-sm"
+        className="rounded-[2px] p-8 text-center text-sm"
         style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", color: "var(--color-text-muted)" }}
       >
         Select a listing to see details.
@@ -173,13 +167,11 @@ export default function ListingDetail({ match, tribe }: Props) {
 
   return (
     <div
-      className="rounded-xl p-6"
+      className="rounded-[2px] p-6"
       style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
     >
       {/* 1. Comparison */}
-      <div className="mb-3 text-xs" style={eyebrow}>
-        Compare to the registered seal
-      </div>
+      <div className="op-eyebrow mb-3">Compare to the registered seal</div>
       <div className={hasSeal ? "grid grid-cols-2 gap-4" : "grid grid-cols-1"}>
         {hasSeal && (
           <Frame
@@ -202,10 +194,7 @@ export default function ListingDetail({ match, tribe }: Props) {
       {/* 2. Record */}
       <dl className="mt-6">
         <Row label="Match confidence">
-          <span
-            className="op-data inline-flex items-center rounded-full px-2.5 py-0.5 text-xs"
-            style={{ ...bandBadgeStyle(match.confidence_band), fontWeight: 500 }}
-          >
+          <span className="op-tag" style={bandBadgeStyle(match.confidence_band)}>
             {pct}% · {match.confidence_band}
           </span>
         </Row>
@@ -237,7 +226,7 @@ export default function ListingDetail({ match, tribe }: Props) {
 
       {/* 3. Take action */}
       <div className="mt-6">
-        <div className="mb-3 flex items-center gap-1.5 text-xs" style={eyebrow}>
+        <div className="op-eyebrow mb-3 flex items-center gap-1.5">
           <Zap className="h-3.5 w-3.5" />
           Take action
         </div>
@@ -265,7 +254,7 @@ export default function ListingDetail({ match, tribe }: Props) {
 
       {feedback && (
         <div
-          className="mt-3 rounded-md px-3 py-2 text-sm"
+          className="mt-3 rounded-[2px] px-3 py-2 text-sm"
           style={{ background: "var(--color-parchment)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
         >
           {feedback}
@@ -294,7 +283,7 @@ function Frame({ label, labelColor, imageUrl, alt, fallbackIcon }: FrameProps) {
   return (
     <figure>
       <div
-        className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-md"
+        className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-[2px]"
         style={{ border: "1px solid var(--color-border)", background: "var(--color-parchment)" }}
       >
         {imageUrl ? (
@@ -317,9 +306,7 @@ function Row({ label, children, last }: { label: string; children: React.ReactNo
       className="flex items-center justify-between gap-4 py-2.5"
       style={last ? undefined : { borderBottom: "1px solid var(--color-border)" }}
     >
-      <dt className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-        {label}
-      </dt>
+      <dt className="op-eyebrow">{label}</dt>
       <dd className="text-right">{children}</dd>
     </div>
   );
@@ -343,7 +330,7 @@ function ActionButton({ background, textColor, descColor, icon, label, descripti
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg px-4 text-left transition-opacity hover:opacity-90"
+      className="flex w-full items-center gap-3 rounded-[2px] px-4 text-left transition-opacity hover:opacity-90"
       style={{ background, color: textColor, paddingTop: 14, paddingBottom: 14, minHeight: 56 }}
     >
       <span className="flex-none">{icon}</span>

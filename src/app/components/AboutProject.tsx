@@ -22,7 +22,7 @@ export default function AboutProject() {
 
       {open && (
         <div
-          className="mt-3 flex flex-col gap-4 rounded-xl p-6 text-sm"
+          className="mt-3 flex flex-col gap-4 rounded-[2px] p-6 text-sm"
           style={{
             background: "var(--color-surface)",
             border: "1px solid var(--color-border)",

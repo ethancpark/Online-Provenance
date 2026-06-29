@@ -1,42 +1,74 @@
-/* Online Provenance — design tokens (single source of truth, per design.md §4–6).
-   Nothing in components should hardcode a hex, font, or pixel value — reference these. */
+/* Online Provenance — UI design tokens.
+   Flat editorial records system: The Markup, gov.uk/USWDS, CourtListener.
+   The op-* layer is the source of truth; the legacy color, signal, and radius
+   names are kept as aliases so component references resolve to the new palette. */
 
 :root {
-  /* ---- Core: chrome and surfaces (§4) ---- */
-  --color-navy: #1b2a4a;          /* primary brand: headings on light, dark panels, hero, footer */
-  --color-navy-deep: #15203a;     /* deepest panels, hover on navy */
-  --color-ink: #15171c;           /* primary text on light */
-  --color-parchment: #f4eee1;     /* page background — the "record" surface */
-  --color-surface: #fbf9f4;       /* card / panel bg (sits on parchment) */
-  --color-border: #e4dfd3;        /* hairline borders and dividers */
-  --color-text-secondary: #4a453d;/* supporting body text on light */
-  --color-text-muted: #8a8275;    /* labels, captions, metadata */
-  --color-on-navy: #e8e0d0;       /* body text on navy */
-  --color-on-navy-strong: #f4eee1;/* headings / wordmark on navy */
+  /* ---- Surfaces ---- */
+  --op-ink: #16233a;        /* institutional navy — header, hero, dark panels */
+  --op-ink-soft: #25364f;   /* dark-on-dark separation */
+  --op-parchment: #ece4d1;  /* record / page surface */
+  --op-paper: #faf8f2;      /* light surface for dense data + tables */
 
-  /* ---- Signal: enforcement states ONLY (§4). solid = on dark, tint = on light ---- */
-  /* High severity / confirmed infringement (vermillion — caged to high-severity alerts) */
-  --signal-high-solid-bg: #c23b22;
-  --signal-high-solid-text: #f8e9e5;
-  --signal-high-tint-bg: #f7e6e1;
-  --signal-high-tint-text: #8a2716;
-  /* Flagged for review / medium match (amber) */
-  --signal-med-solid-bg: #c8851a;
-  --signal-med-solid-text: #2a1b02;
-  --signal-med-tint-bg: #faeed9;
-  --signal-med-tint-text: #6b4506;
-  /* Verified authentic / protected / removed (green) */
-  --signal-ok-solid-bg: #2e6b4f;
-  --signal-ok-solid-text: #e3f0ea;
-  --signal-ok-tint-bg: #e2efe8;
-  --signal-ok-tint-text: #1e4a36;
+  /* ---- Ink / text ---- */
+  --op-text: #16233a;
+  --op-text-mute: #6b6552;      /* meta on light (warm gray) */
+  --op-text-inv: #f4efe2;       /* text on navy */
+  --op-text-inv-mute: #a9b3c2;
 
-  /* ---- Typography (§5) ---- */
+  /* ---- State colors — flat, semantic, gov.uk-style ---- */
+  --op-seal: #8e3b2d;       /* infringement + primary enforcement action (Report) */
+  --op-seal-deep: #6f2c20;  /* hover / pressed */
+  --op-seal-tint: #f2e2dc;  /* HIGH MATCH tag fill */
+  --op-amber: #8a5e12;      /* MEDIUM MATCH text */
+  --op-amber-tint: #f2e8d2; /* MEDIUM MATCH tag fill */
+  --op-verify: #2e5848;     /* REMOVED text */
+  --op-verify-tint: #dee9e1;/* REMOVED tag fill */
+  --op-reg-tint: #dce3ec;   /* USPTO REGISTERED tag fill (navy text) */
+
+  /* ---- Lines + focus ---- */
+  --op-rule: #cdbf9e;       /* hairline on parchment */
+  --op-rule-soft: #e0d7bf;
+  --op-rule-dark: rgba(52, 70, 97, 0.5);
+  --op-focus: #ffdd00;      /* gov.uk-style focus highlight */
+
+  /* ---- Geometry: the only radius. flat-document, not rounded-app ---- */
+  --op-radius: 2px;
+
+  /* ---- Legacy aliases (resolve to the flat palette above) ---- */
+  --color-navy: var(--op-ink);
+  --color-navy-deep: var(--op-ink-soft);
+  --color-ink: var(--op-text);
+  --color-parchment: var(--op-parchment);
+  --color-surface: var(--op-paper);
+  --color-border: var(--op-rule);
+  --color-text-secondary: #4a453d;
+  --color-text-muted: var(--op-text-mute);
+  --color-on-navy: var(--op-text-inv-mute);
+  --color-on-navy-strong: var(--op-text-inv);
+
+  /* High severity / confirmed infringement → seal */
+  --signal-high-solid-bg: var(--op-seal);
+  --signal-high-solid-text: var(--op-text-inv);
+  --signal-high-tint-bg: var(--op-seal-tint);
+  --signal-high-tint-text: var(--op-seal);
+  /* Flagged for review / medium match → amber */
+  --signal-med-solid-bg: var(--op-amber);
+  --signal-med-solid-text: var(--op-text-inv);
+  --signal-med-tint-bg: var(--op-amber-tint);
+  --signal-med-tint-text: var(--op-amber);
+  /* Verified authentic / protected / removed → verify */
+  --signal-ok-solid-bg: var(--op-verify);
+  --signal-ok-solid-text: var(--op-text-inv);
+  --signal-ok-tint-bg: var(--op-verify-tint);
+  --signal-ok-tint-text: var(--op-verify);
+
+  /* ---- Typography ---- */
   --font-display: var(--font-fraunces), Georgia, serif;
   --font-body: var(--font-plex-sans), system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
-  /* ---- Spacing: 8px grid (§6) ---- */
+  /* ---- Spacing: 8px grid ---- */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -46,15 +78,15 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* ---- Radius (§6) ---- */
-  --radius-sm: 8px;     /* controls, buttons, inputs, badges */
-  --radius-md: 12px;    /* cards and panels */
-  --radius-pill: 999px; /* status chips */
+  /* ---- Radius (flattened to a single 2px document radius) ---- */
+  --radius-sm: var(--op-radius);
+  --radius-md: var(--op-radius);
+  --radius-pill: var(--op-radius);
 
-  /* ---- Border (§6): hairline only ---- */
+  /* ---- Border: hairline only ---- */
   --border-hairline: 1px solid var(--color-border);
 
-  /* ---- Seal mark defaults (§3) ---- */
+  /* ---- Seal mark defaults ---- */
   --seal-body: var(--color-navy);
   --seal-paper: var(--color-parchment);
 }

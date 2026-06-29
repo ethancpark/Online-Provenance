@@ -52,18 +52,13 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
             <div className="mt-1.5 text-xs" style={{ color: "var(--color-text-muted)" }}>
               Monitoring marketplaces for unauthorized use of one nation&apos;s seals and flags.
             </div>
-            <label
-              className="mt-3 mb-1.5 block text-xs"
-              style={{ color: "var(--color-text-muted)", letterSpacing: "0.04em", fontWeight: 500 }}
-            >
-              Tribal nation
-            </label>
+            <label className="op-eyebrow mt-3 mb-1.5 block">Tribal nation</label>
             <div className="flex flex-wrap items-center gap-3 text-sm" style={{ color: "var(--color-text-secondary)" }}>
               <select
                 value={selectedTribe?.name ?? ""}
                 onChange={handleTribeChange}
                 aria-label="Select tribal nation"
-                className="min-w-[220px] rounded-lg px-3 py-2 text-sm focus:outline-none"
+                className="min-w-[220px] rounded-[2px] px-3 py-2 text-sm"
                 style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", color: "var(--color-ink)", fontWeight: 500 }}
               >
                 {sortedTribes.map((t) => (
@@ -74,10 +69,7 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
               </select>
               <span style={{ color: "var(--color-text-muted)" }}>tribal seal &amp; flag protection</span>
               {selectedTribe?.has_registered_mark && (
-                <span
-                  className="rounded-full px-2.5 py-0.5 text-xs"
-                  style={{ background: "var(--signal-ok-tint-bg)", color: "var(--signal-ok-tint-text)" }}
-                >
+                <span className="op-tag" style={{ background: "var(--op-reg-tint)", color: "var(--op-ink)" }}>
                   USPTO registered
                 </span>
               )}
