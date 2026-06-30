@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Award, ExternalLink, Flag, Image as ImageIcon, Landmark, Zap } from "lucide-react";
 import type { MatchRow, Tribe } from "@/lib/types";
 import { getTribalLegalContact } from "@/lib/tribalLegal";
+import styles from "./Dashboard.module.css";
 
 type Props = { match: MatchRow | null; tribe: Tribe | null };
 
@@ -18,14 +18,6 @@ function marketplaceName(mp: string) {
   if (mp === "amazon") return "Amazon";
   if (mp === "temu") return "Temu";
   return mp.charAt(0).toUpperCase() + mp.slice(1);
-}
-
-// Confidence tag — flat gov.uk rectangle on the signal palette: high → seal,
-// medium → amber, low → neutral.
-function bandBadgeStyle(band: string): React.CSSProperties {
-  if (band === "high") return { background: "var(--signal-high-tint-bg)", color: "var(--signal-high-tint-text)" };
-  if (band === "medium") return { background: "var(--signal-med-tint-bg)", color: "var(--signal-med-tint-text)" };
-  return { background: "var(--color-parchment)", color: "var(--color-text-muted)" };
 }
 
 type NoticeArgs = {
@@ -116,11 +108,8 @@ export default function ListingDetail({ match, tribe }: Props) {
 
   if (!match) {
     return (
-      <div
-        className="rounded-[2px] p-8 text-center text-sm"
-        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", color: "var(--color-text-muted)" }}
-      >
-        Select a listing to see details.
+      <div className={styles.card}>
+        <div className={styles.empty}>Select a listing to see details.</div>
       </div>
     );
   }
@@ -129,7 +118,6 @@ export default function ListingDetail({ match, tribe }: Props) {
   const asset = match.reference_assets;
   const pct = Math.round(match.confidence * 100);
   const tribeName = tribe?.name ?? "the tribe";
-  const hasSeal = Boolean(asset.image_url);
   const mpName = marketplaceName(listing.marketplace);
 
   const noticeArgs: NoticeArgs = {
@@ -166,181 +154,112 @@ export default function ListingDetail({ match, tribe }: Props) {
   }
 
   return (
-    <div
-      className="rounded-[2px] p-6"
-      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
-    >
-      {/* 1. Comparison */}
-      <div className="op-eyebrow mb-3">Compare to the registered seal</div>
-      <div className={hasSeal ? "grid grid-cols-2 gap-4" : "grid grid-cols-1"}>
-        {hasSeal && (
-          <Frame
-            label="registered seal"
-            labelColor="var(--signal-ok-tint-text)"
-            imageUrl={asset.image_url}
-            alt={asset.description}
-            fallbackIcon={<Award className="h-10 w-10" style={{ color: "var(--color-text-muted)" }} />}
-          />
-        )}
-        <Frame
-          label="flagged listing"
-          labelColor="var(--signal-high-tint-text)"
-          imageUrl={listing.image_url}
-          alt={listing.title}
-          fallbackIcon={<ImageIcon className="h-10 w-10" style={{ color: "var(--color-text-muted)" }} />}
-        />
-      </div>
-
-      {/* 2. Record */}
-      <dl className="mt-6">
-        <Row label="Match confidence">
-          <span className="op-tag" style={bandBadgeStyle(match.confidence_band)}>
-            {pct}% · {match.confidence_band}
-          </span>
-        </Row>
-        <Row label="Marketplace">
-          <span className="op-data text-sm">{marketplaceLabel(listing.marketplace)}</span>
-        </Row>
-        <Row label="Asset matched">
-          <span className="op-data text-sm">{asset.description}</span>
-        </Row>
-        <Row label="Seller">
-          <span className="op-data text-sm">{listing.seller ?? "—"}</span>
-        </Row>
-        <Row label="Price">
-          <span className="op-data text-sm">{listing.price ?? "—"}</span>
-        </Row>
-        <Row label="Listing" last>
-          <a
-            href={listing.listing_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="op-data inline-flex items-center gap-1 text-sm hover:underline"
-            style={{ color: "var(--color-navy)" }}
-          >
-            View on {mpName}
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        </Row>
-      </dl>
-
-      {/* 3. Take action */}
-      <div className="mt-6">
-        <div className="op-eyebrow mb-3 flex items-center gap-1.5">
-          <Zap className="h-3.5 w-3.5" />
-          Take action
-        </div>
-
-        <div className="flex flex-col" style={{ gap: 10 }}>
-          <ActionButton
-            background="var(--signal-high-solid-bg)"
-            textColor="var(--signal-high-solid-text)"
-            icon={<Flag className="h-5 w-5" />}
-            label={`Report to ${mpName}`}
-            description="Drafts a DMCA takedown email to the marketplace"
-            onClick={handleReportMarketplace}
-          />
-          <ActionButton
-            background="var(--color-navy)"
-            textColor="var(--color-on-navy-strong)"
-            descColor="var(--color-on-navy)"
-            icon={<Landmark className="h-5 w-5" />}
-            label="Notify the attorney general"
-            description="Drafts a notice to the state AG's office"
-            onClick={handleNotifyAg}
-          />
-        </div>
-      </div>
-
-      {feedback && (
-        <div
-          className="mt-3 rounded-[2px] px-3 py-2 text-sm"
-          style={{ background: "var(--color-parchment)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
-        >
-          {feedback}
-        </div>
-      )}
-
-      {/* Shared disclaimer */}
-      <p className="mt-4 text-xs" style={{ color: "var(--color-text-muted)", lineHeight: 1.5 }}>
-        Each button opens your email client with a pre-filled notice. Nothing is sent until you
-        review and send it yourself. These are automated, unconfirmed matches, and whoever sends a
-        notice is responsible for its accuracy.
-      </p>
-    </div>
-  );
-}
-
-type FrameProps = {
-  label: string;
-  labelColor: string;
-  imageUrl: string | null;
-  alt: string;
-  fallbackIcon: React.ReactNode;
-};
-
-function Frame({ label, labelColor, imageUrl, alt, fallbackIcon }: FrameProps) {
-  return (
-    <figure>
-      <div
-        className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-[2px]"
-        style={{ border: "1px solid var(--color-border)", background: "var(--color-parchment)" }}
-      >
-        {imageUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={imageUrl} alt={alt} className="h-full w-full object-contain" />
-        ) : (
-          fallbackIcon
-        )}
-      </div>
-      <figcaption className="op-data mt-2 text-center text-sm" style={{ color: labelColor }}>
-        {label}
-      </figcaption>
-    </figure>
-  );
-}
-
-function Row({ label, children, last }: { label: string; children: React.ReactNode; last?: boolean }) {
-  return (
-    <div
-      className="flex items-center justify-between gap-4 py-2.5"
-      style={last ? undefined : { borderBottom: "1px solid var(--color-border)" }}
-    >
-      <dt className="op-eyebrow">{label}</dt>
-      <dd className="text-right">{children}</dd>
-    </div>
-  );
-}
-
-type ActionButtonProps = {
-  background: string;
-  textColor: string;
-  descColor?: string;
-  icon: React.ReactNode;
-  label: string;
-  description: string;
-  onClick: () => void;
-};
-
-function ActionButton({ background, textColor, descColor, icon, label, description, onClick }: ActionButtonProps) {
-  const descStyle: React.CSSProperties = descColor
-    ? { color: descColor }
-    : { color: textColor, opacity: 0.82 };
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-[2px] px-4 text-left transition-opacity hover:opacity-90"
-      style={{ background, color: textColor, paddingTop: 14, paddingBottom: 14, minHeight: 56 }}
-    >
-      <span className="flex-none">{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium">{label}</span>
-        <span className="block text-xs" style={descStyle}>
-          {description}
-        </span>
+    <div className={`${styles.card} ${styles.detail}`}>
+      <span className={styles.eyebrow} style={{ display: "block", marginBottom: 14 }}>
+        Compare to the registered seal
       </span>
-      <ExternalLink className="h-4 w-4 flex-none" style={descStyle} />
-    </button>
+
+      {/* Comparison */}
+      <div className={styles.compare}>
+        <div>
+          <div className={styles.sealFrame}>
+            {asset.image_url ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={asset.image_url} alt={asset.description} />
+            ) : (
+              <svg aria-hidden="true">
+                <use href="#seal-line" />
+              </svg>
+            )}
+          </div>
+          <div className={styles.cap}>Registered seal</div>
+        </div>
+        <div>
+          <div className={`${styles.sealFrame} ${styles.sealFrameFlag}`}>
+            {listing.image_url ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={listing.image_url} alt={listing.title} />
+            ) : (
+              <svg aria-hidden="true">
+                <use href="#seal-line" />
+              </svg>
+            )}
+          </div>
+          <div className={`${styles.cap} ${styles.capFlag}`}>Flagged listing</div>
+        </div>
+      </div>
+
+      {/* Confidence focal */}
+      <div className={styles.confidence}>
+        <div className={styles.confTop}>
+          <div>
+            <div className={styles.lbl}>Match confidence</div>
+          </div>
+          <div className={styles.pct}>{pct}%</div>
+        </div>
+        <div className={styles.bar}>
+          <i style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+
+      {/* Record */}
+      <div className={styles.fields}>
+        <div className={styles.frow}>
+          <span className={styles.k}>Marketplace</span>
+          <span className={styles.v}>{marketplaceLabel(listing.marketplace)}</span>
+        </div>
+        <div className={styles.frow}>
+          <span className={styles.k}>Asset matched</span>
+          <span className={styles.v}>{asset.description}</span>
+        </div>
+        <div className={styles.frow}>
+          <span className={styles.k}>Seller</span>
+          <span className={`${styles.v} ${styles.mono}`}>{listing.seller ?? "—"}</span>
+        </div>
+        <div className={styles.frow}>
+          <span className={styles.k}>Price</span>
+          <span className={`${styles.v} ${styles.mono}`}>{listing.price ?? "—"}</span>
+        </div>
+        <div className={styles.frow}>
+          <span className={styles.k}>Listing</span>
+          <span className={styles.v}>
+            <a href={listing.listing_url} target="_blank" rel="noopener noreferrer">
+              View on {mpName} ↗
+            </a>
+          </span>
+        </div>
+      </div>
+
+      {/* Take action */}
+      <div className={styles.actions}>
+        <span className={styles.eyebrow}>Take action</span>
+
+        <button type="button" className={`${styles.act} ${styles.actReport}`} onClick={handleReportMarketplace}>
+          <span className={styles.ico}>⚑</span>
+          <span>
+            <span className={styles.at}>Report to {mpName}</span>
+            <span className={styles.as}>Drafts a DMCA takedown email to the marketplace</span>
+          </span>
+          <span className={styles.ext}>↗</span>
+        </button>
+
+        <button type="button" className={`${styles.act} ${styles.actNotify}`} onClick={handleNotifyAg}>
+          <span className={styles.ico}>⚖</span>
+          <span>
+            <span className={styles.at}>Notify the attorney general</span>
+            <span className={styles.as}>Drafts a notice to the state AG&apos;s office</span>
+          </span>
+          <span className={styles.ext}>↗</span>
+        </button>
+
+        {feedback && <div className={styles.feedback}>{feedback}</div>}
+
+        <p className={styles.note}>
+          Each button opens your email client with a pre-filled notice. Nothing is sent until you
+          review and send it yourself. These are automated, unconfirmed matches, and whoever sends a
+          notice is responsible for its accuracy.
+        </p>
+      </div>
+    </div>
   );
 }

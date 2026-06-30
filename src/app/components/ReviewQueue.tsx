@@ -1,7 +1,7 @@
 "use client";
 
-import { ShoppingCart, Package, Circle } from "lucide-react";
 import type { MatchRow, ConfidenceBand } from "@/lib/types";
+import styles from "./Dashboard.module.css";
 
 type Props = {
   matches: MatchRow[];
@@ -9,100 +9,61 @@ type Props = {
   onSelect: (id: string) => void;
 };
 
-// Signal palette (design.md §4): high → vermillion, medium → amber, low → neutral.
-const BAND_STYLE: Record<ConfidenceBand, React.CSSProperties> = {
-  high: { background: "var(--signal-high-tint-bg)", color: "var(--signal-high-tint-text)" },
-  medium: { background: "var(--signal-med-tint-bg)", color: "var(--signal-med-tint-text)" },
-  low: { background: "var(--color-parchment)", color: "var(--color-text-muted)", border: "1px solid var(--color-border)" },
-};
-
-function BandBadge({ band, confidence }: { band: ConfidenceBand; confidence: number }) {
-  const pct = Math.round(confidence * 100);
-  const label = band.charAt(0).toUpperCase() + band.slice(1);
-  return (
-    <span className="op-tag" style={BAND_STYLE[band]}>
-      {label} match · {pct}%
-    </span>
-  );
+function bandTagClass(band: ConfidenceBand) {
+  if (band === "high") return styles.tagHigh;
+  if (band === "medium") return styles.tagMed;
+  return styles.tagLow;
 }
 
-function MarketplaceIcon({ mp }: { mp: string }) {
-  const cls = "inline h-3 w-3 align-[-1px]";
-  if (mp === "amazon") return <ShoppingCart className={cls} />;
-  if (mp === "temu") return <Package className={cls} />;
-  return <Circle className={cls} />;
+function bandLabel(band: ConfidenceBand) {
+  return band.charAt(0).toUpperCase() + band.slice(1);
 }
 
 export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Props) {
   return (
-    <div
-      className="rounded-[2px]"
-      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
-    >
-      <div
-        className="flex items-center justify-between px-5 py-3"
-        style={{ borderBottom: "1px solid var(--color-border)" }}
-      >
-        <h2 className="op-eyebrow">Review queue</h2>
-        <span className="op-eyebrow">Amazon, Temu</span>
+    <div className={styles.card}>
+      <div className={styles.cardHead}>
+        <span className={styles.eyebrow}>Review queue</span>
+        <span className={styles.eyebrow}>Amazon · Temu</span>
       </div>
 
-      <div className="max-h-[560px] overflow-y-auto">
-        {matches.length === 0 && (
-          <div className="px-5 py-12 text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
-            No flagged listings yet. The daily scan populates this queue.
-          </div>
-        )}
+      {matches.length === 0 && (
+        <div className={styles.empty}>No flagged listings yet. The daily scan populates this queue.</div>
+      )}
 
-        {matches.map((m) => {
-          const isSelected = m.id === selectedMatchId;
-          const listing = m.listings;
-          return (
-            <button
-              key={m.id}
-              onClick={() => onSelect(m.id)}
-              className={`block w-full px-5 py-3 text-left transition-colors ${
-                isSelected ? "bg-[var(--color-parchment)]" : "hover:bg-[var(--color-parchment)]"
-              }`}
-              style={{
-                borderBottom: "1px solid var(--op-rule-soft)",
-                borderLeft: isSelected ? "2px solid var(--op-seal)" : "2px solid transparent",
-              }}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-[2px]"
-                  style={{ border: "1px solid var(--color-border)", background: "var(--color-parchment)" }}
-                >
-                  {listing.image_url ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={listing.image_url} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                      img
-                    </span>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm">{listing.title}</div>
-                  <div className="mt-0.5 truncate text-xs" style={{ color: "var(--color-text-muted)" }}>
-                    <MarketplaceIcon mp={listing.marketplace} /> {listing.marketplace}
-                    {listing.seller ? ` · ${listing.seller}` : ""}
-                  </div>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <BandBadge band={m.confidence_band} confidence={m.confidence} />
-                    {isSelected && (
-                      <span className="text-xs" style={{ color: "var(--color-navy)" }}>
-                        Selected
-                      </span>
-                    )}
-                  </div>
-                </div>
+      {matches.map((m) => {
+        const isSelected = m.id === selectedMatchId;
+        const listing = m.listings;
+        const pct = Math.round(m.confidence * 100);
+        return (
+          <button
+            key={m.id}
+            type="button"
+            onClick={() => onSelect(m.id)}
+            className={`${styles.row} ${isSelected ? styles.rowSel : ""}`}
+          >
+            <div className={styles.thumb}>
+              {listing.image_url ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={listing.image_url} alt="" />
+              ) : (
+                <svg aria-hidden="true">
+                  <use href="#seal-line" />
+                </svg>
+              )}
+            </div>
+            <div>
+              <div className={styles.name}>{listing.title}</div>
+              <div className={styles.meta}>
+                <span className={styles.mkt}>{listing.marketplace}</span>
+                <span className={`${styles.tag} ${bandTagClass(m.confidence_band)}`}>
+                  {bandLabel(m.confidence_band)} · {pct}%
+                </span>
               </div>
-            </button>
-          );
-        })}
-      </div>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
