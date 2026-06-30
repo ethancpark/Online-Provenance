@@ -78,7 +78,8 @@
   color: var(--on-dark);
   overflow: hidden;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  padding-top: 72px;
 }
 .hero::before {
   content: "";
@@ -99,15 +100,14 @@
 .heroInner {
   position: relative;
   z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 0 48px;
+  padding: 40px 48px;
   width: 100%;
-}
-.emblem {
-  width: 78px;
-  height: 78px;
-  margin-bottom: 30px;
 }
 .hero .eyebrow {
   color: var(--seal);
@@ -163,10 +163,12 @@
   border-color: var(--on-dark);
 }
 .regMeta {
-  position: absolute;
-  left: 48px;
-  bottom: 34px;
+  position: relative;
   z-index: 2;
+  max-width: 1180px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 48px 34px;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.18em;
@@ -174,6 +176,7 @@
   color: var(--on-dark-mute);
   display: flex;
   gap: 26px;
+  flex-wrap: wrap;
 }
 .regMeta span {
   border-left: 1px solid var(--line-dark);

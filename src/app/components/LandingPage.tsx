@@ -55,9 +55,6 @@ export default function LandingPage() {
         </div>
 
         <div className={styles.heroInner}>
-          <svg className={styles.emblem} style={{ color: "var(--on-dark)" }} aria-hidden="true">
-            <use href="#seal" />
-          </svg>
           <div className={styles.eyebrow}>Provenance · Authentication · Enforcement</div>
           <h1>Protecting the seals and marks of Native American nations</h1>
           <p className={styles.lede}>
