@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono, Libre_Caslon_Display } from "next/font/google";
 import "./globals.css";
 
 // §5: Fraunces (display), IBM Plex Sans (body), IBM Plex Mono (data). Weights 400/500/600 only.
@@ -21,6 +21,13 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   display: "swap",
 });
+// Libre Caslon Display — landing-page display serif (LandingPage.module.css).
+const libreCaslon = Libre_Caslon_Display({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-caslon",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Online Provenance",
@@ -36,7 +43,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} ${libreCaslon.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
