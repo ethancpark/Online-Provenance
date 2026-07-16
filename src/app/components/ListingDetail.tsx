@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { MatchRow, Tribe } from "@/lib/types";
-import { getTribalLegalContact } from "@/lib/tribalLegal";
 import styles from "./Dashboard.module.css";
 
 type Props = { match: MatchRow | null; tribe: Tribe | null };
@@ -69,34 +68,11 @@ function buildMarketplaceNotice(a: NoticeArgs) {
   return { subject, body, recipient: a.marketplace === "amazon" ? "notice@amazon.com" : "" };
 }
 
-// Notice to the tribe's own attorney general / legal office so their counsel can act
-// on the infringement of their mark.
-function buildAgNotice(a: NoticeArgs, office: string, email: string | null, contactUrl: string) {
-  const subject = `Notice of unauthorized commercial use of ${a.tribeName} intellectual property`;
-  const body = [
-    `To: ${office}`,
-    email ? null : `Suggested recipient — confirm current contact: ${contactUrl}`,
-    ``,
-    `Hello,`,
-    ``,
-    `An automated marketplace scan flagged a product reproducing ${a.tribeName}'s ${a.assetDescription} without authorization.`,
-    ``,
-    `Product: ${a.listingTitle}`,
-    `Marketplace: ${marketplaceName(a.marketplace)}`,
-    `Seller: ${a.seller ?? "unknown"}`,
-    `Listing: ${a.listingUrl}`,
-    `Match confidence: ${a.confidencePct}%`,
-    ``,
-    `Suggested next step: a marketplace takedown or cease-and-desist${a.usptoRegistered ? ", citing the tribe's USPTO trademark registration" : ""}.`,
-    ``,
-    `This match was auto-flagged and should be human-verified before any action.`,
-    ``,
-    `— Online Provenance, automated IP monitoring`,
-  ]
-    .filter((line): line is string => line !== null)
-    .join("\r\n");
-  return { subject, body, recipient: email ?? "" };
-}
+// NOTE: the "Notify the attorney general" action was removed deliberately.
+// Tribal seals and trademarks are a federal matter enforced by the Tribal
+// Nation's own AG — state AGs have no jurisdiction here — and open users must
+// not be able to email an AG's office from this tool. A future version may add
+// tiered accounts so Tribal Nation AG staff can monitor directly.
 
 function openMailto(recipient: string, subject: string, body: string) {
   const href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -138,18 +114,6 @@ export default function ListingDetail({ match, tribe }: Props) {
       n.recipient
         ? `Opened your email client with a draft to ${n.recipient}.`
         : `Opened your email client — add the ${mpName} recipient before sending.`,
-    );
-  }
-
-  function handleNotifyAg() {
-    const contact = tribe ? getTribalLegalContact(tribe) : null;
-    const office = contact?.office ?? "Office of the attorney general";
-    const n = buildAgNotice(noticeArgs, office, contact?.email ?? null, contact?.contactUrl ?? "");
-    openMailto(n.recipient, n.subject, n.body);
-    setFeedback(
-      n.recipient
-        ? `Opened your email client with a draft to ${office}.`
-        : `Opened your email client — add the recipient for ${office} before sending.`,
     );
   }
 
@@ -243,19 +207,10 @@ export default function ListingDetail({ match, tribe }: Props) {
           <span className={styles.ext}>↗</span>
         </button>
 
-        <button type="button" className={`${styles.act} ${styles.actNotify}`} onClick={handleNotifyAg}>
-          <span className={styles.ico}>⚖</span>
-          <span>
-            <span className={styles.at}>Notify the attorney general</span>
-            <span className={styles.as}>Drafts a notice to the state AG&apos;s office</span>
-          </span>
-          <span className={styles.ext}>↗</span>
-        </button>
-
         {feedback && <div className={styles.feedback}>{feedback}</div>}
 
         <p className={styles.note}>
-          Each button opens your email client with a pre-filled notice. Nothing is sent until you
+          The button opens your email client with a pre-filled notice. Nothing is sent until you
           review and send it yourself. These are automated, unconfirmed matches, and whoever sends a
           notice is responsible for its accuracy.
         </p>

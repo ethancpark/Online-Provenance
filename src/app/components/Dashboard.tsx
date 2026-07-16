@@ -215,11 +215,11 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
               </p>
               <p>
                 Through automated monitoring, evidence collection, copyright-registration support, and
-                notification workflows, the project helps tribes and government agencies take timely
-                action against unauthorized merchandise and counterfeit products. By facilitating
-                communication with tribal representatives, state attorneys general, and marketplace
-                operators, it helps safeguard tribal identity and ensures intellectual property rights
-                are respected across digital commerce.
+                notification workflows, the project helps tribes take timely action against
+                unauthorized merchandise and counterfeit products. By facilitating communication with
+                tribal representatives, tribal nation attorneys general, and marketplace operators, it
+                helps safeguard tribal identity and ensures intellectual property rights are respected
+                across digital commerce.
               </p>
               <h3>Call to action</h3>
               <p>

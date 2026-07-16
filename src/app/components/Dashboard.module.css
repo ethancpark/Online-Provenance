@@ -239,7 +239,9 @@
   font-size: 14px;
   color: var(--on-dark);
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(150, 175, 210, 0.28);
+  /* Persistent bright border so the nation switcher is findable on the navy
+     masthead — same yellow as the focus ring, always on. */
+  border: 1.5px solid #ffdd00;
   border-radius: 4px;
   padding: 9px 34px 9px 12px;
   appearance: none;
@@ -502,9 +504,6 @@
 }
 .actReport {
   background: var(--seal);
-}
-.actNotify {
-  background: var(--navy-2);
 }
 .ico {
   font-size: 17px;
