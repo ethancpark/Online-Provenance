@@ -86,11 +86,13 @@ def run():
         client.table("reference_assets").delete().eq("tribe_id", tribe["id"]).eq(
             "asset_type", asset_type
         ).execute()
+        # image_url is a web path: copy the file into <repo>/public/reference/
+        # so the dashboard's comparison panel can render it.
         client.table("reference_assets").insert({
             "tribe_id": tribe["id"],
             "asset_type": asset_type,
-            "description": f"{tribe['name']} {asset_type} (manually added)",
-            "image_url": f"manual://{fname}",
+            "description": f"{tribe['name']} {asset_type}",
+            "image_url": f"/reference/{fname}",
             "source_url": None,
             "embedding": embedding,
         }).execute()
