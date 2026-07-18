@@ -205,28 +205,56 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
             <div className={styles.aboutPanel}>
               <h2>About this project</h2>
               <p>
-                Online Provenance protects the intellectual property, cultural symbols, and sovereign
-                rights of federally recognized Native American tribes by identifying and reporting
-                unauthorized commercial use of tribal flags, emblems, and protected cultural assets on
-                online marketplaces. It maintains a verified database of federally recognized tribes,
-                monitors e-commerce sites such as Amazon and Temu for potential misuse, trademark
-                violations, and copyright infringements, and streamlines documenting and reporting
-                violations to the appropriate tribal authorities and legal entities.
+                Online Provenance is a free tool built by Anish Thota (Emory University) and Ethan
+                Park (Northwestern University) under the guidance of Dr. Elise Blasingame, a professor
+                and citizen of the Osage Nation. The project is part of the{" "}
+                <a
+                  href="https://www.eliseblasingame.com/lab"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "var(--seal)" }}
+                >
+                  𐒻𐒼𐓂 Lab
+                </a>{" "}
+                (Indigenous Politics Lab) at Emory, and one group we are accountable to is the{" "}
+                <a
+                  href="https://native.emory.edu/index.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "var(--seal)" }}
+                >
+                  Native American and Indigenous Studies Initiative at Emory (NAISI)
+                </a>
+                . It is and will remain completely free — our only goal is to make it useful to Native
+                communities.
               </p>
               <p>
-                Through automated monitoring, evidence collection, copyright-registration support, and
-                notification workflows, the project helps tribes take timely action against
-                unauthorized merchandise and counterfeit products. By facilitating communication with
-                tribal representatives, tribal nation attorneys general, and marketplace operators, it
-                helps safeguard tribal identity and ensures intellectual property rights are respected
-                across digital commerce.
+                There has been a documented increase in counterfeit &ldquo;Native-made&rdquo; goods on
+                platforms like Amazon, Alibaba, and Temu that profit from tribal names, designs, and
+                artwork without permission — often in violation of the Indian Arts and Crafts Act.
+                Online Provenance monitors these marketplaces for unauthorized use of tribal seals,
+                flags, and designs, documents likely infringements with a confidence score and an
+                on-the-record case file, and prepares takedown notices so Tribal Nations can get
+                infringing listings removed.
               </p>
-              <h3>Call to action</h3>
+              <h3>Our values</h3>
               <p>
-                Join us in protecting tribal heritage and intellectual property. Whether you are a
-                tribal representative, legal advocate, government agency, or technology partner, your
-                participation can help identify violations faster, strengthen enforcement, and preserve
-                the integrity of tribal symbols for future generations.
+                We understand research as a set of relationships — with communities, data, histories,
+                and one another. Our work prioritizes trust, reciprocity, and responsibility over
+                extraction or individual credit. We recognize Tribal Nations as sovereign political
+                entities and approach this work with humility, consent, and respect for Indigenous
+                governance, law, and self-determination. We believe Indigenous data belongs to
+                Indigenous communities, and we handle it in alignment with Tribal priorities and the
+                principles of Indigenous data governance. These values come from the{" "}
+                <a
+                  href="https://www.eliseblasingame.com/lab"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "var(--seal)" }}
+                >
+                  𐒻𐒼𐓂 Lab&apos;s statement of values
+                </a>
+                .
               </p>
             </div>
           </div>
