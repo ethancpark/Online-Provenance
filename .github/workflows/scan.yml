@@ -5,7 +5,8 @@ name: Infringement scan
 # written to Supabase; the Next.js dashboard just reads them.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
-#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SCRAPER_API_KEY
+#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SCRAPER_API_KEY (Amazon),
+#   APIFY_TOKEN (Temu dragnet via Apify actor)
 
 on:
   # Daily refresh so the dashboard stays current on its own. A run takes only a
@@ -69,6 +70,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
         run: |
           python -m scripts.run_scan "${{ github.event.inputs.tribe }}" \
             --marketplace "${{ github.event.inputs.marketplace || 'amazon' }}" \

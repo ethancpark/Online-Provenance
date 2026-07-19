@@ -1,17 +1,21 @@
 """
-End-to-end scan: for each tribe with reference assets, search Amazon
-for merchandise using their seal/flag/name, match each listing image
-against the tribe's reference embeddings, and write everything to
-Supabase (listings + matches).
+End-to-end scan.
+
+Amazon: for each tribe with reference assets, search "<tribe> seal/flag/name",
+match each listing image against that tribe's reference embeddings.
+
+Temu: per-tribe queries return 0 results there (verified), so Temu runs a
+DRAGNET instead — generic queries like "native american tribe flag" — and each
+listing is CLIP-matched against EVERY tribe's reference assets; the listing is
+assigned to the best-matching tribe.
+
+Everything is written to Supabase (listings + matches).
 
 Run from the pipeline/ directory:
-    python3.14 -m scripts.run_scan                       # all tribes with reference assets
-    python3.14 -m scripts.run_scan "Navajo Nation"       # one tribe only
+    python3.14 -m scripts.run_scan                       # all tribes, amazon+temu
+    python3.14 -m scripts.run_scan "Navajo Nation"       # one tribe (amazon only)
+    python3.14 -m scripts.run_scan --marketplace temu    # temu dragnet only
     python3.14 -m scripts.run_scan --max-per-query 10    # limit listings per search
-
-Credit accounting (rough):
-  N tribes * Q queries/tribe * 1 search credit ≈ search cost
-  Image downloads from Amazon CDN are free (not via ScraperAPI)
 """
 
 import argparse
@@ -23,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.db import get_client
 from src.amazon_search import search as amazon_search
-from src.temu_search import search as temu_search
+from src.temu_search import search as temu_search, DRAGNET_QUERIES
 from src.image_matcher import match_listing_image
 
 # Minimum CLIP similarity required to STORE a match. Below this, the listing is
@@ -40,10 +44,7 @@ MATCH_MIN_CONFIDENCE = float(os.getenv("MATCH_MIN_CONFIDENCE", "0.60"))
 
 
 def _query_terms_for(tribe_name: str) -> list[str]:
-    """
-    Search queries to run against Amazon for a given tribe. Tuned to find
-    merchandise using the tribe's seal, flag, or name.
-    """
+    """Amazon search queries for a given tribe."""
     base = tribe_name
     return [
         f"{base} seal",
@@ -98,15 +99,88 @@ def _upsert_match(client, listing_id: str, match) -> None:
     client.table("matches").upsert(payload, on_conflict="listing_id,reference_asset_id").execute()
 
 
-def _searchers_for(marketplace: str) -> list:
-    """Return the list of (label, search_fn) to run for a marketplace choice."""
-    amazon = ("amazon", lambda q, n: amazon_search(q, fetch_sellers=False, max_results=n))
-    temu = ("temu", lambda q, n: temu_search(q, max_results=n))
-    if marketplace == "amazon":
-        return [amazon]
-    if marketplace == "temu":
-        return [temu]
-    return [amazon, temu]  # "both"
+def _store(client, stats, tribe_id, listing, listing_emb, match, mp_label) -> None:
+    stats["listings"] += 1
+    try:
+        listing_id = _upsert_listing(client, tribe_id, listing, listing_emb)
+        _upsert_match(client, listing_id, match)
+        stats["matches"] += 1
+        stats[match.confidence_band] += 1
+        print(
+            f"  [{mp_label}/{match.confidence_band:6}] {match.confidence:.3f}  "
+            f"{listing.title[:70]}"
+        )
+    except Exception as e:
+        print(f"  DB write failed: {e}")
+
+
+def run_amazon(client, tribes, max_per_query, stats) -> None:
+    """Per-tribe Amazon scan (tribe name in the query, match vs that tribe)."""
+    for tribe in tribes:
+        stats["tribes"] += 1
+        ref_assets = [a for a in (tribe.get("reference_assets") or []) if a.get("embedding")]
+        print(f"=== {tribe['name']} ({len(ref_assets)} reference asset(s)) ===")
+
+        for query in _query_terms_for(tribe["name"]):
+            stats["queries"] += 1
+            try:
+                listings = amazon_search(query, fetch_sellers=False, max_results=max_per_query)
+            except Exception as e:
+                print(f"  [amazon] search failed: {e}")
+                stats["failed_queries"] += 1
+                continue
+
+            for listing in listings:
+                if not listing.image_url:
+                    continue
+                match, listing_emb = match_listing_image(listing.image_url, ref_assets)
+                if not match:
+                    continue
+                if match.confidence < MATCH_MIN_CONFIDENCE:
+                    stats["suppressed"] += 1
+                    continue
+                _store(client, stats, tribe["id"], listing, listing_emb, match, "amazon")
+
+            time.sleep(0.5)  # polite pacing between queries
+
+
+def run_temu_dragnet(client, tribes, max_per_query, stats) -> None:
+    """
+    Generic Temu queries, matched against ALL tribes' reference assets.
+    Each listing is assigned to the tribe whose asset it best matches.
+    """
+    all_assets: list[dict] = []
+    tribe_by_asset: dict[str, dict] = {}
+    for tribe in tribes:
+        for a in tribe.get("reference_assets") or []:
+            if a.get("embedding"):
+                all_assets.append(a)
+                tribe_by_asset[a["id"]] = tribe
+
+    print(f"=== Temu dragnet ({len(DRAGNET_QUERIES)} queries, {len(all_assets)} reference assets) ===")
+
+    for query in DRAGNET_QUERIES:
+        stats["queries"] += 1
+        try:
+            listings = temu_search(query, max_results=max_per_query)
+        except Exception as e:
+            print(f"  [temu] search failed: {e}")
+            stats["failed_queries"] += 1
+            continue
+
+        for listing in listings:
+            if not listing.image_url:
+                continue
+            match, listing_emb = match_listing_image(listing.image_url, all_assets)
+            if not match:
+                continue
+            if match.confidence < MATCH_MIN_CONFIDENCE:
+                stats["suppressed"] += 1
+                continue
+            tribe = tribe_by_asset[match.reference_asset_id]
+            _store(client, stats, tribe["id"], listing, listing_emb, match, "temu")
+
+        time.sleep(0.5)
 
 
 def run_scan(
@@ -116,68 +190,41 @@ def run_scan(
 ) -> dict:
     client = get_client()
     tribes = _tribes_with_reference_assets(client, name_filter)
-    searchers = _searchers_for(marketplace)
-    print(
-        f"Scanning {len(tribes)} tribe(s) with reference assets "
-        f"across: {', '.join(label for label, _ in searchers)}\n"
-    )
-
+    print(f"Scanning with {len(tribes)} tribe(s) that have reference assets\n")
     print(f"  (storing matches with confidence >= {MATCH_MIN_CONFIDENCE:.2f})\n")
-    stats = {"tribes": 0, "queries": 0, "listings": 0, "matches": 0,
-             "high": 0, "medium": 0, "low": 0, "suppressed": 0}
 
-    for tribe in tribes:
-        stats["tribes"] += 1
-        ref_assets = [a for a in (tribe.get("reference_assets") or []) if a.get("embedding")]
-        print(f"=== {tribe['name']} ({len(ref_assets)} reference asset(s)) ===")
+    stats = {"tribes": 0, "queries": 0, "failed_queries": 0, "listings": 0,
+             "matches": 0, "high": 0, "medium": 0, "low": 0, "suppressed": 0}
 
-        for query in _query_terms_for(tribe["name"]):
-            for mp_label, search_fn in searchers:
-                stats["queries"] += 1
-                try:
-                    listings = search_fn(query, max_per_query)
-                except Exception as e:
-                    print(f"  [{mp_label}] search failed: {e}")
-                    continue
+    if marketplace in ("amazon", "both"):
+        run_amazon(client, tribes, max_per_query, stats)
 
-                for listing in listings:
-                    if not listing.image_url:
-                        continue
-
-                    match, listing_emb = match_listing_image(listing.image_url, ref_assets)
-                    if not match:
-                        continue
-
-                    # Suppress noise: only store plausibly-related matches.
-                    if match.confidence < MATCH_MIN_CONFIDENCE:
-                        stats["suppressed"] += 1
-                        continue
-
-                    stats["listings"] += 1
-                    try:
-                        listing_id = _upsert_listing(client, tribe["id"], listing, listing_emb)
-                        _upsert_match(client, listing_id, match)
-                        stats["matches"] += 1
-                        stats[match.confidence_band] += 1
-                        print(
-                            f"  [{mp_label}/{match.confidence_band:6}] {match.confidence:.3f}  "
-                            f"{listing.title[:70]}"
-                        )
-                    except Exception as e:
-                        print(f"  DB write failed: {e}")
-
-                time.sleep(0.5)  # polite pacing between queries
+    if marketplace in ("temu", "both"):
+        # The dragnet matches across all tribes, so a single-tribe filter would
+        # silently mis-scope it — only run when scanning every tribe.
+        if name_filter:
+            print("(skipping Temu dragnet: it always scans across all tribes)")
+        else:
+            run_temu_dragnet(client, tribes, max_per_query, stats)
 
     print("\n=== Scan complete ===")
     print(
         f"  tribes scanned:   {stats['tribes']}\n"
         f"  queries run:      {stats['queries']}\n"
+        f"  failed queries:   {stats['failed_queries']}\n"
         f"  listings stored:  {stats['listings']}\n"
         f"  HIGH matches:     {stats['high']}\n"
         f"  MEDIUM matches:   {stats['medium']}\n"
         f"  LOW matches:      {stats['low']}\n"
         f"  suppressed (noise below {MATCH_MIN_CONFIDENCE:.2f}): {stats['suppressed']}"
     )
+
+    # A scan where every query failed is an outage (e.g. scraper credits
+    # exhausted), not a success — exit non-zero so CI turns red.
+    if stats["queries"] > 0 and stats["failed_queries"] == stats["queries"]:
+        print("\nERROR: every search query failed — treat this scan as an outage.")
+        raise SystemExit(1)
+
     return stats
 
 
