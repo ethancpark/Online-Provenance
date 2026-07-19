@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.db import get_client
 from src.amazon_search import search as amazon_search
-from src.temu_search import search as temu_search, DRAGNET_QUERIES
+from src.temu_search import search as temu_search, dragnet_queries_for_today
 from src.image_matcher import match_listing_image
 
 # Minimum CLIP similarity required to STORE a match. Below this, the listing is
@@ -41,6 +41,25 @@ from src.image_matcher import match_listing_image
 # junk (random national flags, jewelry) scored 0.15-0.41, well below 0.60, so it
 # stays filtered. Tunable via env.
 MATCH_MIN_CONFIDENCE = float(os.getenv("MATCH_MIN_CONFIDENCE", "0.60"))
+
+# Amazon budget: ScraperAPI's free plan is 1,000 credits/month and a full scan
+# is 50 tribes x 3 queries = 150 credits — that burns the month in ~7 days.
+# Instead, scan a rotating subset of tribes per day (10 tribes x 3 queries =
+# 30 credits/day ≈ 900/month), so every tribe is covered every ~5 days and the
+# credits last the whole month. A tribe name filter bypasses the rotation.
+AMAZON_TRIBES_PER_DAY = int(os.getenv("AMAZON_TRIBES_PER_DAY", "10"))
+
+
+def _todays_amazon_tribes(tribes: list[dict]) -> list[dict]:
+    """Deterministic daily rotation: every tribe is scanned every ~N/10 days."""
+    import datetime
+
+    if len(tribes) <= AMAZON_TRIBES_PER_DAY:
+        return tribes
+    n_buckets = -(-len(tribes) // AMAZON_TRIBES_PER_DAY)  # ceil division
+    bucket = datetime.date.today().timetuple().tm_yday % n_buckets
+    ordered = sorted(tribes, key=lambda t: t["name"])
+    return [t for i, t in enumerate(ordered) if i % n_buckets == bucket]
 
 
 def _query_terms_for(tribe_name: str) -> list[str]:
@@ -114,8 +133,12 @@ def _store(client, stats, tribe_id, listing, listing_emb, match, mp_label) -> No
         print(f"  DB write failed: {e}")
 
 
-def run_amazon(client, tribes, max_per_query, stats) -> None:
+def run_amazon(client, tribes, max_per_query, stats, rotate: bool) -> None:
     """Per-tribe Amazon scan (tribe name in the query, match vs that tribe)."""
+    if rotate:
+        tribes = _todays_amazon_tribes(tribes)
+        print(f"(amazon rotation: scanning {len(tribes)} tribe(s) today; "
+              f"full coverage cycles every few days)\n")
     for tribe in tribes:
         stats["tribes"] += 1
         ref_assets = [a for a in (tribe.get("reference_assets") or []) if a.get("embedding")]
@@ -157,9 +180,10 @@ def run_temu_dragnet(client, tribes, max_per_query, stats) -> None:
                 all_assets.append(a)
                 tribe_by_asset[a["id"]] = tribe
 
-    print(f"=== Temu dragnet ({len(DRAGNET_QUERIES)} queries, {len(all_assets)} reference assets) ===")
+    queries = dragnet_queries_for_today()
+    print(f"=== Temu dragnet ({len(queries)} queries today, {len(all_assets)} reference assets) ===")
 
-    for query in DRAGNET_QUERIES:
+    for query in queries:
         stats["queries"] += 1
         try:
             listings = temu_search(query, max_results=max_per_query)
@@ -197,7 +221,7 @@ def run_scan(
              "matches": 0, "high": 0, "medium": 0, "low": 0, "suppressed": 0}
 
     if marketplace in ("amazon", "both"):
-        run_amazon(client, tribes, max_per_query, stats)
+        run_amazon(client, tribes, max_per_query, stats, rotate=not name_filter)
 
     if marketplace in ("temu", "both"):
         # The dragnet matches across all tribes, so a single-tribe filter would

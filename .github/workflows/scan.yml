@@ -23,7 +23,7 @@ on:
         description: "Marketplace to scan"
         type: choice
         options: [amazon, temu, both]
-        default: amazon
+        default: both
       max_per_query:
         description: "Max listings per search query"
         default: "10"
@@ -73,5 +73,5 @@ jobs:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
         run: |
           python -m scripts.run_scan "${{ github.event.inputs.tribe }}" \
-            --marketplace "${{ github.event.inputs.marketplace || 'amazon' }}" \
+            --marketplace "${{ github.event.inputs.marketplace || 'both' }}" \
             --max-per-query "${{ github.event.inputs.max_per_query || '10' }}"

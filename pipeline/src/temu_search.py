@@ -35,13 +35,38 @@ TEMU_BASE = "https://www.temu.com"
 
 # Generic queries that actually surface tribal seal/flag merchandise on Temu.
 # Per-tribe queries return 0 results there — do not add "<tribe> flag" here.
-DRAGNET_QUERIES = [
+#
+# QUERY_POOL is larger than one run's budget; run_scan picks DRAGNET_PER_RUN of
+# them per day (rotating by day-of-year), so the whole pool cycles every few
+# days while each run stays within the free Apify credit.
+DRAGNET_QUERY_POOL = [
     "native american tribe flag",
     "indian tribe flag 3x5",
     "native american tribal seal",
     "indian nation flag",
     "tribal seal sticker decal",
+    "native american nation flag banner",
+    "indian reservation flag",
+    "native american tribe hat",
+    "native american tribe t shirt",
+    "tribal nation seal patch",
+    "native american flag garden",
+    "indian tribe blanket seal",
+    "native american seal sticker",
+    "tribe great seal",
+    "indigenous nation flag",
 ]
+DRAGNET_PER_RUN = int(os.getenv("TEMU_DRAGNET_QUERIES_PER_RUN", "5"))
+
+
+def dragnet_queries_for_today() -> list[str]:
+    """Rotating window of DRAGNET_PER_RUN queries, advancing daily."""
+    import datetime
+
+    doy = datetime.date.today().timetuple().tm_yday
+    start = (doy * DRAGNET_PER_RUN) % len(DRAGNET_QUERY_POOL)
+    doubled = DRAGNET_QUERY_POOL + DRAGNET_QUERY_POOL
+    return doubled[start : start + DRAGNET_PER_RUN]
 
 
 @dataclass
