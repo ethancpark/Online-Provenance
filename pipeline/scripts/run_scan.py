@@ -20,6 +20,7 @@ Run from the pipeline/ directory:
 
 import argparse
 import os
+import re
 import sys
 import time
 
@@ -41,6 +42,69 @@ from src.image_matcher import match_listing_image
 # junk (random national flags, jewelry) scored 0.15-0.41, well below 0.60, so it
 # stays filtered. Tunable via env.
 MATCH_MIN_CONFIDENCE = float(os.getenv("MATCH_MIN_CONFIDENCE", "0.60"))
+
+# --- Hybrid matching (image + title text) ---------------------------------
+# CLIP scores photos-of-flags against clean vector references surprisingly low
+# (a real Mescalero flag photo ~0.33 vs its reference drawing), so an image-only
+# 0.60 cut silently drops genuine listings. But the listing TITLE already names
+# the tribe (Amazon is searched by tribe name; Temu sellers title flags "Flag of
+# The <Tribe>"). So we accept a much lower image score when the title BOTH names
+# the tribe AND says it's a flag/seal-type product. Such matches are stored at a
+# fixed "medium" confidence — the title makes us fairly sure it's a real
+# infringement, and a human reviews before anything is reported.
+IMAGE_ONLY_MIN = MATCH_MIN_CONFIDENCE          # strong image match — no text needed
+IMAGE_TEXT_FLOOR = float(os.getenv("MATCH_TEXT_FLOOR", "0.25"))  # with title confirmation
+TEXT_CONFIRMED_CONFIDENCE = 0.72               # overall confidence for title-confirmed hits
+
+_PRODUCT_RE = re.compile(
+    r"\b(flags?|banners?|pennants?|seals?|emblems?|crests?|decals?|stickers?|patch(?:es)?|badges?)\b",
+    re.I,
+)
+# Words that don't identify WHICH tribe (org structure + states). Deliberately
+# does NOT include geographic words like lake/river/mountain/superior — those
+# distinguish e.g. "Red Lake" from "Leech Lake" and "Cheyenne River" from other
+# Sioux tribes. Shared tribal-family words (chippewa, apache, sioux, creek) are
+# also NOT here — instead we key off the LEADING distinctive tokens of the name.
+_NAME_GENERIC = {
+    "tribe", "tribes", "nation", "nations", "band", "bands", "of", "the", "and",
+    "indians", "indian", "reservation", "community", "communities", "confederated",
+    "oyate", "pueblo", "great", "seal", "flag", "at", "in", "for", "on",
+    "oklahoma", "florida", "wisconsin", "michigan", "minnesota", "arizona",
+    "montana", "dakota", "south", "north", "new", "mexico",
+}
+
+
+def _name_tokens(name: str) -> list[str]:
+    words = re.sub(r"[^a-z0-9 ]", " ", name.lower()).split()
+    return [w for w in words if len(w) >= 3 and w not in _NAME_GENERIC]
+
+
+def _title_confirms(title: str, tribe_name: str) -> bool:
+    """
+    True if the title says it's a flag/seal product AND names the tribe by its
+    leading distinctive tokens (e.g. "red lake", "cheyenne river", "mescalero
+    apache") — so a "Sokaogon Chippewa" flag is NOT accepted for "Red Lake ...
+    Chippewa", and a generic "Apache flag" is NOT accepted for a specific Apache
+    tribe.
+    """
+    if not title or not _PRODUCT_RE.search(title):
+        return False
+    toks = set(re.sub(r"[^a-z0-9 ]", " ", title.lower()).split())
+    sig = _name_tokens(tribe_name)
+    if not sig:
+        return False
+    need = sig[:2]  # leading identifying tokens of the official name
+    return all(w in toks for w in need)
+
+
+def _evaluate(title: str, tribe_name: str, match):
+    """(store?, confidence, band): image-only path or title-confirmed path."""
+    sim = match.confidence
+    if sim >= IMAGE_ONLY_MIN:
+        return True, round(sim, 3), match.confidence_band
+    if sim >= IMAGE_TEXT_FLOOR and _title_confirms(title, tribe_name):
+        return True, TEXT_CONFIRMED_CONFIDENCE, "medium"
+    return False, round(sim, 3), match.confidence_band
 
 # Amazon budget: ScraperAPI's free plan is 1,000 credits/month and a full scan
 # is 50 tribes x 3 queries = 150 credits — that burns the month in ~7 days.
@@ -159,9 +223,11 @@ def run_amazon(client, tribes, max_per_query, stats, rotate: bool) -> None:
                 match, listing_emb = match_listing_image(listing.image_url, ref_assets)
                 if not match:
                     continue
-                if match.confidence < MATCH_MIN_CONFIDENCE:
+                store, conf, band = _evaluate(listing.title, tribe["name"], match)
+                if not store:
                     stats["suppressed"] += 1
                     continue
+                match.confidence, match.confidence_band = conf, band
                 _store(client, stats, tribe["id"], listing, listing_emb, match, "amazon")
 
             time.sleep(0.5)  # polite pacing between queries
@@ -198,10 +264,12 @@ def run_temu_dragnet(client, tribes, max_per_query, stats) -> None:
             match, listing_emb = match_listing_image(listing.image_url, all_assets)
             if not match:
                 continue
-            if match.confidence < MATCH_MIN_CONFIDENCE:
+            tribe = tribe_by_asset[match.reference_asset_id]
+            store, conf, band = _evaluate(listing.title, tribe["name"], match)
+            if not store:
                 stats["suppressed"] += 1
                 continue
-            tribe = tribe_by_asset[match.reference_asset_id]
+            match.confidence, match.confidence_band = conf, band
             _store(client, stats, tribe["id"], listing, listing_emb, match, "temu")
 
         time.sleep(0.5)
