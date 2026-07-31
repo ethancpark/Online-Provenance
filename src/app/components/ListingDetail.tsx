@@ -85,7 +85,10 @@ export default function ListingDetail({ match, tribe }: Props) {
   if (!match) {
     return (
       <div className={styles.card}>
-        <div className={styles.empty}>Select a listing to see details.</div>
+        <div className={styles.empty}>
+          Nothing to review for this nation right now. Select a listing from the queue when one
+          is flagged.
+        </div>
       </div>
     );
   }

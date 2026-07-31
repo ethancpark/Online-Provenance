@@ -28,7 +28,13 @@ export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Prop
       </div>
 
       {matches.length === 0 && (
-        <div className={styles.empty}>No flagged listings yet. The daily scan populates this queue.</div>
+        <div className={styles.empty}>
+          <strong style={{ display: "block", marginBottom: 6, color: "var(--ink)" }}>
+            No infringements detected
+          </strong>
+          This nation&apos;s seal and flag are checked against Amazon and Temu every week.
+          Nothing matching has been found — we&apos;ll flag it here if that changes.
+        </div>
       )}
 
       {matches.map((m) => {

@@ -168,27 +168,25 @@ def apify_usd_left() -> float | None:
 
 def _query_terms_for(tribe_name: str) -> list[str]:
     """
-    ONE Amazon query per tribe per sweep, alternating "flag"/"seal" week to week.
+    Two Amazon queries per tribe per sweep: "<tribe> flag" and "<tribe> seal".
 
-    Budget math (this is why it's one, not three): on Bright Data Web Unlocker
-    (1 credit = 1 request, 5,000/month free) a weekly sweep costs one credit per
-    tribe — 200/month at 50 tribes, 400 at 100, 2,296 even at all 574. Three
-    queries/tribe scanned daily was ~12x that and drained a month in days.
+    Budget math on Bright Data Web Unlocker (1 credit = 1 request, 5,000/month
+    free), at one weekly sweep:
+        50 tribes  x 2 =   400 credits/month  (8% of free tier)
+        100 tribes x 2 =   800 credits/month  (16%)
+        574 tribes x 2 = 4,592 credits/month  (92% — still inside)
+    Thorough (every tribe, both merchandise types, every 7 days) while leaving
+    most of the allowance spare for backfills.
 
-    Dropping the bare "<tribe>" query costs nothing: the diagnostic showed it
-    returns books, t-shirts and unrelated goods, while "<tribe> flag" returned
-    20 genuine flags. Alternating weeks still covers seal-type merch
-    (stickers/decals) every other sweep.
+    The bare "<tribe>" query is deliberately excluded: the diagnostic showed it
+    returns books, t-shirts and unrelated goods, whereas "<tribe> flag" returned
+    20 genuine flags. AMAZON_QUERY_KIND=flag|seal pins a single term for
+    one-off manual backfills.
     """
-    import datetime
-
-    # AMAZON_QUERY_KIND=flag|seal pins the term (useful for manual backfills);
-    # unset alternates by ISO week so both product types get covered.
     kind = os.getenv("AMAZON_QUERY_KIND", "").strip().lower()
-    if kind not in ("flag", "seal"):
-        week = datetime.date.today().isocalendar()[1]
-        kind = "flag" if week % 2 == 0 else "seal"
-    return [f"{tribe_name} {kind}"]
+    if kind in ("flag", "seal"):
+        return [f"{tribe_name} {kind}"]
+    return [f"{tribe_name} flag", f"{tribe_name} seal"]
 
 
 def _tribes_with_reference_assets(client, name_filter: str | None) -> list[dict]:
@@ -342,7 +340,8 @@ def run_scan(
     skipped: list[str] = []
 
     if marketplace in ("amazon", "both"):
-        need = len(tribes) * amazon_cost_per_search()  # 1 query per tribe
+        per_tribe = len(_query_terms_for("x"))  # queries issued per tribe
+        need = len(tribes) * per_tribe * amazon_cost_per_search()
         left = amazon_credits_left()
         if left is not None and left < need:
             msg = (f"amazon SKIPPED — needs ~{need} ScraperAPI credits, {left} left "
