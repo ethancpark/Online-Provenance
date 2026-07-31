@@ -106,34 +106,85 @@ def _evaluate(title: str, tribe_name: str, match):
         return True, TEXT_CONFIRMED_CONFIDENCE, "medium"
     return False, round(sim, 3), match.confidence_band
 
-# Amazon budget: ScraperAPI's free plan is 1,000 credits/month and a full scan
-# is 50 tribes x 3 queries = 150 credits — that burns the month in ~7 days.
-# Instead, scan a rotating subset of tribes per day (10 tribes x 3 queries =
-# 30 credits/day ≈ 900/month), so every tribe is covered every ~5 days and the
-# credits last the whole month. A tribe name filter bypasses the rotation.
-AMAZON_TRIBES_PER_DAY = int(os.getenv("AMAZON_TRIBES_PER_DAY", "10"))
+# --- Budget guards -------------------------------------------------------
+# Both scrapers run on free monthly allowances. Rather than discovering they're
+# exhausted through a wall of 403s (and a red CI run every day until reset), the
+# scan checks the remaining balance UP FRONT and skips that marketplace with a
+# clear message. Skipping on an empty wallet is expected, not a failure.
+APIFY_MONTHLY_BUDGET_USD = float(os.getenv("APIFY_MONTHLY_BUDGET_USD", "5"))
+APIFY_RESERVE_USD = float(os.getenv("APIFY_RESERVE_USD", "0.40"))
 
 
-def _todays_amazon_tribes(tribes: list[dict]) -> list[dict]:
-    """Deterministic daily rotation: every tribe is scanned every ~N/10 days."""
-    import datetime
+def amazon_cost_per_search() -> int:
+    """Bright Data Web Unlocker bills 1 credit/request; ScraperAPI ~5 for Amazon."""
+    if os.getenv("BRIGHTDATA_API_TOKEN"):
+        return 1
+    return int(os.getenv("CREDITS_PER_AMAZON_SEARCH", "5"))
 
-    if len(tribes) <= AMAZON_TRIBES_PER_DAY:
-        return tribes
-    n_buckets = -(-len(tribes) // AMAZON_TRIBES_PER_DAY)  # ceil division
-    bucket = datetime.date.today().timetuple().tm_yday % n_buckets
-    ordered = sorted(tribes, key=lambda t: t["name"])
-    return [t for i, t in enumerate(ordered) if i % n_buckets == bucket]
+
+def amazon_credits_left() -> int | None:
+    """
+    Remaining Amazon-scraper credits, or None when the balance can't be read
+    (None means "unknown — go ahead"; only a confirmed-low balance skips).
+    """
+    if os.getenv("BRIGHTDATA_API_TOKEN"):
+        # Bright Data exposes no simple free-credit balance endpoint, and the
+        # allowance (5,000/month) is ~12x a 100-tribe sweep, so we don't gate on
+        # it. Per-request failures still surface in failed_queries.
+        return None
+    key = os.getenv("SCRAPER_API_KEY")
+    if not key:
+        return 0
+    try:
+        import requests
+
+        d = requests.get(
+            f"http://api.scraperapi.com/account?api_key={key}", timeout=30
+        ).json()
+        return int(d.get("creditsLeft", 0))
+    except Exception as e:  # noqa: BLE001
+        print(f"  (couldn't read ScraperAPI balance: {e})")
+        return None
+
+
+def apify_usd_left() -> float | None:
+    """Remaining Apify monthly credit, or None if it can't be read."""
+    token = os.getenv("APIFY_TOKEN")
+    if not token:
+        return 0.0
+    try:
+        import requests
+
+        d = requests.get(
+            f"https://api.apify.com/v2/users/me/limits?token={token}", timeout=30
+        ).json()["data"]
+        used = float(d.get("current", {}).get("monthlyUsageUsd", 0.0))
+        cap = float(d.get("limits", {}).get("maxMonthlyUsageUsd") or APIFY_MONTHLY_BUDGET_USD)
+        return round(cap - used, 4)
+    except Exception as e:  # noqa: BLE001
+        print(f"  (couldn't read Apify balance: {e})")
+        return None
 
 
 def _query_terms_for(tribe_name: str) -> list[str]:
-    """Amazon search queries for a given tribe."""
-    base = tribe_name
-    return [
-        f"{base} seal",
-        f"{base} flag",
-        f"{base}",
-    ]
+    """
+    ONE Amazon query per tribe per sweep, alternating "flag"/"seal" week to week.
+
+    Budget math (this is why it's one, not three): on Bright Data Web Unlocker
+    (1 credit = 1 request, 5,000/month free) a weekly sweep costs one credit per
+    tribe — 200/month at 50 tribes, 400 at 100, 2,296 even at all 574. Three
+    queries/tribe scanned daily was ~12x that and drained a month in days.
+
+    Dropping the bare "<tribe>" query costs nothing: the diagnostic showed it
+    returns books, t-shirts and unrelated goods, while "<tribe> flag" returned
+    20 genuine flags. Alternating weeks still covers seal-type merch
+    (stickers/decals) every other sweep.
+    """
+    import datetime
+
+    week = datetime.date.today().isocalendar()[1]
+    kind = "flag" if week % 2 == 0 else "seal"
+    return [f"{tribe_name} {kind}"]
 
 
 def _tribes_with_reference_assets(client, name_filter: str | None) -> list[dict]:
@@ -197,12 +248,8 @@ def _store(client, stats, tribe_id, listing, listing_emb, match, mp_label) -> No
         print(f"  DB write failed: {e}")
 
 
-def run_amazon(client, tribes, max_per_query, stats, rotate: bool) -> None:
+def run_amazon(client, tribes, max_per_query, stats) -> None:
     """Per-tribe Amazon scan (tribe name in the query, match vs that tribe)."""
-    if rotate:
-        tribes = _todays_amazon_tribes(tribes)
-        print(f"(amazon rotation: scanning {len(tribes)} tribe(s) today; "
-              f"full coverage cycles every few days)\n")
     for tribe in tribes:
         stats["tribes"] += 1
         ref_assets = [a for a in (tribe.get("reference_assets") or []) if a.get("embedding")]
@@ -288,8 +335,20 @@ def run_scan(
     stats = {"tribes": 0, "queries": 0, "failed_queries": 0, "listings": 0,
              "matches": 0, "high": 0, "medium": 0, "low": 0, "suppressed": 0}
 
+    skipped: list[str] = []
+
     if marketplace in ("amazon", "both"):
-        run_amazon(client, tribes, max_per_query, stats, rotate=not name_filter)
+        need = len(tribes) * amazon_cost_per_search()  # 1 query per tribe
+        left = amazon_credits_left()
+        if left is not None and left < need:
+            msg = (f"amazon SKIPPED — needs ~{need} ScraperAPI credits, {left} left "
+                   f"(free allowance resets monthly)")
+            print(f"\n{msg}\n")
+            skipped.append(msg)
+        else:
+            print(f"\n=== Amazon sweep: {len(tribes)} tribe(s), ~{need} credits "
+                  f"(balance {left if left is not None else '?'}) ===")
+            run_amazon(client, tribes, max_per_query, stats)
 
     if marketplace in ("temu", "both"):
         # The dragnet matches across all tribes, so a single-tribe filter would
@@ -297,9 +356,27 @@ def run_scan(
         if name_filter:
             print("(skipping Temu dragnet: it always scans across all tribes)")
         else:
-            run_temu_dragnet(client, tribes, max_per_query, stats)
+            left_usd = apify_usd_left()
+            if left_usd is not None and left_usd <= APIFY_RESERVE_USD:
+                msg = (f"temu SKIPPED — Apify credit exhausted (${left_usd} left; "
+                       f"free allowance resets monthly)")
+                print(f"\n{msg}\n")
+                skipped.append(msg)
+            else:
+                print(f"\n=== Temu dragnet (Apify credit left: "
+                      f"${left_usd if left_usd is not None else '?'}) ===")
+                run_temu_dragnet(client, tribes, max_per_query, stats)
 
     print("\n=== Scan complete ===")
+    try:
+        from src.amazon_search import requests_made as _bd_used
+
+        used = _bd_used()
+        if used:
+            print(f"  Bright Data credits used this run: {used} "
+                  f"(free tier 5,000/month)")
+    except Exception:  # noqa: BLE001
+        pass
     print(
         f"  tribes scanned:   {stats['tribes']}\n"
         f"  queries run:      {stats['queries']}\n"

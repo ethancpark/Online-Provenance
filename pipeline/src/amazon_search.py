@@ -1,16 +1,23 @@
 """
-Amazon product search via ScraperAPI.
+Amazon product search.
 
-Strategy:
-  1. Build an amazon.com search URL for a given query (e.g. "Cherokee Nation seal")
-  2. Fetch through ScraperAPI (handles bot detection, proxies, geo)
-  3. Parse the result page for product cards (title, image, link, price)
-  4. Optionally fetch each product detail page for seller info (costs 1 extra credit/listing)
+Fetch layer: Bright Data Web Unlocker (preferred) with ScraperAPI as fallback.
 
-Credit accounting (free tier = 5,000 credits):
-  - Search page fetch:        1 credit
-  - Product detail fetch:     1 credit
-  - With JS render (`render=true`): 10 credits — we don't need it for Amazon search
+Why Bright Data is the default: its free tier is 5,000 credits/month at
+*1 credit = 1 request*, whereas ScraperAPI bills ~5 credits per Amazon search
+(it escalates to premium proxies), so its 1,000-credit free tier only bought
+200 Amazon searches/month. Same free-tier concept, 25x the Amazon coverage.
+
+Budget math at 1 credit/search:
+  50 tribes  x 1 query x 4 weekly sweeps =   200 requests/month
+  100 tribes x 1 query x 4 weekly sweeps =   400 requests/month
+  574 tribes x 1 query x 4 weekly sweeps = 2,296 requests/month
+...all inside the 5,000/month free tier.
+
+Config (pipeline/.env):
+  BRIGHTDATA_API_TOKEN  — API token from the Bright Data dashboard
+  BRIGHTDATA_ZONE       — Web Unlocker zone name (default "web_unlocker1")
+  SCRAPER_API_KEY       — optional legacy fallback if the token is absent
 """
 
 import os
@@ -27,7 +34,23 @@ load_dotenv()
 
 SCRAPER_API_KEY = os.getenv("SCRAPER_API_KEY")
 SCRAPER_ENDPOINT = "http://api.scraperapi.com/"
+BRIGHTDATA_API_TOKEN = os.getenv("BRIGHTDATA_API_TOKEN")
+BRIGHTDATA_ZONE = os.getenv("BRIGHTDATA_ZONE", "web_unlocker1")
+BRIGHTDATA_ENDPOINT = "https://api.brightdata.com/request"
 AMAZON_BASE = "https://www.amazon.com"
+
+# Runaway guard. The Bright Data account has a $10/month spend limit and a
+# 5,000-request/month free tier; a normal weekly sweep uses ~100 requests
+# (100 tribes) and even all 574 tribes would use ~574. If a bug ever loops,
+# this ceiling stops the process long before either limit is reached — the
+# $10 cap stays an untouched backstop rather than a budget.
+MAX_REQUESTS_PER_RUN = int(os.getenv("BRIGHTDATA_MAX_REQUESTS_PER_RUN", "700"))
+_requests_made = 0
+
+
+def requests_made() -> int:
+    """Bright Data requests issued so far in this process (1 credit each)."""
+    return _requests_made
 
 
 @dataclass
@@ -42,12 +65,38 @@ class AmazonListing:
     search_query: str
 
 
-def _scraperapi_get(url: str, render: bool = False) -> str:
-    """Fetch a URL through ScraperAPI and return the HTML."""
-    if not SCRAPER_API_KEY:
+def _brightdata_get(url: str) -> str:
+    """Fetch a URL through Bright Data's Web Unlocker (1 credit = 1 request)."""
+    global _requests_made
+    if _requests_made >= MAX_REQUESTS_PER_RUN:
         raise RuntimeError(
-            "Missing SCRAPER_API_KEY. Set it in pipeline/.env."
+            f"Bright Data request ceiling hit ({MAX_REQUESTS_PER_RUN} this run). "
+            "Refusing more requests — raise BRIGHTDATA_MAX_REQUESTS_PER_RUN only "
+            "if this is genuinely expected."
         )
+    _requests_made += 1
+    resp = requests.post(
+        BRIGHTDATA_ENDPOINT,
+        headers={
+            "Authorization": f"Bearer {BRIGHTDATA_API_TOKEN}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "zone": BRIGHTDATA_ZONE,
+            "url": url,
+            "format": "raw",
+            "country": "us",
+        },
+        timeout=120,
+    )
+    resp.raise_for_status()
+    return resp.text
+
+
+def _scraperapi_get(url: str, render: bool = False) -> str:
+    """Legacy fallback: fetch a URL through ScraperAPI (~5 credits/Amazon page)."""
+    if not SCRAPER_API_KEY:
+        raise RuntimeError("Missing SCRAPER_API_KEY. Set it in pipeline/.env.")
     params = {
         "api_key": SCRAPER_API_KEY,
         "url": url,
@@ -58,6 +107,18 @@ def _scraperapi_get(url: str, render: bool = False) -> str:
     resp = requests.get(SCRAPER_ENDPOINT, params=params, timeout=70)
     resp.raise_for_status()
     return resp.text
+
+
+def fetch_html(url: str) -> str:
+    """Fetch a page, preferring Bright Data and falling back to ScraperAPI."""
+    if BRIGHTDATA_API_TOKEN:
+        return _brightdata_get(url)
+    if SCRAPER_API_KEY:
+        return _scraperapi_get(url)
+    raise RuntimeError(
+        "No scraper configured. Set BRIGHTDATA_API_TOKEN (preferred) "
+        "or SCRAPER_API_KEY in pipeline/.env."
+    )
 
 
 def _parse_search_results(html: str, query: str) -> list[AmazonListing]:
@@ -133,9 +194,10 @@ def search(query: str, *, fetch_sellers: bool = False, max_results: int = 20) ->
     Run an Amazon search for `query`, return parsed listings.
     If fetch_sellers=True, fetches each detail page (costs 1 extra credit/listing).
     """
-    print(f"  [amazon] searching: {query!r}")
+    src = "brightdata" if BRIGHTDATA_API_TOKEN else "scraperapi"
+    print(f"  [amazon/{src}] searching: {query!r}")
     search_url = f"{AMAZON_BASE}/s?{urlencode({'k': query})}"
-    html = _scraperapi_get(search_url)
+    html = fetch_html(search_url)
     listings = _parse_search_results(html, query)[:max_results]
     print(f"  [amazon]   parsed {len(listings)} listings")
 
@@ -143,7 +205,7 @@ def search(query: str, *, fetch_sellers: bool = False, max_results: int = 20) ->
         print(f"  [amazon]   fetching seller info for {len(listings)} listings...")
         for i, listing in enumerate(listings, 1):
             try:
-                detail_html = _scraperapi_get(listing.listing_url)
+                detail_html = fetch_html(listing.listing_url)
                 listing.seller = _parse_seller_from_detail(detail_html)
             except Exception as e:
                 print(f"  [amazon]     {i}/{len(listings)} seller fetch failed: {e}")
