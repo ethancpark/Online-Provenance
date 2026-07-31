@@ -34,8 +34,10 @@ load_dotenv()
 
 SCRAPER_API_KEY = os.getenv("SCRAPER_API_KEY")
 SCRAPER_ENDPOINT = "http://api.scraperapi.com/"
-BRIGHTDATA_API_TOKEN = os.getenv("BRIGHTDATA_API_TOKEN")
-BRIGHTDATA_ZONE = os.getenv("BRIGHTDATA_ZONE", "web_unlocker1")
+BRIGHTDATA_API_TOKEN = (os.getenv("BRIGHTDATA_API_TOKEN") or "").strip() or None
+# `or` (not getenv's default) so an empty/unset CI secret still falls back —
+# GitHub passes "" for a secret that doesn't exist, which a default wouldn't catch.
+BRIGHTDATA_ZONE = (os.getenv("BRIGHTDATA_ZONE") or "").strip() or "web_unlocker1"
 BRIGHTDATA_ENDPOINT = "https://api.brightdata.com/request"
 AMAZON_BASE = "https://www.amazon.com"
 
