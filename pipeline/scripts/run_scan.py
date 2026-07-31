@@ -182,8 +182,12 @@ def _query_terms_for(tribe_name: str) -> list[str]:
     """
     import datetime
 
-    week = datetime.date.today().isocalendar()[1]
-    kind = "flag" if week % 2 == 0 else "seal"
+    # AMAZON_QUERY_KIND=flag|seal pins the term (useful for manual backfills);
+    # unset alternates by ISO week so both product types get covered.
+    kind = os.getenv("AMAZON_QUERY_KIND", "").strip().lower()
+    if kind not in ("flag", "seal"):
+        week = datetime.date.today().isocalendar()[1]
+        kind = "flag" if week % 2 == 0 else "seal"
     return [f"{tribe_name} {kind}"]
 
 
