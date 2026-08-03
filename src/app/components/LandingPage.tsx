@@ -12,17 +12,14 @@ type Props = {
 
 const STEPS = [
   {
-    n: "01",
     title: "Find",
     body: "Every week we search Amazon and Temu for merchandise carrying tribal seals and flags.",
   },
   {
-    n: "02",
     title: "Prove",
     body: "Each product photo is matched against the nation's registered mark, and scored.",
   },
   {
-    n: "03",
     title: "Remove",
     body: "Confirmed matches become a takedown notice a tribe can review and send.",
   },
@@ -39,48 +36,55 @@ export default function LandingPage({
 
   return (
     <main className={styles.page}>
-      <header className={styles.nav}>
-        <span className={styles.brand}>Online Provenance</span>
-        <Link href="/dashboard" className={styles.navCta}>
-          Open the monitor
-        </Link>
+      {/* 1 — Header */}
+      <header className={styles.header}>
+        <span className={styles.wordmark}>Online Provenance</span>
+        <nav className={styles.nav}>
+          <a href="#how">How it works</a>
+          <a href="#map">Nations</a>
+          <a href="#about">About</a>
+          <Link href="/dashboard" className={styles.navButton}>
+            Open the monitor
+          </Link>
+        </nav>
       </header>
 
-      {/* Hero — the wallpaper is real flagged merchandise */}
+      {/* 2 — Hero. The wallpaper is real flagged merchandise, in full colour. */}
       <section className={styles.hero}>
-        <div className={styles.heroGrid} aria-hidden="true">
+        <div className={styles.heroPhoto} aria-hidden="true">
           {heroImages.map((src, i) => (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img key={i} src={src} alt="" loading="lazy" />
+            <img key={i} src={src} alt="" loading={i < 20 ? "eager" : "lazy"} />
           ))}
         </div>
         <div className={styles.heroScrim} aria-hidden="true" />
-        <div className={styles.heroInner}>
-          <h1 className={styles.h1}>
-            Every product behind this text
-            <br />
-            is selling a tribe&rsquo;s seal.
-          </h1>
-          <p className={styles.lede}>
-            Sacred seals and trademarked flags of Native nations are printed on flags, hats and
-            stickers by third-party sellers on Amazon and Temu — with no consent, credit, or
-            compensation. We find them, prove it, and help nations get them taken down.
-          </p>
-          <div className={styles.ctaRow}>
-            <Link href="/dashboard" className={styles.cta}>
-              See what we found →
-            </Link>
-            <a href="#map" className={styles.ctaGhost}>
-              Where it&rsquo;s happening
-            </a>
-          </div>
+        <h1 className={styles.heroHeadline}>
+          Every product behind this text is selling{" "}
+          <span className={styles.highlight}>a tribe&rsquo;s seal.</span>
+        </h1>
+      </section>
+
+      {/* 3 — Lede band */}
+      <section className={styles.ledeBand}>
+        <p className={styles.lede}>
+          Sacred seals and trademarked flags of Native nations are printed on flags, hats and
+          stickers by third-party sellers on Amazon and Temu — with no consent, credit, or
+          compensation. We find them, prove it, and help nations get them taken down.
+        </p>
+        <div className={styles.ledeCtas}>
+          <Link href="/dashboard" className={styles.ctaSolid}>
+            See what we found
+          </Link>
+          <a href="#map" className={styles.ctaText}>
+            Where it&rsquo;s happening
+          </a>
         </div>
       </section>
 
-      {/* Impact */}
+      {/* 4 — Stat band */}
       <section className={styles.stats}>
         <div className={styles.stat}>
-          <div className={styles.statNum}>{totalListings.toLocaleString()}</div>
+          <div className={`${styles.statNum} ${styles.statNumClay}`}>{totalListings}</div>
           <div className={styles.statLabel}>Listings flagged</div>
         </div>
         <div className={styles.stat}>
@@ -93,52 +97,64 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* Map */}
+      {/* 5 — Credits band */}
+      <section className={styles.credits} id="about">
+        <p className={styles.creditText}>
+          Online Provenance is a free tool built by Anish Thota, Ethan Park, and Dr. Elise
+          Blasingame, a professor and citizen of the Osage Nation.{" "}
+          <em>
+            It is and will remain completely free — our only goal is to make it useful to Native
+            communities.
+          </em>
+        </p>
+        <div className={styles.creditMeta}>
+          <p>𐒻𐒼𐓂 Lab — Indigenous Politics Lab, Emory University</p>
+          <p>
+            Accountable to the Native American and Indigenous Studies Initiative at Emory
+          </p>
+        </div>
+      </section>
+
+      {/* 6 — Map */}
       <section className={styles.mapSection} id="map">
         <div className={styles.mapHead}>
           <h2 className={styles.h2}>Where it&rsquo;s happening</h2>
-          <p className={styles.mapSub}>
-            Every nation we monitor, placed at its reservation or seat of government. The darker
-            the state and the larger the dot, the more of its marks we&rsquo;ve found for sale.
+          <p className={styles.mapCaption}>
+            Every nation we monitor, placed at its reservation or seat of government. The larger
+            the dot, the more of its marks we&rsquo;ve found for sale.
           </p>
         </div>
-        <HotspotMap tribes={tribeCounts} />
-        <div className={styles.topList}>
-          <span className={styles.topLabel}>Most affected</span>
+        <div className={styles.mapHolder}>
+          <HotspotMap tribes={tribeCounts} />
+        </div>
+        <div className={styles.affected}>
+          <span className={styles.affectedLabel}>Most affected</span>
           {top.map((t) => (
-            <span key={t.name} className={styles.topItem}>
-              <b>{t.count}</b> {t.name}
+            <span key={t.name} className={styles.affectedItem}>
+              <span className={styles.affectedNum}>{t.count}</span>
+              <span className={styles.affectedName}>{t.name}</span>
             </span>
           ))}
         </div>
       </section>
 
-      {/* How it works */}
-      <section className={styles.how}>
-        <h2 className={styles.h2}>How it works</h2>
+      {/* 7 — How it works */}
+      <section className={styles.how} id="how">
+        <div className={styles.howHead}>
+          <h2 className={styles.howHeading}>How it works</h2>
+          <p className={styles.howNote}>
+            Nothing is sent automatically. A nation reviews every notice before it leaves.
+          </p>
+        </div>
         <div className={styles.steps}>
           {STEPS.map((s) => (
-            <div key={s.n} className={styles.step}>
-              <div className={styles.stepNum}>{s.n}</div>
+            <div key={s.title} className={styles.step}>
               <h3 className={styles.stepTitle}>{s.title}</h3>
               <p className={styles.stepBody}>{s.body}</p>
             </div>
           ))}
         </div>
       </section>
-
-      <footer className={styles.footer}>
-        <div>
-          <div className={styles.footBrand}>Online Provenance</div>
-          <p className={styles.footNote}>
-            A project of the 𐒻𐒼𐓂 Lab at Emory University. Free to use, and always will be.
-            Matches are automated and unconfirmed until a person reviews them.
-          </p>
-        </div>
-        <Link href="/dashboard" className={styles.cta}>
-          Open the monitor →
-        </Link>
-      </footer>
     </main>
   );
 }

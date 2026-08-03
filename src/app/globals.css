@@ -1,58 +1,31 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
-/* Institutional base — parchment record surface, ink text, Plex Sans body. */
+/* Warm paper ground, serif body. Per the handoff: anything that speaks is
+   serif, anything that labels is sans. */
 body {
-  background: var(--color-parchment);
-  color: var(--color-ink);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
+/* Headings inherit the serif; sizes are set per component. */
 h1,
-h2 {
+h2,
+h3 {
   font-family: var(--font-display);
-}
-
-/* On-the-record data (IDs, scores, prices, dates) — mono with tabular figures. */
-.op-data {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Section labels / field labels — The Markup uppercase mono eyebrow. */
-.op-eyebrow {
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.6875rem;
   font-weight: 500;
-  color: var(--color-text-muted);
 }
 
-/* Status / confidence tags — flat gov.uk rectangle (no pills). Colors set inline. */
-.op-tag {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  padding: 2px 8px;
-  border-radius: var(--op-radius);
-}
-
-/* Loud, visible focus on every interactive element — gov.uk style. */
+/* Visible focus, in the element's own colour family rather than a system blue. */
 :focus-visible {
-  outline: 3px solid var(--op-focus);
-  outline-offset: 1px;
-  box-shadow: 0 0 0 1px var(--op-ink);
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
-/* A records system doesn't animate. */
+/* A records tool doesn't need motion; honour the preference. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

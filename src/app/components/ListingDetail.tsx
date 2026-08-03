@@ -30,8 +30,8 @@ type NoticeArgs = {
   confidencePct: number;
 };
 
-// DMCA-style notice to the marketplace. The complaining-party block is left blank
-// for the sender to complete in their email client before sending.
+// DMCA-style notice to the marketplace. The complaining-party block is left
+// blank for the sender to complete in their email client before sending.
 function buildMarketplaceNotice(a: NoticeArgs) {
   const mp = marketplaceName(a.marketplace);
   const today = new Date().toISOString().slice(0, 10);
@@ -79,15 +79,20 @@ function openMailto(recipient: string, subject: string, body: string) {
   window.location.href = href;
 }
 
+/** Empty values read as "Not listed", never an em dash. */
+function Value({ children }: { children: string | null | undefined }) {
+  if (!children) return <span className={styles.fieldEmpty}>Not listed</span>;
+  return <span className={styles.fieldValue}>{children}</span>;
+}
+
 export default function ListingDetail({ match, tribe }: Props) {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   if (!match) {
     return (
-      <div className={styles.card}>
-        <div className={styles.empty}>
-          Nothing to review for this nation right now. Select a listing from the queue when one
-          is flagged.
+      <div className={styles.panel}>
+        <div className={styles.emptyDetail}>
+          Nothing to review for this nation right now.
         </div>
       </div>
     );
@@ -110,7 +115,7 @@ export default function ListingDetail({ match, tribe }: Props) {
     confidencePct: pct,
   };
 
-  function handleReportMarketplace() {
+  function handleReport() {
     const n = buildMarketplaceNotice(noticeArgs);
     openMailto(n.recipient, n.subject, n.body);
     setFeedback(
@@ -121,103 +126,93 @@ export default function ListingDetail({ match, tribe }: Props) {
   }
 
   return (
-    <div className={`${styles.card} ${styles.detail}`}>
-      <span className={styles.eyebrow} style={{ display: "block", marginBottom: 14 }}>
-        Compare to the registered seal
-      </span>
+    <div className={`${styles.panel} ${styles.detail}`}>
+      <span className={styles.detailLabel}>Compare to the registered seal</span>
 
-      {/* Comparison */}
-      <div className={styles.compare}>
-        <div>
-          <div className={styles.sealFrame}>
-            {asset.image_url ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={asset.image_url} alt={asset.description} />
-            ) : (
-              <svg aria-hidden="true">
-                <use href="#seal-line" />
-              </svg>
-            )}
-          </div>
-          <div className={styles.cap}>Registered seal</div>
-        </div>
-        <div>
-          <div className={`${styles.sealFrame} ${styles.sealFrameFlag}`}>
-            {listing.image_url ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={listing.image_url} alt={listing.title} />
-            ) : (
-              <svg aria-hidden="true">
-                <use href="#seal-line" />
-              </svg>
-            )}
-          </div>
-          <div className={`${styles.cap} ${styles.capFlag}`}>Flagged listing</div>
-        </div>
-      </div>
-
-      {/* Confidence focal */}
-      <div className={styles.confidence}>
-        <div className={styles.confTop}>
+      <div>
+        <div className={styles.compare}>
           <div>
-            <div className={styles.lbl}>Match confidence</div>
+            <div className={styles.frame}>
+              {asset.image_url ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={asset.image_url} alt={asset.description} />
+              ) : (
+                <span className={styles.frameEmpty}>No reference image</span>
+              )}
+            </div>
+            <div className={styles.caption}>Registered seal</div>
           </div>
-          <div className={styles.pct}>{pct}%</div>
-        </div>
-        <div className={styles.bar}>
-          <i style={{ width: `${pct}%` }} />
+          <div>
+            <div className={`${styles.frame} ${styles.frameFlagged}`}>
+              {listing.image_url ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={listing.image_url} alt={listing.title} />
+              ) : (
+                <span className={styles.frameEmpty}>No listing photo</span>
+              )}
+            </div>
+            <div className={`${styles.caption} ${styles.captionFlagged}`}>Flagged listing</div>
+          </div>
         </div>
       </div>
 
-      {/* Record */}
+      <div className={styles.confidence}>
+        <div>
+          <div className={styles.confLabel}>Match confidence</div>
+          <div className={styles.confTrack}>
+            <div className={styles.confFill} style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+        <div className={styles.confPct}>{pct}%</div>
+      </div>
+
       <div className={styles.fields}>
-        <div className={styles.frow}>
-          <span className={styles.k}>Marketplace</span>
-          <span className={styles.v}>{marketplaceLabel(listing.marketplace)}</span>
+        <div className={styles.field}>
+          <span className={styles.fieldLabel}>Marketplace</span>
+          <Value>{marketplaceLabel(listing.marketplace)}</Value>
         </div>
-        <div className={styles.frow}>
-          <span className={styles.k}>Asset matched</span>
-          <span className={styles.v}>{asset.description}</span>
+        <div className={styles.field}>
+          <span className={styles.fieldLabel}>Asset matched</span>
+          <Value>{asset.description}</Value>
         </div>
-        <div className={styles.frow}>
-          <span className={styles.k}>Seller</span>
-          <span className={`${styles.v} ${styles.mono}`}>{listing.seller ?? "—"}</span>
+        <div className={styles.field}>
+          <span className={styles.fieldLabel}>Price</span>
+          <Value>{listing.price}</Value>
         </div>
-        <div className={styles.frow}>
-          <span className={styles.k}>Price</span>
-          <span className={`${styles.v} ${styles.mono}`}>{listing.price ?? "—"}</span>
+        <div className={styles.field}>
+          <span className={styles.fieldLabel}>Seller</span>
+          <Value>{listing.seller}</Value>
         </div>
-        <div className={styles.frow}>
-          <span className={styles.k}>Listing</span>
-          <span className={styles.v}>
-            <a href={listing.listing_url} target="_blank" rel="noopener noreferrer">
-              View on {mpName} ↗
+        <div className={styles.field}>
+          <span className={styles.fieldLabel}>Listing</span>
+          <span className={styles.fieldValue}>
+            <a
+              className={styles.fieldLink}
+              href={listing.listing_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View on {mpName}
             </a>
           </span>
         </div>
       </div>
 
-      {/* Take action */}
-      <div className={styles.actions}>
-        <span className={styles.eyebrow}>Take action</span>
+      <button type="button" className={styles.report} onClick={handleReport}>
+        <span>
+          <span className={styles.reportTitle}>Report to {mpName}</span>
+          <span className={styles.reportSub}>Drafts a DMCA takedown email to the marketplace</span>
+        </span>
+        <span className={styles.reportArrow}>↗</span>
+      </button>
 
-        <button type="button" className={`${styles.act} ${styles.actReport}`} onClick={handleReportMarketplace}>
-          <span className={styles.ico}>⚑</span>
-          <span>
-            <span className={styles.at}>Report to {mpName}</span>
-            <span className={styles.as}>Drafts a DMCA takedown email to the marketplace</span>
-          </span>
-          <span className={styles.ext}>↗</span>
-        </button>
+      {feedback && <div className={styles.feedback}>{feedback}</div>}
 
-        {feedback && <div className={styles.feedback}>{feedback}</div>}
-
-        <p className={styles.note}>
-          The button opens your email client with a pre-filled notice. Nothing is sent until you
-          review and send it yourself. These are automated, unconfirmed matches, and whoever sends a
-          notice is responsible for its accuracy.
-        </p>
-      </div>
+      <p className={styles.disclaimer}>
+        The button opens your email client with a pre-filled notice. Nothing is sent until you
+        review and send it yourself. These are automated, unconfirmed matches, and whoever sends a
+        notice is responsible for its accuracy.
+      </p>
     </div>
   );
 }

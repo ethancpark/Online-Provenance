@@ -1,286 +1,391 @@
-/* Landing page. One typeface (Archivo) across weights, near-black canvas,
-   a single saturated accent. Scoped so the dashboard is unaffected. */
+/* 4a — Home page, per the theme handoff. Drawn at 1400px; display sizes use
+   clamp() so they scale down. Radius 0 everywhere, no shadows. */
 
 .page {
-  --ink: #0c0c0e;
-  --ink-2: #16161a;
-  --paper: #ffffff;
-  --accent: #e8341f;
-  --muted: #8b8b93;
-  --line: rgba(255, 255, 255, 0.13);
-  --dot: var(--accent);
-  --dot-stroke: rgba(255, 255, 255, 0.85);
-  --map-empty: #1e1e23;
-  --map-stroke: #0c0c0e;
-
-  font-family: var(--font-archivo), system-ui, sans-serif;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--paper);
+  color: var(--ink);
   overflow-x: hidden;
 }
 
-.nav {
+/* ---------- 1. Header ---------- */
+.header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 40px;
-  border-bottom: 1px solid var(--line);
+  gap: 24px;
+  padding: 24px 64px;
+  background: var(--paper);
 }
-.brand {
-  font-weight: 800;
-  font-size: 17px;
-  letter-spacing: -0.02em;
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 23px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
-.navCta {
-  color: var(--paper);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 14px;
-  border-bottom: 2px solid var(--accent);
-  padding-bottom: 2px;
-}
-
-/* ---------- hero ---------- */
-.hero {
-  position: relative;
-  min-height: 78vh;
+.nav {
   display: flex;
   align-items: center;
+  gap: 30px;
+}
+.nav a {
+  font-family: var(--font-label);
+  font-size: 15px;
+  color: #5f574e;
+  text-decoration: none;
+}
+.nav a:hover {
+  text-decoration: underline;
+}
+.navButton {
+  background: var(--ink);
+  color: var(--cream) !important;
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 11px 20px;
+  text-decoration: none !important;
+  transition: background 0.14s ease;
+}
+.navButton:hover {
+  background: #221e1a;
+}
+
+/* ---------- 2. Hero ---------- */
+.hero {
+  position: relative;
+  height: 640px;
+  display: flex;
+  align-items: flex-end;
   overflow: hidden;
 }
-.heroGrid {
+.heroPhoto {
   position: absolute;
-  inset: -2%;
+  inset: 0;
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 4px;
+  /* Denser than the reference's 10 columns: the handoff assumed a single
+     photograph, and we compose the grid from real listing images, so smaller
+     tiles read as one textured field rather than a gallery of logos. */
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: 1fr;
 }
-.heroGrid img {
+.heroPhoto img {
   width: 100%;
   height: 100%;
-  aspect-ratio: 1;
   object-fit: cover;
-  filter: grayscale(0.25);
 }
 .heroScrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(100deg, var(--ink) 34%, rgba(12, 12, 14, 0.9) 52%, rgba(12, 12, 14, 0.62) 100%);
+  /* The spec's gradient, plus a flat wash. The reference render used a dark
+     placeholder; over real full-colour seals the gradient alone leaves cream
+     text below AA contrast in the upper headline lines. */
+  background: rgba(43, 38, 34, 0.34), var(--hero-scrim);
+  background: var(--hero-scrim), rgba(43, 38, 34, 0.34);
 }
-.heroInner {
+.heroHeadline {
   position: relative;
   z-index: 2;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 72px 40px;
-  width: 100%;
-}
-.h1 {
-  /* globals.css sets a serif on h1/h2 for the dashboard; override it here. */
-  font-family: var(--font-archivo), system-ui, sans-serif;
-  font-weight: 900;
-  font-size: clamp(2.4rem, 5.6vw, 4.6rem);
-  line-height: 0.98;
-  letter-spacing: -0.035em;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.75rem, 7.4vw, 104px);
+  line-height: 0.96;
+  letter-spacing: -0.028em;
+  color: var(--cream);
   max-width: 17ch;
+  text-wrap: balance;
+  margin: 0 64px 56px;
 }
-.lede {
-  margin-top: 24px;
-  max-width: 52ch;
-  font-size: 18px;
-  line-height: 1.55;
-  color: #d3d3d9;
-}
-.ctaRow {
-  margin-top: 34px;
-  display: flex;
-  align-items: center;
-  gap: 26px;
-  flex-wrap: wrap;
-}
-.cta {
-  background: var(--accent);
-  color: #fff;
-  font-weight: 700;
-  font-size: 16px;
-  padding: 16px 28px;
-  border-radius: 2px;
-  text-decoration: none;
-  display: inline-block;
-  transition: background 0.14s ease;
-}
-.cta:hover {
-  background: #ff4630;
-}
-.ctaGhost {
-  color: var(--paper);
-  font-weight: 600;
-  font-size: 16px;
-  text-decoration: none;
-  border-bottom: 1px solid var(--muted);
-  padding-bottom: 3px;
+/* The highlight extends past the glyph edges rather than hugging them. */
+.highlight {
+  background: var(--clay);
+  box-shadow: 0.28em 0 0 var(--clay), -0.28em 0 0 var(--clay);
+  /* keep the block tight to the text box */
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
-/* ---------- stats ---------- */
+/* ---------- 3. Lede band ---------- */
+.ledeBand {
+  background: var(--clay);
+  padding: 60px 64px;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 80px;
+  align-items: start;
+}
+.lede {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1.5;
+  color: var(--cream);
+  margin: 0;
+}
+.ledeCtas {
+  display: flex;
+  flex-direction: column;
+}
+.ctaSolid {
+  background: var(--cream);
+  color: var(--clay-dark);
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: 17px;
+  padding: 17px 30px;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.14s ease;
+}
+.ctaSolid:hover {
+  background: #f4e9dd;
+}
+.ctaText {
+  margin-top: 14px;
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--cream-dim);
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-color: rgba(243, 207, 194, 0.45);
+  padding-top: 12px;
+  border-top: 1px solid rgba(253, 246, 238, 0.28);
+}
+.ctaText:hover {
+  text-decoration-color: var(--cream-dim);
+}
+
+/* ---------- 4. Stat band ---------- */
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  max-width: 1180px;
-  margin: 0 auto;
+  border-bottom: 1px solid var(--rule);
+  padding: 0 64px;
 }
 .stat {
-  padding: 44px 40px;
-  border-right: 1px solid var(--line);
+  padding: 56px 0 52px;
+  border-right: 1px solid var(--rule);
+  padding-left: 0;
+}
+.stat + .stat {
+  padding-left: 40px;
 }
 .stat:last-child {
   border-right: 0;
 }
 .statNum {
-  font-weight: 900;
-  font-size: clamp(2.6rem, 5vw, 4rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(3.5rem, 6.8vw, 96px);
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+.statNumClay {
+  color: var(--clay);
 }
 .statLabel {
-  margin-top: 8px;
+  margin-top: 14px;
+  font-family: var(--font-label);
   font-size: 15px;
-  font-weight: 500;
-  color: #c6c6cd;
+  color: var(--text-muted);
 }
 
-/* ---------- map ---------- */
+/* ---------- 5. Credits ---------- */
+.credits {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 72px;
+  padding: 60px 64px;
+  border-bottom: 1px solid var(--rule);
+}
+.creditText {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.2vw, 30px);
+  line-height: 1.48;
+  margin: 0;
+}
+.creditText em {
+  color: var(--clay);
+  font-style: italic;
+}
+.creditMeta {
+  font-family: var(--font-label);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 6px;
+}
+.creditMeta p {
+  margin: 0;
+}
+
+/* ---------- 6. Map ---------- */
 .mapSection {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 72px 40px 40px;
+  padding: 80px 64px;
 }
 .mapHead {
-  max-width: 60ch;
-  margin-bottom: 26px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+  margin-bottom: 34px;
 }
 .h2 {
-  font-family: var(--font-archivo), system-ui, sans-serif;
-  font-weight: 900;
-  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 4.3vw, 60px);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  margin: 0;
 }
-.mapSub {
-  margin-top: 12px;
-  font-size: 16.5px;
-  line-height: 1.55;
-  color: #b6b6bf;
+.mapCaption {
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.68;
+  color: var(--text-secondary);
+  max-width: 52ch;
+  margin: 0;
 }
-.topList {
+.mapHolder {
+  min-height: 520px;
+}
+.affected {
   display: flex;
-  align-items: center;
-  gap: 22px;
+  align-items: baseline;
   flex-wrap: wrap;
-  margin-top: 22px;
+  gap: 32px;
   padding-top: 20px;
-  border-top: 1px solid var(--line);
-  font-size: 14.5px;
-  color: #c6c6cd;
+  border-top: 1px solid var(--rule);
+  margin-top: 8px;
 }
-.topLabel {
-  font-weight: 700;
-  color: var(--muted);
+.affectedLabel {
+  font-family: var(--font-label);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
 }
-.topItem b {
-  color: var(--accent);
-  font-weight: 800;
-  margin-right: 5px;
+.affectedItem {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 9px;
+}
+.affectedNum {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--clay);
+}
+.affectedName {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--ink);
 }
 
-/* ---------- how ---------- */
+/* ---------- 7. How it works ---------- */
 .how {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 40px 40px 80px;
+  background: var(--ink);
+  color: var(--ink-on-dark);
+  padding: 84px 64px;
+}
+.howHead {
+  display: grid;
+  grid-template-columns: 1fr 34ch;
+  gap: 60px;
+  align-items: start;
+  margin-bottom: 56px;
+}
+.howHeading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 4.3vw, 60px);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: var(--cream);
+  margin: 0;
+}
+.howNote {
+  font-family: var(--font-label);
+  font-size: 13px;
+  line-height: 1.65;
+  color: #b5ab9e;
+  margin: 0;
+  justify-self: end;
 }
 .steps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  margin-top: 30px;
-  border-top: 1px solid var(--line);
+  gap: 60px;
 }
 .step {
-  padding: 28px 30px 8px 0;
-  border-right: 1px solid var(--line);
-  padding-right: 30px;
-}
-.step:last-child {
-  border-right: 0;
-}
-.stepNum {
-  font-weight: 900;
-  font-size: 14px;
-  color: var(--accent);
-  letter-spacing: 0.02em;
+  border-top: 1px solid var(--rule-on-ink-strong);
+  padding-top: 22px;
 }
 .stepTitle {
-  margin-top: 14px;
-  font-weight: 800;
-  font-size: 22px;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 30px;
+  color: var(--cream);
+  margin: 0 0 10px;
 }
 .stepBody {
-  margin-top: 8px;
-  font-size: 15.5px;
-  line-height: 1.55;
-  color: #b6b6bf;
-}
-
-/* ---------- footer ---------- */
-.footer {
-  background: var(--ink-2);
-  border-top: 1px solid var(--line);
-  padding: 44px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 34px;
-  flex-wrap: wrap;
-}
-.footBrand {
-  font-weight: 800;
+  font-family: var(--font-display);
   font-size: 17px;
-}
-.footNote {
-  margin-top: 8px;
-  max-width: 58ch;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--muted);
+  line-height: 1.68;
+  color: #cfc5b7;
+  margin: 0;
 }
 
-@media (max-width: 900px) {
-  .nav,
-  .heroInner,
+/* ---------- Responsive ---------- */
+@media (max-width: 1000px) {
+  .header,
+  .ledeBand,
+  .stats,
+  .credits,
   .mapSection,
-  .how,
-  .footer {
-    padding-left: 22px;
-    padding-right: 22px;
+  .how {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+  .heroHeadline {
+    margin-left: 28px;
+    margin-right: 28px;
+  }
+  .ledeBand,
+  .credits,
+  .mapHead,
+  .howHead {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .howNote {
+    justify-self: start;
   }
   .stats,
   .steps {
     grid-template-columns: 1fr;
+    gap: 0;
   }
-  .stat,
-  .step {
+  .stat {
     border-right: 0;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--rule);
+    padding: 32px 0 28px;
   }
-  .heroGrid {
-    grid-template-columns: repeat(6, 1fr);
+  .stat + .stat {
+    padding-left: 0;
   }
-  .heroScrim {
-    background: linear-gradient(180deg, rgba(12, 12, 14, 0.86), rgba(12, 12, 14, 0.96));
+  .stat:last-child {
+    border-bottom: 0;
+  }
+  .step {
+    margin-bottom: 34px;
+  }
+  .heroPhoto {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .nav a:not(.navButton) {
+    display: none;
   }
 }

@@ -1,39 +1,21 @@
 import type { Metadata } from "next";
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono, Libre_Caslon_Display, Archivo } from "next/font/google";
+import { Newsreader, Familjen_Grotesk } from "next/font/google";
 import "./globals.css";
 
-// §5: Fraunces (display), IBM Plex Sans (body), IBM Plex Mono (data). Weights 400/500/600 only.
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-fraunces",
-  display: "swap",
-});
-const plexSans = IBM_Plex_Sans({
+// Handoff typography: "anything that speaks is serif; anything that labels is
+// sans." Newsreader carries headings, body and numerals; Familjen Grotesk
+// carries nav, labels, buttons and captions. No monospace anywhere.
+const newsreader = Newsreader({
   subsets: ["latin"],
   weight: ["400", "500"],
-  variable: "--font-plex-sans",
+  style: ["normal", "italic"],
+  variable: "--font-serif",
   display: "swap",
 });
-const plexMono = IBM_Plex_Mono({
+const familjen = Familjen_Grotesk({
   subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-plex-mono",
-  display: "swap",
-});
-// Libre Caslon Display — display serif retained for the dashboard masthead.
-const libreCaslon = Libre_Caslon_Display({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-caslon",
-  display: "swap",
-});
-// Archivo — the landing page runs on one family across weights 400-900, which
-// is what keeps it from looking like a font-pairing exercise.
-const archivo = Archivo({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  variable: "--font-archivo",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
   display: "swap",
 });
 
@@ -49,10 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} ${libreCaslon.variable} ${archivo.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${newsreader.variable} ${familjen.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

@@ -9,10 +9,12 @@ type Props = {
   onSelect: (id: string) => void;
 };
 
-function bandTagClass(band: ConfidenceBand) {
-  if (band === "high") return styles.tagHigh;
-  if (band === "medium") return styles.tagMed;
-  return styles.tagLow;
+// Severity is legible at a glance: high is a solid clay fill, medium is
+// outlined in clay, low is a neutral outline.
+function chipClass(band: ConfidenceBand) {
+  if (band === "high") return styles.chipHigh;
+  if (band === "medium") return styles.chipMedium;
+  return styles.chipLow;
 }
 
 function bandLabel(band: ConfidenceBand) {
@@ -21,19 +23,15 @@ function bandLabel(band: ConfidenceBand) {
 
 export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Props) {
   return (
-    <div className={styles.card}>
-      <div className={styles.cardHead}>
-        <span className={styles.eyebrow}>Review queue</span>
-        <span className={styles.eyebrow}>Amazon · Temu</span>
+    <div className={styles.panel}>
+      <div className={styles.queueHead}>
+        <span className={styles.queueTitle}>Review queue</span>
+        <span className={styles.queueSources}>Amazon · Temu</span>
       </div>
 
       {matches.length === 0 && (
-        <div className={styles.empty}>
-          <strong style={{ display: "block", marginBottom: 6, color: "var(--ink)" }}>
-            No infringements detected
-          </strong>
-          This nation&apos;s seal and flag are checked against Amazon and Temu every week.
-          Nothing matching has been found — we&apos;ll flag it here if that changes.
+        <div className={styles.emptyQueue}>
+          No infringements detected. This nation is checked every week.
         </div>
       )}
 
@@ -46,27 +44,24 @@ export default function ReviewQueue({ matches, selectedMatchId, onSelect }: Prop
             key={m.id}
             type="button"
             onClick={() => onSelect(m.id)}
-            className={`${styles.row} ${isSelected ? styles.rowSel : ""}`}
+            className={`${styles.row} ${isSelected ? styles.rowSelected : ""}`}
+            aria-current={isSelected}
           >
-            <div className={styles.thumb}>
-              {listing.image_url ? (
+            <span className={styles.thumb}>
+              {listing.image_url && (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={listing.image_url} alt="" />
-              ) : (
-                <svg aria-hidden="true">
-                  <use href="#seal-line" />
-                </svg>
               )}
-            </div>
-            <div>
-              <div className={styles.name}>{listing.title}</div>
-              <div className={styles.meta}>
-                <span className={styles.mkt}>{listing.marketplace}</span>
-                <span className={`${styles.tag} ${bandTagClass(m.confidence_band)}`}>
+            </span>
+            <span>
+              <span className={styles.rowTitle}>{listing.title}</span>
+              <span className={styles.rowMeta}>
+                <span className={styles.marketplace}>{listing.marketplace}</span>
+                <span className={`${styles.chip} ${chipClass(m.confidence_band)}`}>
                   {bandLabel(m.confidence_band)} · {pct}%
                 </span>
-              </div>
-            </div>
+              </span>
+            </span>
           </button>
         );
       })}
