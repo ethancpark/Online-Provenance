@@ -41,7 +41,6 @@ export default function LandingPage({
         <span className={styles.wordmark}>Online Provenance</span>
         <nav className={styles.nav}>
           <a href="#how">How it works</a>
-          <a href="#map">Nations</a>
           <a href="#about">About</a>
           <Link href="/dashboard" className={styles.navButton}>
             Open the monitor
