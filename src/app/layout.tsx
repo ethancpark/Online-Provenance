@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono, Libre_Caslon_Display } from "next/font/google";
+import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono, Libre_Caslon_Display, Archivo } from "next/font/google";
 import "./globals.css";
 
 // §5: Fraunces (display), IBM Plex Sans (body), IBM Plex Mono (data). Weights 400/500/600 only.
@@ -21,11 +21,19 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   display: "swap",
 });
-// Libre Caslon Display — landing-page display serif (LandingPage.module.css).
+// Libre Caslon Display — display serif retained for the dashboard masthead.
 const libreCaslon = Libre_Caslon_Display({
   subsets: ["latin"],
   weight: ["400"],
   variable: "--font-caslon",
+  display: "swap",
+});
+// Archivo — the landing page runs on one family across weights 400-900, which
+// is what keeps it from looking like a font-pairing exercise.
+const archivo = Archivo({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-archivo",
   display: "swap",
 });
 
@@ -43,7 +51,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} ${libreCaslon.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} ${libreCaslon.variable} ${archivo.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

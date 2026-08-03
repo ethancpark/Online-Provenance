@@ -1,0 +1,84 @@
+.wrap {
+  position: relative;
+  width: 100%;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.dot {
+  fill: var(--dot);
+  stroke: var(--dot-stroke);
+  stroke-width: 1.25;
+  cursor: pointer;
+  transition: fill 0.12s ease;
+}
+.dot:hover {
+  fill: #fff;
+}
+
+.tip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 14px));
+  background: #fff;
+  color: #111;
+  padding: 10px 14px;
+  border-radius: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  z-index: 3;
+}
+.tip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  transform: translateX(-50%) rotate(45deg);
+}
+.tipName {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.tipCount {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ramp {
+  flex: 0 0 150px;
+  height: 8px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--map-empty),
+    color-mix(in srgb, var(--accent) 45%, var(--map-empty)),
+    var(--accent)
+  );
+}
+
+@media (max-width: 760px) {
+  .ramp {
+    flex-basis: 90px;
+  }
+  .tip {
+    display: none;
+  }
+}
