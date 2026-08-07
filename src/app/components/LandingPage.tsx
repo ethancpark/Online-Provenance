@@ -13,7 +13,7 @@ type Props = {
 const STEPS = [
   {
     title: "Find",
-    body: "Every week we search Amazon and Temu for merchandise carrying tribal seals and flags.",
+    body: "Every week we search Amazon and Temu for merchandise carrying Tribal seals and flags.",
   },
   {
     title: "Prove",
@@ -63,13 +63,8 @@ export default function LandingPage({
         </h1>
       </section>
 
-      {/* 3 — Lede band */}
+      {/* 3 — Action band */}
       <section className={styles.ledeBand}>
-        <p className={styles.lede}>
-          Sacred seals and trademarked flags of Native nations are printed on flags, hats and
-          stickers by third-party sellers on Amazon and Temu — with no consent, credit, or
-          compensation. We find them, prove it, and help nations get them taken down.
-        </p>
         <div className={styles.ledeCtas}>
           <Link href="/dashboard" className={styles.ctaSolid}>
             See what we found
@@ -108,9 +103,6 @@ export default function LandingPage({
         </p>
         <div className={styles.creditMeta}>
           <p>𐒻𐒼𐓂 Lab — Indigenous Politics Lab, Emory University</p>
-          <p>
-            Accountable to the Native American and Indigenous Studies Initiative at Emory
-          </p>
         </div>
       </section>
 
@@ -119,7 +111,7 @@ export default function LandingPage({
         <div className={styles.mapHead}>
           <h2 className={styles.h2}>Where it&rsquo;s happening</h2>
           <p className={styles.mapCaption}>
-            Every nation we monitor, placed at its reservation or seat of government. The larger
+            Every Tribal nation we monitor, placed at its reservation or seat of government. The larger
             the dot, the more of its marks we&rsquo;ve found for sale.
           </p>
         </div>

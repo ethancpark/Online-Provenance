@@ -22,7 +22,7 @@ const familjen = Familjen_Grotesk({
 export const metadata: Metadata = {
   title: "Online Provenance",
   description:
-    "Protecting the seals and marks of Native American nations. Monitors online marketplaces for unauthorized sale of tribal seals and trademarked flags.",
+    "Protecting the seals and marks of Tribal nations. Monitors online marketplaces for unauthorized sale of Tribal seals and trademarked flags.",
 };
 
 export default function RootLayout({

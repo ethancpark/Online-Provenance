@@ -105,24 +105,17 @@
 }
 
 /* ---------- 3. Lede band ---------- */
+/* The handoff drew this as a two-column band (lede + CTAs). With the lede
+   removed it reads as a slim clay action strip rather than an empty column. */
 .ledeBand {
   background: var(--clay);
-  padding: 60px 64px;
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 80px;
-  align-items: start;
-}
-.lede {
-  font-family: var(--font-display);
-  font-size: 26px;
-  line-height: 1.5;
-  color: var(--cream);
-  margin: 0;
+  padding: 30px 64px;
 }
 .ledeCtas {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 34px;
+  flex-wrap: wrap;
 }
 .ctaSolid {
   background: var(--cream);
@@ -139,17 +132,13 @@
   background: #f4e9dd;
 }
 .ctaText {
-  margin-top: 14px;
   font-family: var(--font-label);
   font-weight: 600;
   font-size: 15px;
   color: var(--cream-dim);
-  text-align: center;
   text-decoration: underline;
   text-underline-offset: 5px;
   text-decoration-color: rgba(243, 207, 194, 0.45);
-  padding-top: 12px;
-  border-top: 1px solid rgba(253, 246, 238, 0.28);
 }
 .ctaText:hover {
   text-decoration-color: var(--cream-dim);

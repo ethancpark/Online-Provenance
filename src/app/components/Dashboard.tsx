@@ -133,18 +133,14 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
               <a href="https://www.eliseblasingame.com/lab" target="_blank" rel="noopener noreferrer">
                 𐒻𐒼𐓂 Lab
               </a>{" "}
-              (Indigenous Politics Lab) at Emory, and one group we are accountable to is the{" "}
-              <a href="https://native.emory.edu/index.html" target="_blank" rel="noopener noreferrer">
-                Native American and Indigenous Studies Initiative at Emory (NAISI)
-              </a>
-              . It is and will remain completely free — our only goal is to make it useful to Native
-              communities.
+              (Indigenous Politics Lab) at Emory. It is and will remain completely free — our only
+              goal is to make it useful to Native communities.
             </p>
             <p>
               There has been a documented increase in counterfeit &ldquo;Native-made&rdquo; goods on
               platforms like Amazon, Alibaba, and Temu that profit from tribal names, designs, and
               artwork without permission — often in violation of the Indian Arts and Crafts Act.
-              Online Provenance monitors these marketplaces for unauthorized use of tribal seals,
+              Online Provenance monitors these marketplaces for unauthorized use of Tribal seals,
               flags, and designs, documents likely infringements with a confidence score and an
               on-the-record case file, and prepares takedown notices so Tribal Nations can get
               infringing listings removed.
