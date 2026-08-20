@@ -113,6 +113,12 @@ def _evaluate(title: str, tribe_name: str, match):
 # clear message. Skipping on an empty wallet is expected, not a failure.
 APIFY_MONTHLY_BUDGET_USD = float(os.getenv("APIFY_MONTHLY_BUDGET_USD", "5"))
 APIFY_RESERVE_USD = float(os.getenv("APIFY_RESERVE_USD", "0.40"))
+# The Temu actor is PAY_PER_EVENT at $0.01 per dataset item (confirmed against
+# its pricingInfos). Cost therefore scales with results returned, NOT with the
+# number of queries: one query for 10 results costs the same as ten for one.
+# That makes max_per_query the budget lever, and it makes the whole dragnet's
+# cost predictable before a single request goes out.
+APIFY_USD_PER_RESULT = float(os.getenv("APIFY_USD_PER_RESULT", "0.01"))
 
 
 def amazon_cost_per_search() -> int:
@@ -282,7 +288,7 @@ def run_amazon(client, tribes, max_per_query, stats) -> None:
             time.sleep(0.5)  # polite pacing between queries
 
 
-def run_temu_dragnet(client, tribes, max_per_query, stats) -> None:
+def run_temu_dragnet(client, tribes, max_per_query, stats, queries=None) -> None:
     """
     Generic Temu queries, matched against ALL tribes' reference assets.
     Each listing is assigned to the tribe whose asset it best matches.
@@ -295,7 +301,8 @@ def run_temu_dragnet(client, tribes, max_per_query, stats) -> None:
                 all_assets.append(a)
                 tribe_by_asset[a["id"]] = tribe
 
-    queries = dragnet_queries_for_today()
+    if queries is None:
+        queries = dragnet_queries_for_today()
     print(f"=== Temu dragnet ({len(queries)} queries today, {len(all_assets)} reference assets) ===")
 
     for query in queries:
@@ -360,15 +367,22 @@ def run_scan(
             print("(skipping Temu dragnet: it always scans across all tribes)")
         else:
             left_usd = apify_usd_left()
-            if left_usd is not None and left_usd <= APIFY_RESERVE_USD:
-                msg = (f"temu SKIPPED — Apify credit exhausted (${left_usd} left; "
-                       f"free allowance resets monthly)")
+            # Cost the whole dragnet up front. Checking a flat reserve instead
+            # let a run start with $0.45 left and spend $0.50, which is how the
+            # balance reached -$0.34 and locked Temu out for the rest of the
+            # cycle. Project it, and either the run fits or it does not start.
+            queries = dragnet_queries_for_today()
+            need_usd = round(len(queries) * max_per_query * APIFY_USD_PER_RESULT, 4)
+            if left_usd is not None and left_usd < need_usd + APIFY_RESERVE_USD:
+                msg = (f"temu SKIPPED — needs ~${need_usd} "
+                       f"({len(queries)} queries x {max_per_query} results), "
+                       f"${left_usd} left (free allowance resets monthly)")
                 print(f"\n{msg}\n")
                 skipped.append(msg)
             else:
-                print(f"\n=== Temu dragnet (Apify credit left: "
-                      f"${left_usd if left_usd is not None else '?'}) ===")
-                run_temu_dragnet(client, tribes, max_per_query, stats)
+                print(f"\n=== Temu dragnet (~${need_usd} of "
+                      f"${left_usd if left_usd is not None else '?'} available) ===")
+                run_temu_dragnet(client, tribes, max_per_query, stats, queries=queries)
 
     print("\n=== Scan complete ===")
     try:
