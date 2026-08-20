@@ -1,0 +1,51 @@
+.page { min-height: 100vh; background: var(--paper); padding: 48px; }
+.head { max-width: 70ch; margin-bottom: 30px; }
+.title {
+  font-family: var(--font-display); font-weight: 500; font-size: 48px;
+  letter-spacing: -0.025em; margin: 0;
+}
+.sub {
+  font-family: var(--font-display); font-size: 17px; line-height: 1.68;
+  color: var(--text-secondary); margin: 10px 0 0;
+}
+.table {
+  width: 100%; border-collapse: collapse; background: var(--panel);
+  border: 1px solid var(--rule);
+}
+.table th {
+  text-align: left; font-family: var(--font-label); font-size: 13px;
+  letter-spacing: 0.04em; color: var(--text-muted); font-weight: 400;
+  padding: 14px 18px; border-bottom: 1px solid var(--rule);
+}
+.table td {
+  padding: 14px 18px; border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--font-display); font-size: 16px; vertical-align: top;
+}
+.table tr:last-child td { border-bottom: 0; }
+.name { font-family: var(--font-display); font-size: 16px; }
+.meta { font-family: var(--font-label); font-size: 13px; color: var(--text-faint); margin-top: 2px; }
+.role {
+  font-family: var(--font-label); font-size: 12px; font-weight: 600;
+  border: 1px solid var(--clay-border); color: var(--clay); padding: 3px 9px;
+  text-transform: capitalize;
+}
+.ok, .pending {
+  font-family: var(--font-label); font-size: 12px; font-weight: 600; padding: 3px 9px;
+  text-transform: capitalize;
+}
+.ok { background: var(--clay); color: var(--cream); }
+.pending { border: 1px solid #d8cfbf; color: var(--text-muted); }
+.actions { white-space: nowrap; }
+.actions button {
+  font-family: var(--font-label); font-size: 13px; font-weight: 600;
+  background: transparent; border: 1px solid var(--rule-strong); color: var(--ink);
+  padding: 7px 12px; margin-right: 8px; cursor: pointer;
+}
+.actions button:hover { background: var(--paper-warm); }
+.actions button:disabled { opacity: 0.5; cursor: default; }
+.error { font-family: var(--font-label); font-size: 14px; color: var(--clay); }
+.empty {
+  font-family: var(--font-label); font-size: 15px; color: var(--text-muted);
+  background: var(--panel); border: 1px solid var(--rule); padding: 40px; text-align: center;
+}
+@media (max-width: 800px) { .page { padding: 24px; } }

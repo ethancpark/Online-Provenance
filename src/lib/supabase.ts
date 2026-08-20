@@ -1,15 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
-import { createBrowserClient, createServerClient } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-// Browser client — carries the signed-in user's session via cookies. All
-// queries made with it are subject to row-level security.
-export function getBrowserClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-}
+// NOTE: the browser client lives in ./supabase-browser so Client Components
+// never pull in next/headers via this module.
 
 // Server client for Server Components / route handlers — reads the session
 // from cookies and runs AS THE USER, so RLS applies. Use this for anything

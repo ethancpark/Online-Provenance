@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { getBrowserClient } from "@/lib/supabase";
+import { getBrowserClient } from "@/lib/supabase-browser";
 import styles from "./login.module.css";
 
 export default function LoginPage() {
