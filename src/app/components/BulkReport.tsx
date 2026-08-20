@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import type { MatchRow, Tribe } from "@/lib/types";
 import type { SessionUser } from "./AccountNav";
+import type { ReportAccess } from "@/lib/access";
+import ReportLock from "./ReportLock";
 import {
   buildBatchNotice,
   batchIdList,
@@ -17,7 +19,13 @@ import {
 } from "@/lib/notice";
 import styles from "./BulkReport.module.css";
 
-type Props = { matches: MatchRow[]; tribe: Tribe | null; sessionUser: SessionUser };
+type Props = {
+  matches: MatchRow[];
+  tribe: Tribe | null;
+  sessionUser: SessionUser;
+  /** Decided in lib/access.ts — a denied result renders the lock instead. */
+  access: ReportAccess;
+};
 
 /**
  * Filing one listing at a time means thirty forms for a nation like Choctaw.
@@ -25,7 +33,7 @@ type Props = { matches: MatchRow[]; tribe: Tribe | null; sessionUser: SessionUse
  * infringement type — and a nation's basis is uniform — so the whole queue
  * usually goes in a single submission.
  */
-export default function BulkReport({ matches, tribe, sessionUser }: Props) {
+export default function BulkReport({ matches, tribe, sessionUser, access }: Props) {
   const [open, setOpen] = useState(false);
   const [marketplace, setMarketplace] = useState<string>("amazon");
   const [copied, setCopied] = useState<string | null>(null);
@@ -41,6 +49,21 @@ export default function BulkReport({ matches, tribe, sessionUser }: Props) {
 
   const selected = byMarketplace.get(marketplace) ?? [];
   if (!tribe || matches.length === 0) return null;
+
+  // Not cleared to file for this nation: show the gate where the flow would be,
+  // and build no notice at all. The listings above stay fully readable.
+  if (!access.allowed) {
+    return (
+      <section className={styles.wrap}>
+        <ReportLock
+          access={access}
+          nation={tribe.name}
+          marketplaces={[...byMarketplace.keys()]}
+          count={matches.length}
+        />
+      </section>
+    );
+  }
 
   const listings: BatchListing[] = selected.map((m) => ({
     title: m.listings.title,
@@ -80,8 +103,6 @@ export default function BulkReport({ matches, tribe, sessionUser }: Props) {
     }
   }
 
-  if (!sessionUser) return null;
-
   return (
     <section className={styles.wrap}>
       {!open ? (
@@ -105,6 +126,13 @@ export default function BulkReport({ matches, tribe, sessionUser }: Props) {
               Close
             </button>
           </div>
+
+          {access.asLabAdmin && (
+            <p className={styles.labNote}>
+              You&rsquo;re viewing this as 𐒻𐒼𐓂 Lab staff, not as {tribe.name}. A notice for this
+              nation has to be filed and signed by someone at the nation itself.
+            </p>
+          )}
 
           {byMarketplace.size > 1 && (
             <div className={styles.tabs}>

@@ -565,16 +565,17 @@
 }
 
 /* ---------- Notice review ---------- */
-.signInPrompt {
+/* Lab staff are not the nation. Said plainly, above the copy button. */
+.labNote {
   font-family: var(--font-label);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
   color: var(--text-secondary);
   background: var(--paper-warm);
-  border: 1px solid var(--rule);
-  padding: 16px 18px;
+  border-bottom: 1px solid var(--rule);
+  margin: 0;
+  padding: 12px 18px;
 }
-.signInPrompt strong { color: var(--ink); }
 
 .noticeBox {
   border: 1px solid var(--rule-strong);

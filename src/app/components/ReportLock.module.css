@@ -1,0 +1,143 @@
+/* The locked state of the reporting flow.
+   Quieter than the live CTA on purpose: clay is reserved for the action a
+   person can actually take, so the gate itself is paper and hairline rules,
+   and the only accent is the way in. Flat, square, no shadow — per tokens. */
+
+.lock {
+  background: var(--paper-warm);
+  border: 1px solid var(--rule-strong);
+  padding: 24px;
+}
+
+.head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.icon {
+  color: var(--clay);
+  margin-top: 2px;
+  flex: none;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1.25;
+  color: var(--ink);
+  margin: 0;
+}
+
+.body {
+  font-family: var(--font-label);
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 8px 0 0;
+  max-width: 64ch;
+}
+
+/* ---------- what's behind the lock ---------- */
+
+.unlockLabel {
+  font-family: var(--font-label);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 22px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.unlocks {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  max-width: 64ch;
+}
+
+.unlocks li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  font-family: var(--font-label);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+/* The count is the argument — a nation seeing 27 here knows what it saves. */
+.unlockNum {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--clay);
+  text-align: right;
+}
+
+/* ---------- the way in ---------- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.primary {
+  display: inline-block;
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: 14px;
+  background: var(--ink);
+  color: var(--cream);
+  padding: 12px 20px;
+  text-decoration: none;
+  transition: background 0.14s ease;
+}
+.primary:hover { background: #221e1a; }
+
+.secondary {
+  font-family: var(--font-label);
+  font-size: 14px;
+  color: var(--clay);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.secondary:hover { color: var(--clay-dark); }
+
+.foot {
+  font-family: var(--font-label);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-faint);
+  margin: 16px 0 0;
+  max-width: 62ch;
+}
+
+/* ---------- inline variant: same gate, single-listing scale ---------- */
+
+.inline {
+  padding: 18px 20px;
+}
+.inline .title { font-size: 18px; }
+.inline .body { font-size: 13px; margin-top: 6px; }
+.inline .actions { margin-top: 16px; gap: 16px; }
+.inline .primary { padding: 10px 16px; font-size: 13.5px; }
+.inline .secondary { font-size: 13.5px; }
+.inline .foot { font-size: 12px; margin-top: 12px; }
+
+@media (max-width: 800px) {
+  .lock { padding: 20px 16px; }
+  .unlocks li { grid-template-columns: 34px 1fr; gap: 10px; }
+  .unlockNum { font-size: 18px; }
+}

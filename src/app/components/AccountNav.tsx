@@ -10,6 +10,8 @@ export type SessionUser = {
   full_name: string | null;
   email: string;
   role: "lab_admin" | "tribal_admin" | "tribal_staff";
+  /** The nation this account belongs to. Null for lab admins, by schema constraint. */
+  tribe_id: string | null;
   nation: string | null;
 } | null;
 

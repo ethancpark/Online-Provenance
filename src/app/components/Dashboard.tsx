@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Tribe, MatchRow, TribeSummary } from "@/lib/types";
+import { reportAccess } from "@/lib/access";
 import ReviewQueue from "./ReviewQueue";
 import ListingDetail from "./ListingDetail";
 import AccountNav, { type SessionUser } from "./AccountNav";
@@ -24,6 +25,10 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches, ses
   const [aboutOpen, setAboutOpen] = useState(false);
 
   const sortedTribes = [...tribes].sort((a, b) => a.name.localeCompare(b.name));
+
+  // Decided once, for both the bulk flow and the single-listing panel: only the
+  // nation on screen (or lab staff) may prepare a notice in that nation's name.
+  const access = reportAccess(sessionUser, selectedTribe?.id ?? null);
   const selectedMatch = useMemo(
     () => matches.find((m) => m.id === selectedMatchId) ?? matches[0] ?? null,
     [matches, selectedMatchId],
@@ -168,7 +173,7 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches, ses
           </section>
         )}
 
-        <BulkReport matches={matches} tribe={selectedTribe} sessionUser={sessionUser} />
+        <BulkReport matches={matches} tribe={selectedTribe} sessionUser={sessionUser} access={access} />
 
         <div className={styles.grid}>
           <ReviewQueue
@@ -176,7 +181,12 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches, ses
             selectedMatchId={selectedMatch?.id ?? null}
             onSelect={setSelectedMatchId}
           />
-          <ListingDetail match={selectedMatch} tribe={selectedTribe} sessionUser={sessionUser} />
+          <ListingDetail
+            match={selectedMatch}
+            tribe={selectedTribe}
+            sessionUser={sessionUser}
+            access={access}
+          />
         </div>
       </div>
     </div>

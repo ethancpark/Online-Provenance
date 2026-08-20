@@ -3,10 +3,18 @@
 import { useState } from "react";
 import type { MatchRow, Tribe } from "@/lib/types";
 import type { SessionUser } from "./AccountNav";
+import type { ReportAccess } from "@/lib/access";
+import ReportLock from "./ReportLock";
 import { buildNotice, noticeSubject, marketplaceName, submissionRoute, type NoticeInput } from "@/lib/notice";
 import styles from "./Dashboard.module.css";
 
-type Props = { match: MatchRow | null; tribe: Tribe | null; sessionUser?: SessionUser };
+type Props = {
+  match: MatchRow | null;
+  tribe: Tribe | null;
+  sessionUser?: SessionUser;
+  /** Decided in lib/access.ts — a denied result renders the lock instead. */
+  access: ReportAccess;
+};
 
 function marketplaceLabel(mp: string) {
   if (mp === "amazon") return "Amazon US";
@@ -20,7 +28,7 @@ function Value({ children }: { children: string | null | undefined }) {
   return <span className={styles.fieldValue}>{children}</span>;
 }
 
-export default function ListingDetail({ match, tribe, sessionUser }: Props) {
+export default function ListingDetail({ match, tribe, sessionUser, access }: Props) {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showNotice, setShowNotice] = useState(false);
 
@@ -62,7 +70,8 @@ export default function ListingDetail({ match, tribe, sessionUser }: Props) {
   };
 
   const route = submissionRoute(noticeInput);
-  const noticeText = sessionUser ? buildNotice(noticeInput) : "";
+  // No notice is built for someone who may not file one.
+  const noticeText = access.allowed ? buildNotice(noticeInput) : "";
 
   async function copyNotice() {
     try {
@@ -146,11 +155,14 @@ export default function ListingDetail({ match, tribe, sessionUser }: Props) {
         </div>
       </div>
 
-      {!sessionUser ? (
-        <div className={styles.signInPrompt}>
-          <strong>Sign in to prepare a notice.</strong> Notices are signed under penalty of
-          perjury, so they must come from a named person at the nation.
-        </div>
+      {!access.allowed ? (
+        <ReportLock
+          access={access}
+          nation={tribeName}
+          marketplaces={[listing.marketplace]}
+          count={1}
+          variant="inline"
+        />
       ) : !showNotice ? (
         <button type="button" className={styles.report} onClick={() => setShowNotice(true)}>
           <span>
@@ -169,6 +181,12 @@ export default function ListingDetail({ match, tribe, sessionUser }: Props) {
               Close
             </button>
           </div>
+          {access.asLabAdmin && (
+            <p className={styles.labNote}>
+              You&rsquo;re viewing this as 𐒻𐒼𐓂 Lab staff, not as {tribeName}. A notice for this
+              nation has to be filed and signed by someone at the nation itself.
+            </p>
+          )}
           <div className={styles.noticeSubject}>{noticeSubject(noticeInput)}</div>
           <pre className={styles.noticeBody}>{noticeText}</pre>
           <div className={styles.noticeActions}>

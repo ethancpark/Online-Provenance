@@ -75,7 +75,10 @@ export function emailDomain(email: string): string | null {
   return /^[a-z0-9][a-z0-9\-.]*\.[a-z]{2,}$/.test(d) ? d : null;
 }
 
-/** Profile shaped for the header nav, including the nation's display name. */
+/**
+ * Profile shaped for the header nav and the reporting gate: the nation's
+ * display name for people, and its id for the access check in `lib/access.ts`.
+ */
 export async function getSessionUser() {
   const p = await getProfile();
   if (!p) return null;
@@ -85,5 +88,5 @@ export async function getSessionUser() {
     const { data } = await supabase.from("tribes").select("name").eq("id", p.tribe_id).maybeSingle();
     nation = (data as { name: string } | null)?.name ?? null;
   }
-  return { full_name: p.full_name, email: p.email, role: p.role, nation };
+  return { full_name: p.full_name, email: p.email, role: p.role, tribe_id: p.tribe_id, nation };
 }

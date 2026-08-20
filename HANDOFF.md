@@ -93,6 +93,16 @@ pipeline/scripts/run_scan.py   the weekly scan
    tribe by its leading distinctive tokens AND says flag/seal/etc.
 9. **Cherokee Nation (Tahlequah, OK) ≠ Eastern Band of Cherokee (Qualla, NC).**
    Name matching collapses them; Cherokee Nation is pinned explicitly.
+10. **Reporting is gated to the nation on screen** (`src/lib/access.ts`). A
+   `tribal_staff` or `tribal_admin` account unlocks it only for its own
+   `tribe_id`; staff of another nation get a "wrong desk" lock, not a signup
+   form. `lab_admin` keeps access so the lab can test and support, and sees a
+   band saying the notice is not theirs to sign — drop that branch in
+   `reportAccess` to lock the lab out too. Everyone else sees `ReportLock`.
+   Note this is a UI gate, not a security boundary: the notice template ships
+   in the client bundle and the listings are public by design. What it
+   prevents is a stranger walking away with a notice that speaks in a
+   nation's name.
 
 ---
 
@@ -120,7 +130,9 @@ protection + referrer policy, 0 npm vulnerabilities, no secrets in git history.
    IP first, costs nothing).
 2. **Walk the reporting flow end to end as a real user.** Never been done.
    Sign in, use "Report all N listings", actually file one at Amazon. That is
-   where remaining friction will show.
+   where remaining friction will show. Note the lab_admin account now sees the
+   flow with a "you are not the nation" band — a true end-to-end walk needs a
+   `tribal_staff` account on a nation with listings.
 3. **Track reported status.** Nothing records that a notice was filed, so a
    nation could re-file the same listings monthly, and "Removed" is stuck at 0.
 4. **Get one nation using it.** 859 listings and a working pipeline exist; what
