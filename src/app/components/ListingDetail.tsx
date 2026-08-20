@@ -2,81 +2,16 @@
 
 import { useState } from "react";
 import type { MatchRow, Tribe } from "@/lib/types";
+import type { SessionUser } from "./AccountNav";
+import { buildNotice, noticeSubject, marketplaceName, submissionRoute, type NoticeInput } from "@/lib/notice";
 import styles from "./Dashboard.module.css";
 
-type Props = { match: MatchRow | null; tribe: Tribe | null };
+type Props = { match: MatchRow | null; tribe: Tribe | null; sessionUser?: SessionUser };
 
 function marketplaceLabel(mp: string) {
   if (mp === "amazon") return "Amazon US";
   if (mp === "temu") return "Temu";
   return mp;
-}
-
-// Short marketplace name for button copy and links ("Report to Amazon").
-function marketplaceName(mp: string) {
-  if (mp === "amazon") return "Amazon";
-  if (mp === "temu") return "Temu";
-  return mp.charAt(0).toUpperCase() + mp.slice(1);
-}
-
-type NoticeArgs = {
-  tribeName: string;
-  assetDescription: string;
-  listingTitle: string;
-  listingUrl: string;
-  marketplace: string;
-  seller: string | null;
-  usptoRegistered: boolean;
-  confidencePct: number;
-};
-
-// DMCA-style notice to the marketplace. The complaining-party block is left
-// blank for the sender to complete in their email client before sending.
-function buildMarketplaceNotice(a: NoticeArgs) {
-  const mp = marketplaceName(a.marketplace);
-  const today = new Date().toISOString().slice(0, 10);
-  const subject = `DMCA takedown notice — unauthorized use of ${a.tribeName} intellectual property`;
-  const body = [
-    `To: ${mp} legal department / copyright agent`,
-    `Date: ${today}`,
-    ``,
-    `To whom it may concern,`,
-    ``,
-    `This is a formal notification under the Digital Millennium Copyright Act (17 U.S.C. § 512) of infringement occurring on ${mp}.`,
-    ``,
-    `1. Work being infringed:`,
-    `   ${a.assetDescription}, owned by ${a.tribeName}${a.usptoRegistered ? " (USPTO-registered mark)" : ""}.`,
-    ``,
-    `2. Infringing listing:`,
-    `   Title: ${a.listingTitle}`,
-    `   URL: ${a.listingUrl}`,
-    `   Seller: ${a.seller ?? "unknown"}`,
-    `   Match confidence: ${a.confidencePct}%`,
-    ``,
-    `3. Complaining party (complete before sending):`,
-    `   Name:`,
-    `   Title:`,
-    `   Organization:`,
-    `   Address:`,
-    `   Email:`,
-    `   Phone:`,
-    ``,
-    `I have a good-faith belief that the use described above is not authorized by the rights holder, its agent, or the law, and the information in this notice is accurate.`,
-    ``,
-    `Please remove or disable access to the listed material promptly.`,
-  ].join("\r\n");
-  return { subject, body, recipient: a.marketplace === "amazon" ? "notice@amazon.com" : "" };
-}
-
-// NOTE: the "Notify the attorney general" action was removed deliberately.
-// Tribal seals and trademarks are a federal matter enforced by the Tribal
-// Nation's own AG — state AGs have no jurisdiction here — and open users must
-// not be able to email an AG's office from this tool. A future version may add
-// tiered accounts so Tribal Nation AG staff can monitor directly.
-
-function openMailto(recipient: string, subject: string, body: string) {
-  const href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.location.href = href;
 }
 
 /** Empty values read as "Not listed", never an em dash. */
@@ -85,8 +20,9 @@ function Value({ children }: { children: string | null | undefined }) {
   return <span className={styles.fieldValue}>{children}</span>;
 }
 
-export default function ListingDetail({ match, tribe }: Props) {
+export default function ListingDetail({ match, tribe, sessionUser }: Props) {
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [showNotice, setShowNotice] = useState(false);
 
   if (!match) {
     return (
@@ -104,25 +40,37 @@ export default function ListingDetail({ match, tribe }: Props) {
   const tribeName = tribe?.name ?? "the tribe";
   const mpName = marketplaceName(listing.marketplace);
 
-  const noticeArgs: NoticeArgs = {
-    tribeName,
+  // The claimant block comes from the signed-in profile, so the notice is
+  // complete rather than leaving blanks for someone to fill in by hand.
+  const noticeInput: NoticeInput = {
+    claimant: {
+      full_name: sessionUser?.full_name ?? sessionUser?.email?.split("@")[0] ?? "",
+      job_title: null,
+      email: sessionUser?.email ?? "",
+      nation: sessionUser?.nation ?? tribeName,
+    },
+    nation: tribeName,
+    usptoRegistered: tribe?.has_registered_mark ?? false,
+    usptoUrl: tribe?.uspto_search_url ?? null,
     assetDescription: asset.description,
     listingTitle: listing.title,
     listingUrl: listing.listing_url,
+    marketplaceId: listing.marketplace_id,
     marketplace: listing.marketplace,
     seller: listing.seller,
-    usptoRegistered: tribe?.has_registered_mark ?? false,
     confidencePct: pct,
   };
 
-  function handleReport() {
-    const n = buildMarketplaceNotice(noticeArgs);
-    openMailto(n.recipient, n.subject, n.body);
-    setFeedback(
-      n.recipient
-        ? `Opened your email client with a draft to ${n.recipient}.`
-        : `Opened your email client — add the ${mpName} recipient before sending.`,
-    );
+  const route = submissionRoute(noticeInput);
+  const noticeText = sessionUser ? buildNotice(noticeInput) : "";
+
+  async function copyNotice() {
+    try {
+      await navigator.clipboard.writeText(`${noticeSubject(noticeInput)}\n\n${noticeText}`);
+      setFeedback("Notice copied. Paste it into the form on the next screen.");
+    } catch {
+      setFeedback("Couldn't copy automatically — select the text above and copy it.");
+    }
   }
 
   return (
@@ -198,20 +146,53 @@ export default function ListingDetail({ match, tribe }: Props) {
         </div>
       </div>
 
-      <button type="button" className={styles.report} onClick={handleReport}>
-        <span>
-          <span className={styles.reportTitle}>Report to {mpName}</span>
-          <span className={styles.reportSub}>Drafts a DMCA takedown email to the marketplace</span>
-        </span>
-        <span className={styles.reportArrow}>↗</span>
-      </button>
+      {!sessionUser ? (
+        <div className={styles.signInPrompt}>
+          <strong>Sign in to prepare a notice.</strong> Notices are signed under penalty of
+          perjury, so they must come from a named person at the nation.
+        </div>
+      ) : !showNotice ? (
+        <button type="button" className={styles.report} onClick={() => setShowNotice(true)}>
+          <span>
+            <span className={styles.reportTitle}>Prepare notice for {mpName}</span>
+            <span className={styles.reportSub}>
+              {route.note}
+            </span>
+          </span>
+          <span className={styles.reportArrow}>→</span>
+        </button>
+      ) : (
+        <div className={styles.noticeBox}>
+          <div className={styles.noticeHead}>
+            <span className={styles.detailLabel}>Review this notice before filing</span>
+            <button type="button" className={styles.noticeClose} onClick={() => setShowNotice(false)}>
+              Close
+            </button>
+          </div>
+          <div className={styles.noticeSubject}>{noticeSubject(noticeInput)}</div>
+          <pre className={styles.noticeBody}>{noticeText}</pre>
+          <div className={styles.noticeActions}>
+            <button type="button" className={styles.noticeCopy} onClick={copyNotice}>
+              Copy notice
+            </button>
+            <a
+              className={styles.noticeFile}
+              href={route.primary}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open {route.primaryLabel} ↗
+            </a>
+          </div>
+        </div>
+      )}
 
       {feedback && <div className={styles.feedback}>{feedback}</div>}
 
       <p className={styles.disclaimer}>
-        The button opens your email client with a pre-filled notice. Nothing is sent until you
-        review and send it yourself. These are automated, unconfirmed matches, and whoever sends a
-        notice is responsible for its accuracy.
+        Nothing is sent from this site. You review the notice, then file it yourself — these are
+        automated, unconfirmed matches, and whoever files a notice is responsible for its accuracy
+        and signs it under penalty of perjury.
       </p>
     </div>
   );

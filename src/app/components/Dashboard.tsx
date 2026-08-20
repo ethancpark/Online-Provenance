@@ -173,7 +173,7 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches, ses
             selectedMatchId={selectedMatch?.id ?? null}
             onSelect={setSelectedMatchId}
           />
-          <ListingDetail match={selectedMatch} tribe={selectedTribe} />
+          <ListingDetail match={selectedMatch} tribe={selectedTribe} sessionUser={sessionUser} />
         </div>
       </div>
     </div>
