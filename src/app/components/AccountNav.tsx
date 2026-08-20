@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase-browser";
 import styles from "./AccountNav.module.css";
 
@@ -13,14 +13,49 @@ export type SessionUser = {
   nation: string | null;
 } | null;
 
-/**
- * Account controls for the site headers. `tone` matches the surface it sits
- * on: the landing header is paper, the monitor masthead is ink.
- */
-export default function AccountNav({ user, tone = "light" }: { user: SessionUser; tone?: "light" | "dark" }) {
+const ROLE_LABEL: Record<NonNullable<SessionUser>["role"], string> = {
+  lab_admin: "Lab admin",
+  tribal_admin: "Nation admin",
+  tribal_staff: "Staff",
+};
+
+/** Initials from a name, else the first two letters of the mailbox. */
+function initials(user: NonNullable<SessionUser>) {
+  const source = user.full_name?.trim() || user.email.split("@")[0];
+  const parts = source.split(/[\s._-]+/).filter(Boolean);
+  const letters = parts.length > 1 ? parts[0][0] + parts[1][0] : source.slice(0, 2);
+  return letters.toUpperCase();
+}
+
+export default function AccountNav({
+  user,
+  tone = "light",
+}: {
+  user: SessionUser;
+  tone?: "light" | "dark";
+}) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
   const cls = tone === "dark" ? `${styles.wrap} ${styles.dark}` : styles.wrap;
+
+  // Close on outside click or Escape.
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   async function signOut() {
     setBusy(true);
@@ -32,24 +67,47 @@ export default function AccountNav({ user, tone = "light" }: { user: SessionUser
   if (!user) {
     return (
       <div className={cls}>
-        <Link href="/login" className={styles.link}>Sign in</Link>
-        <Link href="/signup" className={styles.primary}>Create account</Link>
+        <Link href="/login" className={styles.signIn}>Sign in</Link>
       </div>
     );
   }
 
   return (
-    <div className={cls}>
-      <span className={styles.who}>
-        <span className={styles.name}>{user.full_name ?? user.email}</span>
-        {user.nation && <span className={styles.nation}>{user.nation}</span>}
-      </span>
-      {user.role === "lab_admin" && (
-        <Link href="/admin" className={styles.link}>Accounts</Link>
-      )}
-      <button type="button" className={styles.link} onClick={signOut} disabled={busy}>
-        {busy ? "Signing out…" : "Sign out"}
+    <div className={cls} ref={ref}>
+      <button
+        type="button"
+        className={styles.trigger}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        // The label is for screen readers; the email is never painted on screen.
+        aria-label={`Account menu for ${user.full_name ?? user.email}`}
+      >
+        <span className={styles.avatar}>{initials(user)}</span>
+        <span className={styles.chevron} aria-hidden="true" />
       </button>
+
+      {open && (
+        <div className={styles.menu} role="menu">
+          <div className={styles.identity}>
+            <div className={styles.name}>{user.full_name ?? user.email.split("@")[0]}</div>
+            <div className={styles.detail}>{user.email}</div>
+            <div className={styles.badges}>
+              <span className={styles.role}>{ROLE_LABEL[user.role]}</span>
+              {user.nation && <span className={styles.detail}>{user.nation}</span>}
+            </div>
+          </div>
+
+          {user.role === "lab_admin" && (
+            <Link href="/admin" className={styles.item} role="menuitem" onClick={() => setOpen(false)}>
+              Accounts
+            </Link>
+          )}
+          <button type="button" className={styles.item} role="menuitem" onClick={signOut} disabled={busy}>
+            {busy ? "Signing out…" : "Sign out"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
