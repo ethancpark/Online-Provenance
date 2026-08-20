@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getBrowserClient } from "@/lib/supabase-browser";
 import PasswordField from "../components/PasswordField";
+import AuthShell from "../components/AuthShell";
 import { passwordRules, firstProblem, MIN_LENGTH } from "@/lib/password";
 import styles from "../login/login.module.css";
 
@@ -80,12 +81,12 @@ function SetPassword() {
 
   if (state === "checking") {
     return (
-      <main className={styles.page}>
+      <AuthShell>
         <div className={styles.card}>
           <h1 className={styles.title}>One moment</h1>
           <p className={styles.sub}>Checking your link.</p>
         </div>
-      </main>
+      </AuthShell>
     );
   }
 
@@ -93,7 +94,7 @@ function SetPassword() {
   // self-serve: the same reset flow issues a fresh one.
   if (state === "expired") {
     return (
-      <main className={styles.page}>
+      <AuthShell>
         <div className={styles.card}>
           <h1 className={styles.title}>This link has expired</h1>
           <p className={styles.sub}>
@@ -103,16 +104,19 @@ function SetPassword() {
           <Link className={styles.submit} href="/forgot-password" style={{ textAlign: "center" }}>
             Send me a new link
           </Link>
-          <p className={styles.footLink}>
-            Already set a password? <Link href="/login">Sign in</Link>
-          </p>
+
+          <hr className={styles.divider} />
+
+          <Link className={styles.secondary} href="/login">
+            Already set a password? Sign in
+          </Link>
         </div>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main className={styles.page}>
+    <AuthShell>
       <form className={styles.card} onSubmit={onSubmit}>
         <h1 className={styles.title}>{isReset ? "Set a new password" : "Choose a password"}</h1>
         <p className={styles.sub}>
@@ -152,7 +156,7 @@ function SetPassword() {
           {busy ? "Saving…" : isReset ? "Save and sign in" : "Set password and continue"}
         </button>
       </form>
-    </main>
+    </AuthShell>
   );
 }
 
@@ -164,11 +168,11 @@ export default function SetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <main className={styles.page}>
+        <AuthShell>
           <div className={styles.card}>
             <h1 className={styles.title}>One moment</h1>
           </div>
-        </main>
+        </AuthShell>
       }
     >
       <SetPassword />

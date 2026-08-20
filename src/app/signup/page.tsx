@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import AuthShell from "../components/AuthShell";
 import styles from "../login/login.module.css";
 
 /**
@@ -62,7 +63,7 @@ export default function SignupPage() {
 
   if (done) {
     return (
-      <main className={styles.page}>
+      <AuthShell>
         <div className={styles.card}>
           <h1 className={styles.title}>Check your email</h1>
           <p className={styles.sub}>
@@ -91,12 +92,12 @@ export default function SignupPage() {
             )}
           </p>
         </div>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main className={styles.page}>
+    <AuthShell>
       <form className={styles.card} onSubmit={onSubmit}>
         <h1 className={styles.title}>Create an account</h1>
         <p className={styles.sub}>
@@ -139,10 +140,12 @@ export default function SignupPage() {
           address is really yours.
         </p>
 
-        <p className={styles.footLink}>
-          Already have an account? <Link href="/login">Sign in</Link>
-        </p>
+        <hr className={styles.divider} />
+
+        <Link className={styles.secondary} href="/login">
+          I already have an account
+        </Link>
       </form>
-    </main>
+    </AuthShell>
   );
 }

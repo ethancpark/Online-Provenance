@@ -184,3 +184,56 @@
   color: var(--text-faint);
   margin: -10px 0 20px;
 }
+
+/* ---------- shell: wordmark above the card, and the way back out ---------- */
+.shell {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+}
+.back {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  align-self: flex-start;
+  margin-bottom: 18px;
+  font-family: var(--font-label);
+  font-size: 14px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.back:hover { color: var(--ink); }
+.backArrow { font-size: 15px; }
+
+/* ---------- the other path, as a real control rather than a buried link ----
+   Tailwind's preflight strips link styling, so an unclassed <Link> inside body
+   copy is invisible. The route to the other page gets a button of its own. */
+.divider {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 26px 0 22px;
+}
+.secondary {
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: 15px;
+  text-align: center;
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  color: var(--ink);
+  padding: 14px 22px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.secondary:hover { background: var(--paper-warm); }
+
+/* Any link left inside body copy still has to look like one. */
+.sub a,
+.note a {
+  color: var(--clay);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.sub a:hover,
+.note a:hover { color: var(--clay-dark); }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import AuthShell from "../components/AuthShell";
 import styles from "../login/login.module.css";
 
 /**
@@ -37,7 +38,7 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <main className={styles.page}>
+      <AuthShell>
         <div className={styles.card}>
           <h1 className={styles.title}>Check your email</h1>
           <p className={styles.sub}>{sent}</p>
@@ -45,16 +46,18 @@ export default function ForgotPasswordPage() {
             Nothing after a few minutes? Check your spam folder. If your nation filters outside
             mail, ask IT to allow messages from Supabase, or contact the 𐒻𐒼𐓂 Lab.
           </p>
-          <p className={styles.footLink}>
-            <Link href="/login">Back to sign in</Link>
-          </p>
+          <hr className={styles.divider} />
+
+          <Link className={styles.secondary} href="/login">
+            Back to sign in
+          </Link>
         </div>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main className={styles.page}>
+    <AuthShell>
       <form className={styles.card} onSubmit={onSubmit}>
         <h1 className={styles.title}>Reset your password</h1>
         <p className={styles.sub}>
@@ -75,10 +78,12 @@ export default function ForgotPasswordPage() {
           {busy ? "Sending…" : "Email me a link"}
         </button>
 
-        <p className={styles.footLink}>
-          Remembered it? <Link href="/login">Sign in</Link>
-        </p>
+        <hr className={styles.divider} />
+
+        <Link className={styles.secondary} href="/login">
+          Back to sign in
+        </Link>
       </form>
-    </main>
+    </AuthShell>
   );
 }

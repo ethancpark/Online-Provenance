@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getBrowserClient } from "@/lib/supabase-browser";
 import PasswordField from "../components/PasswordField";
+import AuthShell from "../components/AuthShell";
 import styles from "./login.module.css";
 
 function LoginForm() {
@@ -32,13 +33,10 @@ function LoginForm() {
   }
 
   return (
-    <main className={styles.page}>
+    <AuthShell>
       <form className={styles.card} onSubmit={onSubmit}>
         <h1 className={styles.title}>Sign in</h1>
-        <p className={styles.sub}>
-          For staff of the Tribal nations we monitor.{" "}
-          <Link href="/signup">Create an account</Link> with your nation&rsquo;s email address.
-        </p>
+        <p className={styles.sub}>For staff of the Tribal nations we monitor.</p>
 
         <label className={styles.label} htmlFor="email">Email</label>
         <input
@@ -64,8 +62,18 @@ function LoginForm() {
         <button className={styles.submit} type="submit" disabled={busy}>
           {busy ? "Signing in…" : "Sign in"}
         </button>
+
+        <hr className={styles.divider} />
+
+        <Link className={styles.secondary} href="/signup">
+          Create an account
+        </Link>
+        <p className={styles.hint} style={{ margin: "12px 0 0" }}>
+          Free, for staff of the nations we monitor. You&rsquo;ll need your nation&rsquo;s email
+          address.
+        </p>
       </form>
-    </main>
+    </AuthShell>
   );
 }
 
@@ -77,11 +85,11 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <main className={styles.page}>
+        <AuthShell>
           <div className={styles.card}>
             <h1 className={styles.title}>Sign in</h1>
           </div>
-        </main>
+        </AuthShell>
       }
     >
       <LoginForm />
