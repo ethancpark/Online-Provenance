@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getBrowserClient } from "@/lib/supabase-browser";
+import PasswordField from "../components/PasswordField";
 import styles from "./login.module.css";
 
 function LoginForm() {
@@ -41,16 +42,21 @@ function LoginForm() {
 
         <label className={styles.label} htmlFor="email">Email</label>
         <input
-          id="email" type="email" autoComplete="email" required
+          id="email" type="email" autoComplete="email" required autoFocus
           className={styles.input} value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <label className={styles.label} htmlFor="password">Password</label>
-        <input
-          id="password" type="password" autoComplete="current-password" required
-          className={styles.input} value={password}
-          onChange={(e) => setPassword(e.target.value)}
+        <PasswordField
+          label="Password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+          action={
+            <Link className={styles.labelLink} href="/forgot-password">
+              Forgot password?
+            </Link>
+          }
         />
 
         {error && <p className={styles.error}>{error}</p>}

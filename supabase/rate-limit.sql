@@ -1,9 +1,14 @@
--- Rate limiting for the public signup endpoint.
+-- Rate limiting for the endpoints that send mail: signup and password reset.
 --
--- Without this, anyone can drive the endpoint in a loop and cause Online
--- Provenance to email invitations at Tribal nation staff repeatedly. That is
--- abuse of real people's inboxes and reputational damage to the project, so
--- it is treated as a security control rather than a nicety.
+-- Without this, anyone can drive them in a loop and cause Online Provenance to
+-- email Tribal nation staff repeatedly. That is abuse of real people's inboxes
+-- and reputational damage to the project, so it is treated as a security
+-- control rather than a nicety.
+--
+-- Both endpoints share these counters on purpose: what matters is how much
+-- mail one address can be made to receive in an hour, not which button caused
+-- it. No schema change was needed when reset was added, so this file does not
+-- need re-running — it is already applied.
 --
 -- Run after auth-schema.sql.
 

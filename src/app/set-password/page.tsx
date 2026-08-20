@@ -1,40 +1,66 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getBrowserClient } from "@/lib/supabase-browser";
+import PasswordField from "../components/PasswordField";
+import { passwordRules, firstProblem, MIN_LENGTH } from "@/lib/password";
 import styles from "../login/login.module.css";
 
 /**
- * Where an invited user lands. Supabase has already verified they control the
- * mailbox; here they choose a password. We never see or store it ourselves.
+ * Where both email links land: the invitation from signup, and the recovery
+ * link from a password reset. Supabase has already verified the person
+ * controls the mailbox by the time they get here — that click is the whole
+ * point of the round trip — so all that is left is choosing a password.
+ *
+ * The password goes from this page straight to Supabase. It never passes
+ * through our own server, which is why it is set here rather than on the
+ * signup form.
  */
-export default function SetPasswordPage() {
+function SetPassword() {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
+  const params = useSearchParams();
+  const isReset = params.get("mode") === "reset";
+
+  const [state, setState] = useState<"checking" | "ready" | "expired">("checking");
+  const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    // The invite link puts a session in place; confirm before showing the form.
+    // The link puts a session in place; confirm before showing the form.
     getBrowserClient()
       .auth.getUser()
-      .then(({ data }) => setReady(Boolean(data.user)));
+      .then(({ data }) => {
+        if (data.user) {
+          setEmail(data.user.email ?? "");
+          setState("ready");
+        } else {
+          setState("expired");
+        }
+      });
   }, []);
+
+  const rules = passwordRules(pw, email);
+  const matches = pw.length > 0 && pw === pw2;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (pw.length < 12) {
-      setError("Use at least 12 characters. A short phrase is fine and easier to remember.");
+
+    const problem = firstProblem(pw, email);
+    if (problem) {
+      setError(`That password does not meet one of the rules: ${problem.toLowerCase()}.`);
       return;
     }
     if (pw !== pw2) {
       setError("Those two passwords don't match.");
       return;
     }
+
     setBusy(true);
     const supabase = getBrowserClient();
     const { error: upErr } = await supabase.auth.updateUser({ password: pw });
@@ -52,13 +78,33 @@ export default function SetPasswordPage() {
     router.refresh();
   }
 
-  if (!ready) {
+  if (state === "checking") {
     return (
       <main className={styles.page}>
         <div className={styles.card}>
-          <h1 className={styles.title}>Invitation link</h1>
+          <h1 className={styles.title}>One moment</h1>
+          <p className={styles.sub}>Checking your link.</p>
+        </div>
+      </main>
+    );
+  }
+
+  // An expired link used to be a dead end that needed a human. It is now
+  // self-serve: the same reset flow issues a fresh one.
+  if (state === "expired") {
+    return (
+      <main className={styles.page}>
+        <div className={styles.card}>
+          <h1 className={styles.title}>This link has expired</h1>
           <p className={styles.sub}>
-            This link has expired or was already used. Ask the 𐒻𐒼𐓂 Lab to send a new invitation.
+            Links last 24 hours and can only be used once. Ask for a new one and it will arrive in
+            a minute or two.
+          </p>
+          <Link className={styles.submit} href="/forgot-password" style={{ textAlign: "center" }}>
+            Send me a new link
+          </Link>
+          <p className={styles.footLink}>
+            Already set a password? <Link href="/login">Sign in</Link>
           </p>
         </div>
       </main>
@@ -68,26 +114,64 @@ export default function SetPasswordPage() {
   return (
     <main className={styles.page}>
       <form className={styles.card} onSubmit={onSubmit}>
-        <h1 className={styles.title}>Choose a password</h1>
+        <h1 className={styles.title}>{isReset ? "Set a new password" : "Choose a password"}</h1>
         <p className={styles.sub}>
-          Your email is already verified. Pick a password of at least 12 characters — only you
-          will ever know it.
+          {isReset ? "Signing in as " : "Your email is verified. You'll sign in as "}
+          <strong>{email}</strong>. A long phrase you can remember beats a short, complicated one —
+          {" "}{MIN_LENGTH} characters is the minimum, not the target.
         </p>
 
-        <label className={styles.label} htmlFor="pw">Password</label>
-        <input id="pw" type="password" autoComplete="new-password" required
-          className={styles.input} value={pw} onChange={(e) => setPw(e.target.value)} />
+        <PasswordField label="Password" value={pw} onChange={setPw} autoComplete="new-password" autoFocus />
 
-        <label className={styles.label} htmlFor="pw2">Confirm password</label>
-        <input id="pw2" type="password" autoComplete="new-password" required
-          className={styles.input} value={pw2} onChange={(e) => setPw2(e.target.value)} />
+        <ul className={styles.rules}>
+          {rules.map((r) => (
+            <li key={r.label} className={r.met ? `${styles.rule} ${styles.ruleMet}` : styles.rule}>
+              <span className={styles.ruleMark} aria-hidden="true">
+                {r.met ? "✓" : "·"}
+              </span>
+              <span>{r.label}</span>
+            </li>
+          ))}
+        </ul>
+
+        <PasswordField
+          label="Confirm password"
+          value={pw2}
+          onChange={setPw2}
+          autoComplete="new-password"
+        />
+        {pw2.length > 0 && !matches && (
+          <p className={styles.error} style={{ marginTop: -8 }}>
+            Those two don&rsquo;t match yet.
+          </p>
+        )}
 
         {error && <p className={styles.error}>{error}</p>}
 
         <button className={styles.submit} type="submit" disabled={busy}>
-          {busy ? "Saving…" : "Set password and continue"}
+          {busy ? "Saving…" : isReset ? "Save and sign in" : "Set password and continue"}
         </button>
       </form>
     </main>
+  );
+}
+
+/**
+ * useSearchParams() opts the subtree out of prerendering, so it has to live
+ * inside a Suspense boundary or the production build fails on this route.
+ */
+export default function SetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className={styles.page}>
+          <div className={styles.card}>
+            <h1 className={styles.title}>One moment</h1>
+          </div>
+        </main>
+      }
+    >
+      <SetPassword />
+    </Suspense>
   );
 }

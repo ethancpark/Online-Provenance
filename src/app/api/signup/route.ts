@@ -1,22 +1,7 @@
-import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase";
 import { emailDomain } from "@/lib/auth";
-
-// An unthrottled signup endpoint lets anyone make this project email Tribal
-// nation staff over and over. Limits are per address and per caller.
-const MAX_PER_EMAIL_PER_HOUR = 3;
-const MAX_PER_IP_PER_HOUR = 10;
-
-/** Hash the address — we need to count callers, not identify them. */
-function hashIp(req: Request): string | null {
-  const raw =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    null;
-  if (!raw) return null;
-  return createHash("sha256").update(`${raw}:online-provenance`).digest("hex").slice(0, 32);
-}
+import { withinSendLimit, TOO_MANY } from "@/lib/rateLimit";
 
 type Body = { email: string; full_name?: string; job_title?: string };
 
@@ -46,33 +31,9 @@ export async function POST(req: Request) {
   const admin = getServerClient();
 
   // Throttle before doing anything that sends mail.
-  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const ipHash = hashIp(req);
-
-  const { count: byEmail } = await admin
-    .from("signup_attempts")
-    .select("id", { count: "exact", head: true })
-    .eq("email", email)
-    .gte("created_at", since);
-
-  let byIp = 0;
-  if (ipHash) {
-    const { count } = await admin
-      .from("signup_attempts")
-      .select("id", { count: "exact", head: true })
-      .eq("ip_hash", ipHash)
-      .gte("created_at", since);
-    byIp = count ?? 0;
+  if (!(await withinSendLimit(admin, email, req))) {
+    return NextResponse.json({ error: TOO_MANY }, { status: 429 });
   }
-
-  if ((byEmail ?? 0) >= MAX_PER_EMAIL_PER_HOUR || byIp >= MAX_PER_IP_PER_HOUR) {
-    return NextResponse.json(
-      { error: "Too many attempts. Try again in an hour, or contact the 𐒻𐒼𐓂 Lab." },
-      { status: 429 },
-    );
-  }
-
-  await admin.from("signup_attempts").insert({ email, ip_hash: ipHash });
 
   // Match the domain, or any subdomain of it (mail.cherokee.org).
   const { data: domains } = await admin

@@ -108,9 +108,18 @@ pipeline/scripts/run_scan.py   the weekly scan
 ## Security posture
 
 Done: RLS everywhere (verified against live DB), Supabase Auth owns passwords,
-service_role only behind role checks, public pages on the anon key, signup
-rate-limited (3/email, 10/IP per hour, hashed IPs, 24h prune), CSP + frame
-protection + referrer policy, 0 npm vulnerabilities, no secrets in git history.
+service_role only behind role checks, public pages on the anon key, signup and
+password reset rate-limited on shared counters (3/email, 10/IP per hour, hashed
+IPs, 24h prune), CSP + frame protection + referrer policy, 0 npm
+vulnerabilities, no secrets in git history.
+
+**Auth flow** — signup takes an address only; the emailed link is what proves
+mailbox control, and the password is set on `/set-password` straight from the
+browser to Supabase, never through our own server. That is why the password is
+not on the signup form. `/forgot-password` → `/api/reset` issues a fresh link
+for a forgotten password *or* an expired invitation, and answers identically
+whether or not the address has an account, so it cannot be used to enumerate
+which tribal staff are registered.
 
 **Outstanding:**
 - [ ] **Rotate `ANTHROPIC_API_KEY`** — it sat behind a public unauthenticated

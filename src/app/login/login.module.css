@@ -68,3 +68,119 @@
   color: var(--clay);
   margin: 0 0 14px;
 }
+
+/* ---------- password field with a reveal control ----------
+   Typing a 12-character password blind is where people give up, so the field
+   can be shown. It defaults to hidden and never persists across a reload. */
+.pwRow {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 18px;
+}
+.pwRow .input {
+  flex: 1;
+  margin-bottom: 0;
+  padding-right: 68px;
+}
+.reveal {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-label);
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.reveal:hover { color: var(--ink); }
+
+/* ---------- label row carrying a secondary link ---------- */
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.labelLink {
+  font-family: var(--font-label);
+  font-size: 13px;
+  color: var(--clay);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-bottom: 7px;
+}
+.labelLink:hover { color: var(--clay-dark); }
+
+/* ---------- live password requirements ----------
+   Shown as you type rather than as an error after submitting, so nobody
+   discovers the rules by failing them. */
+.rules {
+  list-style: none;
+  margin: -6px 0 20px;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+}
+.rule {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-label);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-faint);
+}
+.ruleMet { color: var(--text-secondary); }
+.ruleMark { color: var(--rule-strong); }
+.ruleMet .ruleMark { color: var(--clay); }
+
+/* ---------- confirmation / secondary actions ---------- */
+.note {
+  font-family: var(--font-label);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  background: var(--paper-warm);
+  border: 1px solid var(--rule);
+  padding: 14px 16px;
+  margin: 0 0 20px;
+}
+.linkButton {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-label);
+  font-size: 14px;
+  color: var(--clay);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.linkButton:hover { color: var(--clay-dark); }
+.linkButton:disabled { color: var(--text-faint); cursor: default; }
+.footLink {
+  font-family: var(--font-label);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 20px 0 0;
+}
+.footLink a { color: var(--clay); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Quiet explanatory line under a field. */
+.hint {
+  font-family: var(--font-label);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-faint);
+  margin: -10px 0 20px;
+}
