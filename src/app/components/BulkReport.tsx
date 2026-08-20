@@ -6,6 +6,7 @@ import type { SessionUser } from "./AccountNav";
 import {
   buildBatchNotice,
   batchIdList,
+  batchIdLabel,
   batchChunks,
   marketplaceName,
   noticeSubject,
@@ -133,17 +134,24 @@ export default function BulkReport({ matches, tribe, sessionUser }: Props) {
             </li>
 
             <li>
-              <div className={styles.stepTitle}>Paste the listing IDs</div>
+              <div className={styles.stepTitle}>
+                Paste the {batchIdLabel(marketplace)}
+              </div>
               <p className={styles.stepBody}>
-                The form has a field for ASINs or product URLs. Paste all {listings.length} at once.
+                {mpName}&rsquo;s form asks for {batchIdLabel(marketplace)}. Paste all{" "}
+                {listings.length} at once — you do not need to file them one by one.
               </p>
-              <pre className={styles.ids}>{batchIdList(listings) || "No IDs recorded"}</pre>
+              <pre className={styles.ids}>
+                {batchIdList(listings, marketplace) || "None recorded"}
+              </pre>
               <button
                 type="button"
                 className={styles.copyBtn}
-                onClick={() => copy(batchIdList(listings), "ids")}
+                onClick={() => copy(batchIdList(listings, marketplace), "ids")}
               >
-                {copied === "ids" ? "Copied ✓" : `Copy ${listings.length} IDs`}
+                {copied === "ids"
+                  ? "Copied ✓"
+                  : `Copy ${listings.length} ${batchIdLabel(marketplace)}`}
               </button>
             </li>
 

@@ -47,8 +47,11 @@ export type NoticeInput = {
 
 export const AMAZON_REPORT_FORM = "https://www.amazon.com/report/infringement";
 export const AMAZON_BRAND_REGISTRY = "https://brandservices.amazon.com/brandregistry";
-export const TEMU_IP_PORTAL =
-  "https://www.temu.com/intellectual-property-and-takedown-policy.html";
+// Verified against Temu's own pages. The complaint page states "Sign in
+// required". ipprotection@temu.com exists but is only for WITHDRAWING a
+// report, never for filing one, so it is deliberately not offered here.
+export const TEMU_IP_PORTAL = "https://www.temu.com/intellectual-property-complaint.html";
+export const TEMU_BRAND_REGISTRY = "https://www.temu.com/intellectual-property-overview.html";
 
 export function marketplaceName(mp: string) {
   if (mp === "amazon") return "Amazon";
@@ -194,10 +197,18 @@ export function submissionRoute(input: NoticeInput): SubmissionRoute {
   }
   return {
     primary: TEMU_IP_PORTAL,
-    primaryLabel: "Temu's IP complaint portal",
-    requirement: null,
-    note: "Temu handles IP complaints through their portal.",
-    alternative: null,
+    primaryLabel: "Temu's Report Infringement form",
+    requirement:
+      "Requires a free Temu account to sign in. Temu also asks for proof of ownership, such as the trademark certificate.",
+    note: "Paste the listing URLs into the form, along with the notice below.",
+    alternative: input.usptoRegistered
+      ? {
+          url: TEMU_BRAND_REGISTRY,
+          label: "Temu Brand Registry",
+          note:
+            "Registering the nation's mark with Temu's Brand Registry removes the need to re-upload proof on every complaint, and adds the mark to their proactive monitoring — which removes far more listings than complaints do.",
+        }
+      : null,
   };
 }
 
@@ -219,12 +230,24 @@ export type BatchInput = Omit<
   "listingTitle" | "listingUrl" | "marketplaceId" | "seller" | "confidencePct"
 > & { listings: BatchListing[] };
 
-/** Just the IDs, one per line — this is what the form's ASIN field wants. */
-export function batchIdList(listings: BatchListing[]): string {
-  return listings
-    .map((l) => l.marketplaceId)
-    .filter((id): id is string => Boolean(id))
-    .join("\n");
+/**
+ * The identifiers each form actually asks for, one per line: Amazon's form
+ * takes ASINs, Temu's takes listing URLs. Pasting the wrong kind is a common
+ * cause of rejection.
+ */
+export function batchIdList(listings: BatchListing[], marketplace = "amazon"): string {
+  if (marketplace === "amazon") {
+    return listings
+      .map((l) => l.marketplaceId)
+      .filter((id): id is string => Boolean(id))
+      .join("\n");
+  }
+  return listings.map((l) => l.url).join("\n");
+}
+
+/** What the paste block contains, for labelling the copy button. */
+export function batchIdLabel(marketplace: string): string {
+  return marketplace === "amazon" ? "ASINs" : "listing URLs";
 }
 
 /** Split into submissions that fit the marketplace's per-report cap. */
