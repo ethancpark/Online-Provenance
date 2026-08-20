@@ -1,4 +1,5 @@
 import { getPublicClient } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/auth";
 import LandingPage from "./components/LandingPage";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +8,7 @@ type Row = { name: string; listings: { id: string; image_url: string | null }[] 
 
 export default async function Home() {
   const supabase = getPublicClient();
+  const sessionUser = await getSessionUser();
   const { data } = await supabase.from("tribes").select("name, listings(id, image_url)");
   const rows = (data ?? []) as unknown as Row[];
 
@@ -36,6 +38,7 @@ export default async function Home() {
       totalListings={totalListings}
       tribeCounts={tribeCounts}
       heroImages={heroImages}
+      sessionUser={sessionUser}
     />
   );
 }

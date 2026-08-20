@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HotspotMap, { type TribeCount } from "./HotspotMap";
+import AccountNav, { type SessionUser } from "./AccountNav";
 import styles from "./LandingPage.module.css";
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
   totalListings: number;
   tribeCounts: TribeCount[];
   heroImages: string[];
+  sessionUser: SessionUser;
 };
 
 const STEPS = [
@@ -31,6 +33,7 @@ export default function LandingPage({
   totalListings,
   tribeCounts,
   heroImages,
+  sessionUser,
 }: Props) {
   const top = [...tribeCounts].sort((a, b) => b.count - a.count).slice(0, 5);
 
@@ -44,6 +47,7 @@ export default function LandingPage({
         <nav className={styles.nav}>
           <a href="#how">How it works</a>
           <a href="#about">About</a>
+          <AccountNav user={sessionUser} />
           <Link href="/dashboard" className={styles.navButton}>
             Open the monitor
           </Link>

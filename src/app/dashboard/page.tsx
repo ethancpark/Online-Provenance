@@ -1,4 +1,5 @@
 import { getPublicClient } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/auth";
 import type { Tribe, MatchRow, TribeSummary } from "@/lib/types";
 import Dashboard from "../components/Dashboard";
 
@@ -11,6 +12,7 @@ type PageProps = {
 export default async function Home({ searchParams }: PageProps) {
   const { tribe: tribeParam } = await searchParams;
   const supabase = getPublicClient();
+  const sessionUser = await getSessionUser();
 
   // All tribes for the dropdown
   const { data: tribes } = await supabase
@@ -71,6 +73,7 @@ export default async function Home({ searchParams }: PageProps) {
       selectedTribe={selectedTribe}
       summary={summary}
       matches={matches}
+      sessionUser={sessionUser}
     />
   );
 }

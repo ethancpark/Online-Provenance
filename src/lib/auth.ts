@@ -74,3 +74,16 @@ export function emailDomain(email: string): string | null {
   const d = email.slice(at + 1).trim().toLowerCase();
   return /^[a-z0-9][a-z0-9\-.]*\.[a-z]{2,}$/.test(d) ? d : null;
 }
+
+/** Profile shaped for the header nav, including the nation's display name. */
+export async function getSessionUser() {
+  const p = await getProfile();
+  if (!p) return null;
+  let nation: string | null = null;
+  if (p.tribe_id) {
+    const supabase = await getUserClient();
+    const { data } = await supabase.from("tribes").select("name").eq("id", p.tribe_id).maybeSingle();
+    nation = (data as { name: string } | null)?.name ?? null;
+  }
+  return { full_name: p.full_name, email: p.email, role: p.role, nation };
+}

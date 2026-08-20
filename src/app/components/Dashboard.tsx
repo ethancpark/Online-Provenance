@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Tribe, MatchRow, TribeSummary } from "@/lib/types";
 import ReviewQueue from "./ReviewQueue";
 import ListingDetail from "./ListingDetail";
+import AccountNav, { type SessionUser } from "./AccountNav";
 import styles from "./Dashboard.module.css";
 
 type Props = {
@@ -13,9 +14,10 @@ type Props = {
   selectedTribe: Tribe | null;
   summary: TribeSummary | null;
   matches: MatchRow[];
+  sessionUser: SessionUser;
 };
 
-export default function Dashboard({ tribes, selectedTribe, summary, matches }: Props) {
+export default function Dashboard({ tribes, selectedTribe, summary, matches, sessionUser }: Props) {
   const router = useRouter();
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(matches[0]?.id ?? null);
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -59,6 +61,7 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
               <Link href="/" className={`${styles.topLink} ${styles.viewSite}`}>
                 View site
               </Link>
+              <AccountNav user={sessionUser} tone="dark" />
             </div>
           </div>
 
