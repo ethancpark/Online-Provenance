@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getBrowserClient } from "@/lib/supabase-browser";
 import styles from "./login.module.css";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [email, setEmail] = useState("");
@@ -60,5 +60,25 @@ export default function LoginPage() {
         </button>
       </form>
     </main>
+  );
+}
+
+/**
+ * useSearchParams() opts the subtree out of prerendering, so it has to live
+ * inside a Suspense boundary or the production build fails on this route.
+ */
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className={styles.page}>
+          <div className={styles.card}>
+            <h1 className={styles.title}>Sign in</h1>
+          </div>
+        </main>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
