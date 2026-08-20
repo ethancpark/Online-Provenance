@@ -34,6 +34,17 @@ export async function getUserClient() {
   );
 }
 
+// Public read-only client for server rendering. Uses the ANON key, so the
+// public-read RLS policies apply and no privileged key is ever in the request
+// path for a page any visitor can load.
+export function getPublicClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false } },
+  );
+}
+
 // Service-role client — BYPASSES row-level security entirely.
 // Only for the scan pipeline and admin actions that have already checked the
 // caller is a lab_admin. Never expose to a Client Component, and never use it

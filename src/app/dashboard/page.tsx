@@ -1,4 +1,4 @@
-import { getServerClient } from "@/lib/supabase";
+import { getPublicClient } from "@/lib/supabase";
 import type { Tribe, MatchRow, TribeSummary } from "@/lib/types";
 import Dashboard from "../components/Dashboard";
 
@@ -10,7 +10,7 @@ type PageProps = {
 
 export default async function Home({ searchParams }: PageProps) {
   const { tribe: tribeParam } = await searchParams;
-  const supabase = getServerClient();
+  const supabase = getPublicClient();
 
   // All tribes for the dropdown
   const { data: tribes } = await supabase
