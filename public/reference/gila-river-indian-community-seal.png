@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>Gila River Indian Community </title>
+	<meta name="keywords" content=", Gila River Indian Community" />
+	<meta name="description" content="Gila River Indian Community" />
+	<meta property="og:type" content="website"/>
+	<meta property="og:url" content="http://www.gilariver.org/index.php/gilariver"/>
+	<meta property="og:image" content="http://www.gilariver.org/sysimg/"/>
+	<meta property="og:title" content="DISCOVER THE" />
+	<meta property="og:description" content="Gila River Indian Community" />
+	<meta property="fb:app_id" content="" />
+
+	<link rel="SHORTCUT ICON" href="/favicon.ico">
+	
+	<link href='http://fonts.googleapis.com/css?family=Raleway:400,500,600,700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="/styles/fontawesome/css/font-awesome.min.css" type="text/css" media="screen">
+	<link rel="stylesheet" href="/styles/animate.css" type="text/css" media="screen">
+	<link rel="stylesheet" href="/scripts/owl/assets/owl.carousel.css" type="text/css" media="screen">
+	<link rel="stylesheet" href="/scripts/owl/assets/owl.theme.default.css" type="text/css" media="screen">
+	<link rel="stylesheet" href="/styles/magnific-popup.css" type="text/css" media="screen">
+	<link rel="stylesheet" href="/styles/bootstrap.min.css" type="text/css" media="screen">
+	<link rel="stylesheet" href="/styles/bootstrap-theme.min.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/styles/gric.css" type="text/css" media="screen">
+		<script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
+	<script>WebFont.load({ google: { families: ['Raleway'] } });</script>
+	
+	<!-- Handling some IE9 weirdness in an inelegant fashion -->
+	<!--[if lte IE 9]>
+	<link rel="stylesheet" href="/styles/ie9.css" type="text/css" media="screen">
+	<![endif]-->
+	
+	<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!--[if lt IE 9]>
+	<script src="/scripts/html5shiv.js"></script>
+	<script src="/scripts/respond.min.js"></script>
+	
+	<![endif]-->
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-04NP0CHE3M"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-04NP0CHE3M');
+</script>
+</head>
+<body>
+	<a name="page-top" id="page-top"></a>
+		
+		<header>
+		<div id="navigation-and-logo" class="container">
+			<a href="/"><img src="/sysimg/-config-header-basic-settings-toplogo-field-value.png" alt="Gila River Indian Community" id="logo"></a>
+			
+			<form method="get" action="/index.php/misc/search" id="search-form"><span id="search-box"><input name="search" placeholder="SEARCH..."></span></form>
+			<button id="search-button"><i class="fa fa-search"></i></button>
+			<button id="menu-button">Menu</button>
+			
+			<div id="navigation">
+				<ul id="main-navigation">
+					
+																																																														<li >
+								<a href="/index.php/government" class="with-arrow-nav"><span>Government</span></a>
+						
+								
+																																																																																																																																																																																																						<div class="drop-down">
+									<i class="fa fa-chevron-down"></i>
+									<div class="nav-column">
+																			<div class="secondary-section">
+											<a href="/index.php/government/executive-branch">Executive Branch</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/government/legislative-branch">Legislative Branch</a>
+											
+																						
+																																												</div>
+																			<div class="secondary-section">
+											<a href="/index.php/government/judical-branch">Judicial Branch</a>
+											
+																						
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																																												</div>
+										
+									</div>
+								</div>
+															</li>
+																								<li >
+								<a href="/index.php/departments" class="with-arrow-nav"><span>Departments</span></a>
+						
+								
+																																																																																																																																																																																																																																																																																																																																																											<div class="drop-down">
+									<i class="fa fa-chevron-down"></i>
+									<div class="nav-column">
+																			<div class="secondary-section">
+											<a href="/index.php/departments/office-of-the-treasurer">Office of the Treasurer</a>
+											
+																						
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																																												</div>
+																			<div class="secondary-section">
+											<a href="/index.php/departments/office-of-the-community-manager">Office of the Community Manager</a>
+											
+																						
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																																												</div>
+																			<div class="secondary-section">
+											<a href="/index.php/departments/community-support-services">Community Support Services</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/departments/tribal-development-services">Community Development Services</a>
+											
+																						
+																																												</div>
+																			<div class="secondary-section">
+											<a href="/index.php/departments/natural--cultural-resources">Natural & Cultural Resources</a>
+											
+																						
+																																												</div>
+																			<div class="secondary-section">
+											<a href="/index.php/departments/community-safety">Community Safety</a>
+											
+																																											</div>
+										
+									</div>
+								</div>
+															</li>
+																								<li >
+								<a href="/index.php/districts" class="with-arrow-nav"><span>Districts</span></a>
+						
+								
+																																																																																																																																																																																																																																																																																																																																																				<div class="drop-down">
+									<i class="fa fa-chevron-down"></i>
+									<div class="nav-column">
+																			<div class="secondary-section">
+											<a href="/index.php/districts/district-1-blackwater">District 1: Blackwater</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/districts/district-2-hashen-kehk">District 2: Hashan Kehk</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/districts/district-3-sacaton">District 3: Sacaton</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/districts/district-4-santan">District 4: Santan</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/districts/district-5-casa-blanca">District 5: Casa Blanca</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/districts/district-6-komatke">District 6: Komatke</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/districts/district-7-maricopa-colony">District 7: Maricopa Colony</a>
+											
+																																											</div>
+										
+									</div>
+								</div>
+															</li>
+																								<li >
+								<a href="/index.php/enterprises" class="with-arrow-nav"><span>Enterprises</span></a>
+						
+								
+																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																											<div class="drop-down">
+									<i class="fa fa-chevron-down"></i>
+									<div class="nav-column">
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/aji-spa-salon">Aji Spa & Salon</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/gila-river-casinos">Gila River Resorts & Casinos</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/gila-river-indian-community-utility-authority">Gila River Indian Community Utility Authority</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/gila-river-sand--gravel-corporation">Gila River Sand & Gravel Corp.</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/gila-river-telecommunications-inc">Gila River Telecommunications Inc.</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/huhugam-heritage-center">HuHuGam Heritage Center</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/kai-restaurant">Kai Restaurant</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/koli-equestrian-center">Koli Equestrian Center</a>
+											
+																																											</div>
+									</div><div class="nav-column">										<div class="secondary-section">
+											<a href="/index.php/enterprises/kosin-restaurant">Ko'Sin Restaurant</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/lone-butte-development-corporation">Lone Butte Development Corp.</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/pima-leasing--financing-corporation">Pima Leasing & Financing Corp.</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/rawhide">Rawhide</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/sheraton-wildhorse-pass-resort--spa">Sheraton Wildhorse Pass Resort & Spa</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/toka-sticks-golf-club">Toka Sticks Golf Club</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/whirlwind-golf-club">Whirlwind Golf Club</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/wild-horse-pass-development-authority">Wild Horse Pass Development Authority</a>
+											
+																																											</div>
+									</div><div class="nav-column">										<div class="secondary-section">
+											<a href="/index.php/enterprises/native-technology-solutions-nts">Native Technology Solutions (NTS)</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/alluvion-communications">Alluvion Communications</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/enterprises/gila-river-broadcasting-corporation-grbc">Gila River Broadcasting Corporation (GRBC)</a>
+											
+																																											</div>
+										
+									</div>
+								</div>
+															</li>
+																								<li >
+								<a href="/index.php/opportunities" class="with-arrow-nav"><span>Opportunities</span></a>
+						
+								
+																																																																																																																																																																																																																																																																										<div class="drop-down">
+									<i class="fa fa-chevron-down"></i>
+									<div class="nav-column">
+																			<div class="secondary-section">
+											<a href="/index.php/opportunities/business-lictax-forms">Business Lic./Tax Forms</a>
+											
+																						
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																																												</div>
+																			<div class="secondary-section">
+											<a href="/index.php/opportunities/jobs">Jobs</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/opportunities/requests-for-proposals">Requests for Proposals</a>
+											
+																						
+																							
+																							
+																							
+																							
+																							
+																							
+																							
+																																												</div>
+										
+									</div>
+								</div>
+															</li>
+																								<li >
+								<a href="/index.php/about" class="with-arrow-nav"><span>About</span></a>
+						
+								
+																																																																																																																																																																																																																																																																																																																																										<div class="drop-down">
+									<i class="fa fa-chevron-down"></i>
+									<div class="nav-column">
+																			<div class="secondary-section">
+											<a href="/index.php/about/history">History</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/about/location">Location</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/about/culture">Culture</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/about/tribal-seal">Tribal Seal</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/about/water-settlement">Water Settlement</a>
+											
+																																											</div>
+																			<div class="secondary-section">
+											<a href="/index.php/about/tourism">Tourism</a>
+											
+																																											</div>
+										
+									</div>
+								</div>
+															</li>
+																										</ul>
+				
+				<div id="top-links">
+					<div><a href="/" id="home-link">Home</a></div>
+					
+																	<div><a href="https://selfservice.gric.nsn.us/MSS">External Munis ESS</a></div>
+																							<div><a href="/index.php/misc/sign-up">Sign Up</a></div>
+															</div>
+				
+			</div>
+			
+		</div>
+	</header>
+				<div id="home-carousel" class="masthead-carousel">
+								<div class="item" style="background-image: url(/sysimg/gila-river-indian-community-gilariver-masthead-image.jpg);">
+			<div class="overlay">
+				<h2 class="no-sub"}>DISCOVER THE</h2>
+				<h3><span>GILA RIVER INDIAN COMMUNITY</span></h3>							</div>
+		</div>
+
+					</div>
+						
+<div id="feature-row">
+	<div class="left-half half-feature" style="background-image: url(/sysimg/gila-river-indian-community-gilariver-left-feature-background-image.jpg);">
+		<div class="border-ornament">
+			<div class="feature">
+								<h2><a href="/index.php/about/history">ABOUT THE TRIBE</a></h2>
+				<p><a href="/index.php/about/history">300 B.C. to Today &gt;</a></p>
+							</div>
+		</div>
+	</div>
+	<div class="right-half half-feature" style="background-image: url(/sysimg/gila-river-indian-community-gilariver-right-feature-background-image.jpg);">
+		<div class="border-ornament">
+			<div class="feature">
+								<h2><a href="/index.php/about/culture">DISCOVER OUR CULTURE</a></h2>
+				<p><a href="/index.php/about/culture">A Proud Heritage &gt;</a></p>
+							</div>
+		</div>
+	</div>
+</div>
+
+
+	
+
+	
+
+<div id="link-tabs">
+	<div class="link-row with-sub-links">
+		<div class="main-tabs show-3-tabs">
+			<div class="container">
+											
+				
+		
+
+<div class="tab tab-position-1 ">
+	Executive Branch	<ul class="sub-links">
+		<li><a href="/index.php/government/misc/governor-stephen-roe-lewis"><span>Meet Our Governor</span></a></li>		<li><a href="https://www.gilariver.org/index.php/government/misc/lt-governor"><span>Meet Our LT. Governor</span></a></li>				
+	</ul>
+</div>
+										
+				
+		
+
+<div class="tab tab-position-2 active">
+	Legislative Branch	<ul class="sub-links">
+				<li><a href="/index.php/government/misc/council-members"><span>Meet Our Council Members</span></a></li>		<li><a href="/index.php/government/misc/council-agendas"><span>Council Agendas</span></a></li>		
+	</ul>
+</div>
+										
+				
+		
+
+<div class="tab tab-position-3 ">
+	Judicial Branch	<ul class="sub-links">
+		<li><a href="/index.php/government/judical-branch"><span>Meet Our Judges</span></a></li>		<li><a href="/index.php/government/judical-branch"><span>Forms You Need</span></a></li>				
+	</ul>
+</div>
+			
+			</div>
+		</div>
+	</div>
+</div>
+	
+
+	
+
+<div id="link-tabs">
+	<div class="link-row">
+		<div class="main-tabs show-1-tabs">
+			<div class="container">
+											
+				
+		
+
+<div class="tab tab-position-1">
+	<a class="with-arrow" href="/index.php/misc/press-releases">Press Release archive</a>
+</div>
+			
+			</div>
+		</div>
+	</div>
+</div>
+	
+
+<div id="circle-features">
+		<div class="container circle-features-headline">
+		<div class="icon" style="background-image: url(/sysimg/headline-here-5891-header-icon.png);"></div>		<h2>News &amp; Highlights</h2>
+	</div>
+		<div class="container">
+	
+
+		<div class="feature">
+			<div class="image-wrap">
+				<a href="http://www.mygilariver.com">									<img src="/sysimg/circle-feature-5891-5894-image.png" alt="Circle Feature Image" class =" hi-300" >
+					
+				</a>			</div>
+			<h3>Gila River Local</h3>
+			<h4>Updates</h4>			<p>Visit <a href="http://www.mygilariver.com">www.mygilariver.com</a> the Community's online resource for GRIC related information.</p>
+						<a class="button-link" href="http://www.mygilariver.com"><span class="with-arrow">Details</span></a>
+					</div>
+
+		<div class="feature">
+			<div class="image-wrap">
+				<a href="http://www.gricnews.org/" rel="external">									<img src="/sysimg/circle-feature-2-5891-5892-image.jpg" alt="Circle Feature 2 Image" class =" hi-300" >
+					
+				</a>			</div>
+			<h3>Gila River Indian Community</h3>
+			<h4>News</h4>			<p style="margin-right: 13px;"><a href="http://www.gricnews.org/" target="_blank">gricnews.org</a> is the Gila River Indian Community's news site. The top local source for news and information,</p>
+						<a class="button-link" href="http://www.gricnews.org/" rel="external"><span class="with-arrow">Details</span></a>
+					</div>
+
+		<div class="feature">
+			<div class="image-wrap">
+				<a href="https://webmail.gric.nsn.us" rel="external">									<img src="/sysimg/circle-feature-5891-5895-image.jpg" alt="Circle Feature Image" class =" hi-300" >
+					
+				</a>			</div>
+			<h3>Gila River Indian Community</h3>
+			<h4>Employee Email</h4>			<p>Access GRIC employee email here.</p>
+						<a class="button-link" href="https://webmail.gric.nsn.us" rel="external"><span class="with-arrow">Details</span></a>
+					</div>	</div>
+</div>
+
+			<footer>
+		<div class="container">
+			<div id="contact-info" class="footer-row">
+				<div class="flex">
+										<div class="address">
+						<p class="companyName">Gila River Indian Community</p>						<p>P.O. Box 97  |  Sacaton, AZ 85147</p>					</div>
+															<div class="address">
+						<p class="companyName">Gila River Governance Center</p>						<p>525 West Gu U Ki | Sacaton, AZ 85147</p>					</div>
+															<div class="address">
+						<p class="companyName">www.mygilariver.com</p>											</div>
+										<div class="social-media">
+												<a href="https://www.facebook.com/gilariver" rel="external"><img src="/images/facebook.png" alt="Gila River Indian Community on Facebook"></a>
+																																									</div>
+				</div>
+			</div>
+			<div id="additional-links" class="footer-row">
+				<div class="flex">
+				
+														<div>
+													<a href="/index.php/government" class="single-link">Government</a>
+											</div>
+																			<div>
+													<a href="/index.php/departments" class="single-link">Departments</a>
+											</div>
+																			<div>
+													<a href="/index.php/districts" class="single-link">Districts</a>
+											</div>
+																			<div>
+													<a href="/index.php/enterprises" class="single-link">Enterprises</a>
+											</div>
+																			<div>
+													<a href="/index.php/opportunities" class="single-link">Opportunities</a>
+											</div>
+																			<div>
+													<a href="/index.php/about" class="single-link">About</a>
+											</div>
+													</div>
+			</div>
+			<div id="legal" class="footer-row">
+				<div class="flex">
+					<div>
+						<p class="legal-links">
+							
+																																	<a href="/index.php/misc/contact">Contact</a>
+																																									&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;									<a href="/index.php/misc/partners">Partners</a>
+																																									&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;									<a href="/index.php/misc/terms-of-use">Terms</a>
+																																									&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;									<a href="/index.php/misc/privacy-policy">Privacy</a>
+																																									&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;									<a href="/index.php/misc/site-map">Site Map</a>
+																												
+						</p>
+						<p class="copyright">&copy; 2015 Gila River Indian Community. All rights reserved..</p>
+											</div>
+					<div>
+						<a href="http://www.vilocity.com" rel="external"><img src="/images/built-with-vilocity.png" alt="Built With Vilocity" id="built-with-vilocity"></a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</footer>
+	
+	
+    <script src="/scripts/jquery-1.11.3.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="/scripts/owl/owl.carousel.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="/scripts/jquery.magnific-popup.min.js" type="text/javascript" charset="utf-8"></script>
+	
+	<script src="/scripts/globals.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+//<!--
+
+		$(document).ready(function ($) {
+			mbMain = $("#media_box_large");
+			mbThumb = $("#media_box_thumbs");
+		});
+	//-->
+</script>
+	<script src="/scripts/gric.js" type="text/javascript" charset="utf-8"></script>
+	
+	<!-- Handling some IE9 weirdness in an inelegant fashion -->
+	<!--[if lte IE 9]>
+	<script src="/scripts/ie9.js"></script>	
+	<![endif]-->
+</body>
+</html>
