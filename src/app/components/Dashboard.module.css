@@ -646,3 +646,17 @@
   text-decoration: none;
 }
 .noticeFile:hover { background: #221e1a; }
+.noticeReq,
+.noticeAlt {
+  font-family: var(--font-label);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-faint);
+  margin: 0;
+  padding: 0 18px 14px;
+}
+.noticeAlt a {
+  color: var(--clay);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

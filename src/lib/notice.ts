@@ -10,8 +10,12 @@
  *  - copyright  — no registered mark on file; the claim rests on the artwork.
  *
  * Both are submitted through Amazon's Report Infringement form, which is the
- * channel Amazon actually acts on. notice@amazon.com is their registered
- * copyright agent and is only a fallback for the copyright basis.
+ * only channel Amazon documents for trademark. Verified on their own page:
+ * "Sign in Required — To submit a report of infringement ... please sign in."
+ * A free Amazon account is enough; a Seller or Brand Registry account is not
+ * required. No email address is offered here: Amazon's page does not publish
+ * one for this purpose, and an unverified address is worse than none for a
+ * notice signed under penalty of perjury.
  *
  * The Indian Arts and Crafts Act is cited as supporting context, never as the
  * primary basis — it is a federal truth-in-advertising statute enforced by the
@@ -42,7 +46,9 @@ export type NoticeInput = {
 };
 
 export const AMAZON_REPORT_FORM = "https://www.amazon.com/report/infringement";
-export const AMAZON_COPYRIGHT_AGENT = "notice@amazon.com";
+export const AMAZON_BRAND_REGISTRY = "https://brandservices.amazon.com/brandregistry";
+export const TEMU_IP_PORTAL =
+  "https://www.temu.com/intellectual-property-and-takedown-policy.html";
 
 export function marketplaceName(mp: string) {
   if (mp === "amazon") return "Amazon";
@@ -157,25 +163,40 @@ export function buildNotice(input: NoticeInput): string {
     .join("\r\n");
 }
 
-/** Where this notice should actually be filed. */
-export function submissionRoute(input: NoticeInput) {
-  const basis = noticeBasis(input);
+export type SubmissionRoute = {
+  primary: string;
+  primaryLabel: string;
+  /** What the filer needs before they can submit. */
+  requirement: string | null;
+  note: string;
+  /** Stronger long-term option, where one exists. */
+  alternative: { url: string; label: string; note: string } | null;
+};
+
+/** Where this notice should actually be filed, and what it takes to file it. */
+export function submissionRoute(input: NoticeInput): SubmissionRoute {
   if (input.marketplace === "amazon") {
     return {
       primary: AMAZON_REPORT_FORM,
       primaryLabel: "Amazon's Report Infringement form",
-      // Amazon's registered agent only handles copyright.
-      email: basis === "copyright" ? AMAZON_COPYRIGHT_AGENT : null,
-      note:
-        basis === "trademark"
-          ? "Amazon handles trademark reports through their form, not by email. Paste this notice into the form's description field."
-          : "Amazon accepts copyright notices at their registered agent address, or through the form.",
+      requirement:
+        "Requires a free Amazon account to sign in. A Seller or Brand Registry account is not needed.",
+      note: "Paste this notice into the form's description field, and attach the comparison images.",
+      alternative: input.usptoRegistered
+        ? {
+            url: AMAZON_BRAND_REGISTRY,
+            label: "Amazon Brand Registry",
+            note:
+              "With a registered trademark, enrolling the nation in Brand Registry unlocks proactive protection and faster removals than one-off reports.",
+          }
+        : null,
     };
   }
   return {
-    primary: "https://www.temu.com/intellectual-property-and-takedown-policy.html",
+    primary: TEMU_IP_PORTAL,
     primaryLabel: "Temu's IP complaint portal",
-    email: null,
+    requirement: null,
     note: "Temu handles IP complaints through their portal.",
+    alternative: null,
   };
 }

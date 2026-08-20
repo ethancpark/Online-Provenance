@@ -184,6 +184,15 @@ export default function ListingDetail({ match, tribe, sessionUser }: Props) {
               Open {route.primaryLabel} ↗
             </a>
           </div>
+          {route.requirement && <p className={styles.noticeReq}>{route.requirement}</p>}
+          {route.alternative && (
+            <p className={styles.noticeAlt}>
+              {route.alternative.note}{" "}
+              <a href={route.alternative.url} target="_blank" rel="noopener noreferrer">
+                {route.alternative.label} ↗
+              </a>
+            </p>
+          )}
         </div>
       )}
 
