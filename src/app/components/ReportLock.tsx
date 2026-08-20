@@ -98,18 +98,8 @@ export default function ReportLock({
               {theirs ? `You're signed in for ${theirs}` : "Wrong nation"}
             </h2>
             <p className={styles.body}>
-              {inline ? (
-                <>
-                  A notice is filed by the nation whose mark is being used, so an account at{" "}
-                  {theirs ?? "your nation"} cannot file for {nation}.
-                </>
-              ) : (
-                <>
-                  Reports are prepared by the nation whose mark is being used, so an account at{" "}
-                  {theirs ?? "your nation"} cannot file for {nation}. Every notice is signed under
-                  penalty of perjury by a named person, on behalf of their own nation.
-                </>
-              )}
+              A report comes from the nation whose mark is being used, so a{" "}
+              {theirs ?? "different nation"} account can&rsquo;t file for {nation}.
             </p>
           </div>
         </div>
@@ -125,8 +115,8 @@ export default function ReportLock({
         )}
         {!inline && (
           <p className={styles.foot}>
-            If you work for {nation} as well, contact the 𐒻𐒼𐓂 Lab and we&rsquo;ll attach your
-            account to it.
+            If you work for {nation} too, contact the 𐒻𐒼𐓂 Lab and we&rsquo;ll add it to your
+            account.
           </p>
         )}
       </section>
@@ -142,8 +132,8 @@ export default function ReportLock({
           <div>
             <h2 className={styles.title}>Your account isn&rsquo;t linked to a nation yet</h2>
             <p className={styles.body}>
-              Preparing a report requires an account attached to the nation it speaks for. Contact
-              the 𐒻𐒼𐓂 Lab and we&rsquo;ll connect yours.
+              A report has to name the nation it comes from. Contact the 𐒻𐒼𐓂 Lab and
+              we&rsquo;ll connect your account.
             </p>
           </div>
         </div>
@@ -161,7 +151,8 @@ export default function ReportLock({
           <div>
             <h2 className={styles.title}>Sign in to prepare this notice</h2>
             <p className={styles.body}>
-              It is signed under penalty of perjury by a named person at {nation}.
+              You sign it under penalty of perjury, so it has to come from someone who works for{" "}
+              {nation}.
             </p>
           </div>
         </div>
@@ -178,58 +169,20 @@ export default function ReportLock({
         <div>
           <h2 className={styles.title}>Reporting is for {nation} staff</h2>
           <p className={styles.body}>
-            Anyone can read this record — that is the point of it. Filing is different: the notice
-            is signed under penalty of perjury and asserts authority to act for a sovereign
-            nation, so it has to come from a named person at {nation}.
+            Anyone can read this page. Filing is different: you sign the notice under penalty of
+            perjury, so it has to come from someone who works for {nation}. With an account, the{" "}
+            {count} {plural} above become one {single ? batchIdLabel(marketplaces[0]) : "identifier"}{" "}
+            list and a single notice you can paste into {mpList}, instead of {count} filed by hand.
           </p>
         </div>
       </div>
 
-      <div className={styles.unlockLabel}>An account opens</div>
-      <ul className={styles.unlocks}>
-        <li>
-          <span className={styles.unlockNum}>{count}</span>
-          <span>
-            {single ? (
-              <>
-                {plural} as one list of {batchIdLabel(marketplaces[0])}, ready to paste straight
-                into {mpList}&rsquo;s form
-              </>
-            ) : (
-              <>{plural}, each carrying the identifier its own marketplace&rsquo;s form asks for</>
-            )}
-          </span>
-        </li>
-        <li>
-          <span className={styles.unlockNum}>1</span>
-          <span>
-            complete notice carrying your name, your title, and the sworn statement the form
-            requires{count > 1 ? <> — instead of {count} written by hand</> : null}
-          </span>
-        </li>
-        <li>
-          <span className={styles.unlockNum}>{marketplaces.length}</span>
-          <span>
-            {single ? (
-              <>
-                channel — the one {mpList} actually accepts this on, and what to have ready before
-                you open it
-              </>
-            ) : (
-              <>
-                channels — where {mpList} each take a report, and what to have ready before you
-                open them
-              </>
-            )}
-          </span>
-        </li>
-      </ul>
-
       {ways}
 
       <p className={styles.foot}>
-        Free, and verified by email domain — use your nation&rsquo;s address. If {nation}{" "}
-        isn&rsquo;t recognised yet, contact the 𐒻𐒼𐓂 Lab and we&rsquo;ll add it.
+        Free. Enter your nation&rsquo;s email address and we send you a link to set a password —
+        the domain is what tells us which nation you work for. If {nation} isn&rsquo;t recognised
+        yet, contact the 𐒻𐒼𐓂 Lab.
       </p>
     </section>
   );

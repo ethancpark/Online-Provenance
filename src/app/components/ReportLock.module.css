@@ -40,49 +40,6 @@
   max-width: 64ch;
 }
 
-/* ---------- what's behind the lock ---------- */
-
-.unlockLabel {
-  font-family: var(--font-label);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  margin: 22px 0 0;
-  padding-top: 18px;
-  border-top: 1px solid var(--rule);
-}
-
-.unlocks {
-  list-style: none;
-  margin: 12px 0 0;
-  padding: 0;
-  display: grid;
-  gap: 10px;
-  max-width: 64ch;
-}
-
-.unlocks li {
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 12px;
-  align-items: baseline;
-  font-family: var(--font-label);
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: var(--text-secondary);
-}
-
-/* The count is the argument — a nation seeing 27 here knows what it saves. */
-.unlockNum {
-  font-family: var(--font-display);
-  font-size: 20px;
-  line-height: 1.2;
-  color: var(--clay);
-  text-align: right;
-}
-
 /* ---------- the way in ---------- */
 
 .actions {
@@ -138,6 +95,4 @@
 
 @media (max-width: 800px) {
   .lock { padding: 20px 16px; }
-  .unlocks li { grid-template-columns: 34px 1fr; gap: 10px; }
-  .unlockNum { font-size: 18px; }
 }
