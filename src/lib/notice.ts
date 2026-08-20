@@ -200,3 +200,124 @@ export function submissionRoute(input: NoticeInput): SubmissionRoute {
     alternative: null,
   };
 }
+
+/* ------------------------------------------------------------------ batch */
+
+/** Amazon accepts one infringement type per report, up to 50 listings. */
+export const AMAZON_BATCH_LIMIT = 50;
+
+export type BatchListing = {
+  title: string;
+  url: string;
+  marketplaceId: string | null;
+  seller: string | null;
+  confidencePct: number;
+};
+
+export type BatchInput = Omit<
+  NoticeInput,
+  "listingTitle" | "listingUrl" | "marketplaceId" | "seller" | "confidencePct"
+> & { listings: BatchListing[] };
+
+/** Just the IDs, one per line — this is what the form's ASIN field wants. */
+export function batchIdList(listings: BatchListing[]): string {
+  return listings
+    .map((l) => l.marketplaceId)
+    .filter((id): id is string => Boolean(id))
+    .join("\n");
+}
+
+/** Split into submissions that fit the marketplace's per-report cap. */
+export function batchChunks<T>(items: T[], size = AMAZON_BATCH_LIMIT): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+/**
+ * One notice covering many listings of the same infringement type — which is
+ * how Amazon wants them, and what saves a nation from filing thirty forms.
+ */
+export function buildBatchNotice(input: BatchInput): string {
+  const basis = noticeBasis(input);
+  const mp = marketplaceName(input.marketplace);
+  const today = new Date().toISOString().slice(0, 10);
+  const c = input.claimant;
+  const signature = [c.full_name, c.job_title, input.nation].filter(Boolean).join(", ");
+  const n = input.listings.length;
+
+  const opening =
+    basis === "trademark"
+      ? [
+          `This is a notice of trademark infringement concerning ${n} listing${n === 1 ? "" : "s"} on ${mp}.`,
+          ``,
+          `1. The mark being infringed`,
+          `   ${input.assetDescription}, owned by the ${input.nation}, a federally recognized`,
+          `   sovereign Tribal nation.`,
+          input.usptoUrl ? `   USPTO record: ${input.usptoUrl}` : `   Registered with the USPTO.`,
+          ``,
+          `   This mark is the official emblem of a sovereign government. Its use on`,
+          `   merchandise falsely suggests a connection with, or endorsement by, the`,
+          `   ${input.nation}, which has granted no such authorization.`,
+        ]
+      : [
+          `This is a notice of copyright infringement under the Digital Millennium`,
+          `Copyright Act (17 U.S.C. § 512) concerning ${n} listing${n === 1 ? "" : "s"} on ${mp}.`,
+          ``,
+          `1. The copyrighted work being infringed`,
+          `   ${input.assetDescription}, owned by the ${input.nation}, a federally recognized`,
+          `   sovereign Tribal nation.`,
+        ];
+
+  const items = input.listings.flatMap((l, i) => [
+    `   ${i + 1}. ${l.title}`,
+    l.marketplaceId ? `      ${mp === "Amazon" ? "ASIN" : "Item ID"}: ${l.marketplaceId}` : null,
+    `      URL: ${l.url}`,
+    `      Seller: ${l.seller ?? "not listed"}   Image match: ${l.confidencePct}%`,
+    ``,
+  ]);
+
+  return [
+    `To: ${mp} Intellectual Property / Legal`,
+    `Date: ${today}`,
+    ``,
+    `To whom it may concern,`,
+    ``,
+    ...opening,
+    ``,
+    `2. The infringing listings`,
+    ``,
+    ...items,
+    `   Each product image reproduces the ${input.nation}'s mark. Similarity was`,
+    `   scored automatically and every listing above has been reviewed by a person`,
+    `   before this notice was filed.`,
+    ``,
+    `3. Contact information for the complaining party`,
+    `   Name: ${c.full_name}`,
+    c.job_title ? `   Title: ${c.job_title}` : null,
+    `   Organization: ${input.nation}`,
+    `   Email: ${c.email}`,
+    ``,
+    `4. Statements`,
+    `   I have a good faith belief that the use of the material described above is`,
+    `   not authorized by the rights holder, its agent, or the law.`,
+    ``,
+    `   I swear, under penalty of perjury, that the information in this notice is`,
+    `   accurate and that I am authorized to act on behalf of the owner of the`,
+    `   right that is allegedly infringed.`,
+    ``,
+    `   Additional context: merchandise of this kind may also violate the Indian`,
+    `   Arts and Crafts Act (25 U.S.C. § 305e), which prohibits offering goods in a`,
+    `   manner that falsely suggests they are Indian-produced or the product of a`,
+    `   particular Tribal nation.`,
+    ``,
+    `We request that the listings above be removed or disabled promptly.`,
+    ``,
+    `Signed,`,
+    `${signature}`,
+    `${c.email}`,
+    `${today}`,
+  ]
+    .filter((l): l is string => l !== null)
+    .join("\r\n");
+}

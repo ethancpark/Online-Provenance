@@ -7,6 +7,7 @@ import type { Tribe, MatchRow, TribeSummary } from "@/lib/types";
 import ReviewQueue from "./ReviewQueue";
 import ListingDetail from "./ListingDetail";
 import AccountNav, { type SessionUser } from "./AccountNav";
+import BulkReport from "./BulkReport";
 import styles from "./Dashboard.module.css";
 
 type Props = {
@@ -166,6 +167,8 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches, ses
             </p>
           </section>
         )}
+
+        <BulkReport matches={matches} tribe={selectedTribe} sessionUser={sessionUser} />
 
         <div className={styles.grid}>
           <ReviewQueue
