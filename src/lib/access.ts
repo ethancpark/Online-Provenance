@@ -21,8 +21,8 @@ export type Viewer = {
 } | null;
 
 export type ReportAccess =
-  /** Cleared to prepare a notice. `asLabAdmin` means it is project staff, not the nation. */
-  | { allowed: true; asLabAdmin: boolean }
+  /** Cleared to prepare a notice. */
+  | { allowed: true }
   /** No account at all. */
   | { allowed: false; reason: "signed_out" }
   /** Signed in, but the account is not attached to any nation. */
@@ -31,18 +31,21 @@ export type ReportAccess =
   | { allowed: false; reason: "other_nation"; userNation: string | null };
 
 /**
- * Lab admins keep access: they operate the tool, support nations through their
- * first filing, and are the only people who can test the flow end to end. The
- * UI says plainly that they are not the nation, and the notice still carries
- * the signer's own name — so this widens who can *see* the flow, never who the
- * notice claims to speak for. Drop this branch to lock the lab out too.
+ * `lab_admin` is unrestricted here, exactly as it is everywhere else in the app
+ * (the /admin console, the invite and role APIs, and every RLS policy). It
+ * operates the tool, supports nations through a first filing, and is the only
+ * role that can test the flow end to end, so it sees the nation's view without
+ * qualification. The notice still signs with the filer's own name and email —
+ * this widens who may open the flow, never who the notice claims to be.
+ *
+ * Every other role is scoped to its own nation.
  */
 export function reportAccess(viewer: Viewer, tribeId: string | null | undefined): ReportAccess {
   if (!viewer) return { allowed: false, reason: "signed_out" };
-  if (viewer.role === "lab_admin") return { allowed: true, asLabAdmin: true };
+  if (viewer.role === "lab_admin") return { allowed: true };
   if (!viewer.tribe_id) return { allowed: false, reason: "no_nation" };
   if (!tribeId || viewer.tribe_id !== tribeId) {
     return { allowed: false, reason: "other_nation", userNation: viewer.nation };
   }
-  return { allowed: true, asLabAdmin: false };
+  return { allowed: true };
 }

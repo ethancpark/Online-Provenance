@@ -127,13 +127,6 @@ export default function BulkReport({ matches, tribe, sessionUser, access }: Prop
             </button>
           </div>
 
-          {access.asLabAdmin && (
-            <p className={styles.labNote}>
-              You&rsquo;re viewing this as 𐒻𐒼𐓂 Lab staff, not as {tribe.name}. A notice for this
-              nation has to be filed and signed by someone at the nation itself.
-            </p>
-          )}
-
           {byMarketplace.size > 1 && (
             <div className={styles.tabs}>
               {[...byMarketplace.entries()].map(([mp, rows]) => (

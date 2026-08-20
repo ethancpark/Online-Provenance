@@ -96,9 +96,8 @@ pipeline/scripts/run_scan.py   the weekly scan
 10. **Reporting is gated to the nation on screen** (`src/lib/access.ts`). A
    `tribal_staff` or `tribal_admin` account unlocks it only for its own
    `tribe_id`; staff of another nation get a "wrong desk" lock, not a signup
-   form. `lab_admin` keeps access so the lab can test and support, and sees a
-   band saying the notice is not theirs to sign — drop that branch in
-   `reportAccess` to lock the lab out too. Everyone else sees `ReportLock`.
+   form. `lab_admin` is unrestricted — every nation, no qualification, matching
+   its access everywhere else in the app. Everyone else sees `ReportLock`.
    Note this is a UI gate, not a security boundary: the notice template ships
    in the client bundle and the listings are public by design. What it
    prevents is a stranger walking away with a notice that speaks in a
@@ -130,9 +129,9 @@ protection + referrer policy, 0 npm vulnerabilities, no secrets in git history.
    IP first, costs nothing).
 2. **Walk the reporting flow end to end as a real user.** Never been done.
    Sign in, use "Report all N listings", actually file one at Amazon. That is
-   where remaining friction will show. Note the lab_admin account now sees the
-   flow with a "you are not the nation" band — a true end-to-end walk needs a
-   `tribal_staff` account on a nation with listings.
+   where remaining friction will show. The lab_admin account sees the flow for
+   any nation, so it can be walked today; a walk that also proves the gate
+   needs a `tribal_staff` account on a nation with listings.
 3. **Track reported status.** Nothing records that a notice was filed, so a
    nation could re-file the same listings monthly, and "Removed" is stuck at 0.
 4. **Get one nation using it.** 859 listings and a working pipeline exist; what

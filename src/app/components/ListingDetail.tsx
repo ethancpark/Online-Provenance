@@ -181,12 +181,6 @@ export default function ListingDetail({ match, tribe, sessionUser, access }: Pro
               Close
             </button>
           </div>
-          {access.asLabAdmin && (
-            <p className={styles.labNote}>
-              You&rsquo;re viewing this as 𐒻𐒼𐓂 Lab staff, not as {tribeName}. A notice for this
-              nation has to be filed and signed by someone at the nation itself.
-            </p>
-          )}
           <div className={styles.noticeSubject}>{noticeSubject(noticeInput)}</div>
           <pre className={styles.noticeBody}>{noticeText}</pre>
           <div className={styles.noticeActions}>

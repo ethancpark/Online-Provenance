@@ -49,18 +49,6 @@
   text-decoration: underline; text-underline-offset: 3px;
 }
 
-/* Lab staff are not the nation. Said plainly, above the copy buttons. */
-.labNote {
-  font-family: var(--font-label);
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  background: var(--paper-warm);
-  border-bottom: 1px solid var(--rule);
-  margin: 0;
-  padding: 14px 24px;
-}
-
 .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--rule); }
 .tab {
   background: none; border: 0; border-right: 1px solid var(--rule);
@@ -141,5 +129,5 @@
 .disclaimer { color: var(--text-faint); padding-bottom: 22px; }
 
 @media (max-width: 800px) {
-  .head, .steps, .labNote, .warn, .alt, .disclaimer { padding-left: 16px; padding-right: 16px; }
+  .head, .steps, .warn, .alt, .disclaimer { padding-left: 16px; padding-right: 16px; }
 }
