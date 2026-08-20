@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { getBrowserClient } from "@/lib/supabase";
 import styles from "./login.module.css";
 
@@ -34,8 +35,8 @@ export default function LoginPage() {
       <form className={styles.card} onSubmit={onSubmit}>
         <h1 className={styles.title}>Sign in</h1>
         <p className={styles.sub}>
-          Accounts are issued to Tribal nation staff by invitation. If your nation should have
-          access, contact the 𐒻𐒼𐓂 Lab.
+          For staff of the Tribal nations we monitor.{" "}
+          <Link href="/signup">Create an account</Link> with your nation&rsquo;s email address.
         </p>
 
         <label className={styles.label} htmlFor="email">Email</label>
