@@ -38,7 +38,9 @@ export default function LandingPage({
     <main className={styles.page}>
       {/* 1 — Header */}
       <header className={styles.header}>
-        <span className={styles.wordmark}>Online Provenance</span>
+        <Link href="/" className={styles.wordmark}>
+          Online Provenance
+        </Link>
         <nav className={styles.nav}>
           <a href="#how">How it works</a>
           <a href="#about">About</a>

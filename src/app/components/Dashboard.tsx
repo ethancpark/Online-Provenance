@@ -40,7 +40,9 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches }: P
         <div className={styles.mastIn}>
           {/* 1 — top bar */}
           <div className={styles.topBar}>
-            <span className={styles.wordmark}>Online Provenance</span>
+            <Link href="/" className={styles.wordmark}>
+              Online Provenance
+            </Link>
             <div className={styles.topRight}>
               <span className={styles.live}>
                 <span className={styles.liveDot} />
