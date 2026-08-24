@@ -79,6 +79,25 @@ def _name_tokens(name: str) -> list[str]:
     return [w for w in words if len(w) >= 3 and w not in _NAME_GENERIC]
 
 
+# A title can name the tribe and still be about something else entirely.
+# 56 of 132 nations reduce to a SINGLE distinctive token (Delaware, Miami,
+# Omaha, Osage, Seminole...), and those words are also US states, cities and
+# universities — so "University of Delaware Flag" satisfied "names the tribe
+# AND is a flag" and was stored as a Delaware Tribe of Indians infringement.
+# Every one of that nation's seven flagged listings was the state, the college
+# or its football team.
+#
+# These markers name a RIVAL owner of the same word. They are deliberately
+# narrow: "athletic" is not here, because athletic apparel is exactly what gets
+# infringed, and team nicknames are not here because NCAA / university /
+# officially licensed already catch those listings.
+_RIVAL_ENTITY_RE = re.compile(
+    r"\b(universit(?:y|ies)|college|collegiate|ncaa|varsity|alumni|"
+    r"officially\s+licensed|state\s+seal|state\s+flag|souvenir)\b",
+    re.I,
+)
+
+
 def _title_confirms(title: str, tribe_name: str) -> bool:
     """
     True if the title says it's a flag/seal product AND names the tribe by its
@@ -88,6 +107,10 @@ def _title_confirms(title: str, tribe_name: str) -> bool:
     tribe.
     """
     if not title or not _PRODUCT_RE.search(title):
+        return False
+    # A university's or a state's own merchandise is not the nation's mark,
+    # however well the name matches.
+    if _RIVAL_ENTITY_RE.search(title):
         return False
     toks = set(re.sub(r"[^a-z0-9 ]", " ", title.lower()).split())
     sig = _name_tokens(tribe_name)
