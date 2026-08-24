@@ -1,0 +1,81 @@
+/* Small, flat, square — same language as everything else. */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(43, 38, 34, 0.6);
+}
+
+.panel {
+  width: 100%;
+  max-width: 380px;
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  padding: 24px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 21px;
+  line-height: 1.25;
+  color: var(--ink);
+  margin: 0;
+}
+.body {
+  font-family: var(--font-label);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 8px 0 0;
+}
+
+.list {
+  margin: 12px 0 0;
+  padding: 0 0 0 16px;
+  display: grid;
+  gap: 5px;
+  font-family: var(--font-label);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.list li::marker { color: var(--clay); }
+
+/* Both actions the same weight — leaving is not made harder than staying. */
+.actions { display: flex; gap: 10px; margin-top: 20px; }
+.primary,
+.secondary {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 11px 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.primary { background: var(--ink); color: var(--cream); border: 1px solid var(--ink); }
+.primary:hover { background: #221e1a; }
+.secondary { background: transparent; border: 1px solid var(--rule-strong); color: var(--ink); }
+.secondary:hover { background: var(--paper-warm); }
+
+.foot {
+  font-family: var(--font-label);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-faint);
+  margin: 12px 0 0;
+}
+.foot a { color: var(--clay); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Under ~420px the two buttons share ~160px each and "Create an account"
+   wraps to three lines. Stack them instead. */
+@media (max-width: 420px) {
+  .actions { flex-direction: column; }
+}

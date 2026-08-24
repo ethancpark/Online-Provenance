@@ -1,6 +1,7 @@
 import Link from "next/link";
 import HotspotMap, { type TribeCount } from "./HotspotMap";
 import AccountNav, { type SessionUser } from "./AccountNav";
+import SignUpPrompt from "./SignUpPrompt";
 import styles from "./LandingPage.module.css";
 
 type Props = {
@@ -44,6 +45,8 @@ export default function LandingPage({
 
   return (
     <main className={styles.page}>
+      {/* Signed-out visitors only, once. */}
+      {!sessionUser && <SignUpPrompt />}
       {/* 1 — Header */}
       <header className={styles.header}>
         <Link href="/" className={styles.wordmark}>
