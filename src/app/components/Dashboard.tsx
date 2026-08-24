@@ -9,6 +9,7 @@ import ReviewQueue from "./ReviewQueue";
 import ListingDetail from "./ListingDetail";
 import AccountNav, { type SessionUser } from "./AccountNav";
 import BulkReport from "./BulkReport";
+import SignUpPrompt from "./SignUpPrompt";
 import styles from "./Dashboard.module.css";
 
 type Props = {
@@ -44,6 +45,10 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches, ses
 
   return (
     <div className={styles.shell}>
+      {/* Shown once to signed-out visitors, here rather than on the landing
+          page: this is where the account-only features actually are. */}
+      {!sessionUser && <SignUpPrompt />}
+
       <header className={styles.masthead}>
         <div className={styles.mastIn}>
           {/* 1 — top bar */}

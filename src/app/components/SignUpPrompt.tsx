@@ -7,11 +7,16 @@ import styles from "./SignUpPrompt.module.css";
 const DISMISS_KEY = "op.signup-prompt.dismissed";
 
 /**
- * A one-time invitation for signed-out visitors.
+ * A one-time invitation shown on the monitor to signed-out visitors.
  *
- * Small on purpose. The record itself is public and the page behind this is
- * the point of the site, so this is an offer, not a gate: it shows once,
- * remembers being dismissed, and closes on the button, the backdrop or Escape.
+ * It sits here rather than on the landing page because this is where the
+ * account-only features are — someone meeting it has just arrived at the thing
+ * an account is for.
+ *
+ * Small on purpose, and an offer rather than a gate: the record behind it is
+ * public and stays that way, so it shows once, remembers being dismissed, and
+ * closes on the button, the backdrop or Escape. The copy says plainly that
+ * viewing is open to everyone and only filing is restricted.
  */
 export default function SignUpPrompt() {
   const [open, setOpen] = useState(false);
@@ -46,10 +51,11 @@ export default function SignUpPrompt() {
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className={styles.title} id="signup-prompt-title">
-          Working for a Tribal nation?
+          Sign in to use all of this
         </h2>
         <p className={styles.body}>
-          Browsing needs no account. An account lets you act on what&rsquo;s here:
+          Anyone is free to view the site and read the whole record &mdash; that stays open.
+          Reporting is for Tribal nation staff, so it needs an account:
         </p>
 
         <ul className={styles.list}>
@@ -63,7 +69,7 @@ export default function SignUpPrompt() {
             Create an account
           </Link>
           <button type="button" className={styles.secondary} onClick={close}>
-            Not now
+            Keep looking
           </button>
         </div>
 
