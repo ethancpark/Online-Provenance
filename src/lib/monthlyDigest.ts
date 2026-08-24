@@ -16,6 +16,7 @@ export type DigestListing = {
   title: string;
   marketplace: string;
   listing_url: string;
+  image_url: string | null;
   seller: string | null;
   price: string | null;
   confidence: number;
@@ -45,7 +46,9 @@ export async function buildDigest(
 ): Promise<Digest> {
   const { data: rows } = await supabase
     .from("matches")
-    .select("confidence, listings!inner(title, marketplace, listing_url, seller, price, tribe_id, scraped_at)")
+    .select(
+      "confidence, listings!inner(title, marketplace, listing_url, image_url, seller, price, tribe_id, scraped_at)",
+    )
     .eq("listings.tribe_id", tribeId)
     .gte("listings.scraped_at", since.toISOString())
     .order("confidence", { ascending: false });
@@ -75,6 +78,8 @@ export async function buildDigest(
     listings: listings.slice(0, limit),
   };
 }
+
+const MARKETPLACE: Record<string, string> = { amazon: "Amazon", temu: "Temu" };
 
 function esc(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
@@ -120,57 +125,122 @@ export function digestText(d: Digest, siteUrl: string): string {
 }
 
 /**
- * The HTML mail. Inline styles only and a table layout, because mail clients
- * strip stylesheets — and in the project's own paper/ink palette so it reads
- * as the same institution as the site.
+ * The HTML mail.
+ *
+ * Table layout and inline styles only, because mail clients strip stylesheets
+ * and most ignore flexbox. Three things drive the design:
+ *
+ *  1. The product photo carries the message. Reading "Great Seal of the
+ *     Chickasaw Nation Sticker" is abstract; seeing the seal on a bumper
+ *     sticker is not. Every row leads with the image.
+ *  2. Most clients block remote images until the reader allows them, so every
+ *     row has to still make sense as text. The thumbnail cell keeps its width
+ *     and carries alt text, and nothing but decoration is lost.
+ *  3. Same paper/ink/clay palette as the site, so it reads as the same
+ *     institution rather than a generic notification.
  */
 export function digestHtml(d: Digest, siteUrl: string): string {
   const dash = `${siteUrl}/dashboard?tribe=${encodeURIComponent(d.nation)}`;
+
   const rows = d.listings
-    .map(
-      (l) => `
+    .map((l) => {
+      const pct = Math.round(l.confidence * 100);
+      const facts = [MARKETPLACE[l.marketplace] ?? l.marketplace, l.price, l.seller]
+        .filter(Boolean)
+        .map((x) => esc(String(x)))
+        .join(" &middot; ");
+      const thumb = l.image_url
+        ? `<img src="${esc(l.image_url)}" width="64" height="64" alt="${esc(l.title.slice(0, 60))}"
+             style="display:block;width:64px;height:64px;object-fit:cover;border:1px solid #e2dacb;background:#f1eadd;">`
+        : `<div style="width:64px;height:64px;border:1px solid #e2dacb;background:#f1eadd;"></div>`;
+      return `
       <tr>
-        <td style="padding:14px 0;border-bottom:1px solid #e2dacb;">
-          <a href="${esc(l.listing_url)}" style="color:#2b2622;font-size:15px;line-height:1.45;text-decoration:none;font-weight:600;">${esc(l.title.slice(0, 120))}</a>
-          <div style="margin-top:5px;font-size:13px;color:#6b6259;">
-            ${esc(l.marketplace)} &middot; ${Math.round(l.confidence * 100)}% match${l.price ? ` &middot; ${esc(l.price)}` : ""}${l.seller ? ` &middot; ${esc(l.seller)}` : ""}
-          </div>
+        <td style="padding:16px 0;border-bottom:1px solid #ede6da;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td width="64" valign="top" style="width:64px;padding-right:14px;">${thumb}</td>
+              <td valign="top">
+                <a href="${esc(l.listing_url)}"
+                   style="color:#2b2622;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.4;text-decoration:none;">
+                  ${esc(l.title.slice(0, 110))}${l.title.length > 110 ? "&hellip;" : ""}
+                </a>
+                <div style="margin-top:6px;font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#6b6259;">
+                  ${facts}
+                </div>
+                <div style="margin-top:6px;">
+                  <span style="display:inline-block;font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:bold;
+                               color:#8c3620;background:#f5efe4;border:1px solid #e2dacb;padding:3px 7px;">
+                    ${pct}% match to the ${esc(d.nation)} mark
+                  </span>
+                </div>
+              </td>
+            </tr>
+          </table>
         </td>
-      </tr>`,
-    )
+      </tr>`;
+    })
     .join("");
 
   const more =
     d.newCount > d.listings.length
-      ? `<p style="margin:16px 0 0;font-size:14px;color:#6b6259;">…and ${d.newCount - d.listings.length} more on the dashboard.</p>`
+      ? `<p style="margin:16px 0 0;font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#6b6259;">
+           and ${d.newCount - d.listings.length} more on the dashboard.
+         </p>`
       : "";
 
   return `<!doctype html>
-<html><body style="margin:0;padding:0;background:#faf6ef;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf6ef;padding:32px 16px;">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>${esc(digestSubject(d))}</title></head>
+<body style="margin:0;padding:0;background:#faf6ef;">
+<!-- Shown in the inbox preview line, next to the subject. -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+  ${d.newCount} new on ${d.listings.map((l) => MARKETPLACE[l.marketplace] ?? l.marketplace).filter((v, i, a) => a.indexOf(v) === i).join(" and ")}. Review before filing.
+</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf6ef;padding:28px 12px;">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fdfbf7;border:1px solid #e2dacb;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+       style="max-width:600px;background:#fdfbf7;border:1px solid #e2dacb;">
+
+  <tr><td style="padding:14px 28px;background:#2b2622;">
+    <span style="font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#f7f1e7;">Online Provenance</span>
+    <span style="float:right;font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#b5ab9e;">${monthLabel(new Date())}</span>
+  </td></tr>
+
   <tr><td style="padding:28px 28px 0;">
-    <div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8a8073;">Online Provenance</div>
-    <h1 style="margin:12px 0 0;font-family:Georgia,serif;font-size:26px;font-weight:500;color:#2b2622;line-height:1.25;">
+    <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:25px;font-weight:normal;color:#2b2622;line-height:1.28;">
       ${d.newCount} new listing${d.newCount === 1 ? "" : "s"} using the ${esc(d.nation)} seal
     </h1>
-    <p style="margin:12px 0 0;font-size:14px;line-height:1.6;color:#4a433c;">
-      Found since ${monthLabel(d.since)}. ${d.totalFlagged} listing${d.totalFlagged === 1 ? " is" : "s are"} on record in total.
-      These are automated matches — review them before filing anything.
+    <p style="margin:12px 0 0;font-family:Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#4a433c;">
+      Found since ${monthLabel(d.since)}. ${d.totalFlagged} ${d.totalFlagged === 1 ? "is" : "are"} on record in total.
     </p>
   </td></tr>
-  <tr><td style="padding:8px 28px 0;">
+
+  <tr><td style="padding:16px 28px 0;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>
     ${more}
   </td></tr>
-  <tr><td style="padding:24px 28px 28px;">
-    <a href="${dash}" style="display:inline-block;background:#2b2622;color:#fdf6ee;font-size:15px;font-weight:700;padding:13px 22px;text-decoration:none;">Review and prepare a report</a>
-    <p style="margin:20px 0 0;font-size:12px;line-height:1.6;color:#8a8073;">
-      You turned on monthly updates for ${esc(d.nation)}.
-      <a href="${siteUrl}/account" style="color:#a8462c;">Turn them off</a> any time.
+
+  <tr><td style="padding:24px 28px 8px;">
+    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+      <td style="background:#a8462c;">
+        <a href="${dash}" style="display:inline-block;padding:14px 24px;font-family:Helvetica,Arial,sans-serif;
+           font-size:15px;font-weight:bold;color:#fdf6ee;text-decoration:none;">Review and prepare a report</a>
+      </td>
+    </tr></table>
+    <p style="margin:14px 0 0;font-family:Helvetica,Arial,sans-serif;font-size:12.5px;line-height:1.6;color:#6b6259;">
+      These are automated matches, not confirmed infringements. Whoever files a notice signs it
+      under penalty of perjury, so check each listing first.
     </p>
   </td></tr>
+
+  <tr><td style="padding:18px 28px 26px;border-top:1px solid #ede6da;">
+    <p style="margin:0;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;line-height:1.6;color:#8a8073;">
+      You turned on monthly updates for ${esc(d.nation)}.
+      <a href="${siteUrl}/account" style="color:#a8462c;">Turn them off</a> any time &mdash;
+      this is the only email we send.
+    </p>
+  </td></tr>
+
 </table>
 </td></tr></table>
 </body></html>`;

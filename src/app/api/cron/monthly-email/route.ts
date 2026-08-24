@@ -54,9 +54,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const dry = new URL(req.url).searchParams.get("dry") === "1";
+  const params = new URL(req.url).searchParams;
+  const dry = params.get("dry") === "1";
+  const preview = params.get("preview");
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://onlineprovenance.vercel.app";
   const admin = getServerClient();
+
+  // ?preview=<nation> renders the mail in the browser for any nation, whether
+  // or not anyone has subscribed. Reviewing an email by reading its source is
+  // how bad ones ship, and nothing here sends.
+  if (preview) {
+    const { data: tribe } = await admin
+      .from("tribes")
+      .select("id,name")
+      .ilike("name", preview)
+      .maybeSingle();
+    if (!tribe) {
+      return NextResponse.json({ error: `No nation matching "${preview}".` }, { status: 404 });
+    }
+    const since = windowStart(null);
+    const digest = await buildDigest(admin, tribe.id, tribe.name, since);
+    if (digest.newCount === 0) {
+      return NextResponse.json(
+        { error: `Nothing new for ${tribe.name} in the last 31 days — no email would be sent.` },
+        { status: 404 },
+      );
+    }
+    return new NextResponse(digestHtml(digest, site), {
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+  }
 
   const { data, error } = await admin
     .from("profiles")
