@@ -58,7 +58,6 @@ export default function BulkReport({ matches, tribe, sessionUser, access }: Prop
         <ReportLock
           access={access}
           nation={tribe.name}
-          marketplaces={[...byMarketplace.keys()]}
           count={matches.length}
         />
       </section>

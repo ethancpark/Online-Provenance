@@ -55,17 +55,17 @@ export default function SignUpPrompt() {
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className={styles.title} id="signup-prompt-title">
-          Sign in to use all of this
+          Reporting needs an account
         </h2>
         <p className={styles.body}>
-          Anyone is free to view the site and read the whole record &mdash; that stays open.
-          Reporting is for Tribal nation staff, so it needs an account:
+          Anyone can look around the site. Filing a takedown is for Tribal nation staff, so that
+          part needs an account.
         </p>
 
         <ul className={styles.list}>
-          <li>File a takedown, with the notice written for you</li>
-          <li>A monthly email of new listings using your seal</li>
-          <li>The monitor opens on your nation</li>
+          <li>Report listings to Amazon and Temu</li>
+          <li>A monthly email when new ones turn up</li>
+          <li>Open straight to your own nation</li>
         </ul>
 
         <div className={styles.actions}>
@@ -78,10 +78,11 @@ export default function SignUpPrompt() {
         </div>
 
         <p className={styles.foot}>
-          Free, verified by your nation&rsquo;s email domain.{" "}
+          Free. Sign up with your nation&rsquo;s email address, or{" "}
           <Link href="/login" onClick={close}>
-            Sign in
+            sign in
           </Link>
+          .
         </p>
       </div>
     </div>

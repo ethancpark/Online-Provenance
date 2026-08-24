@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { ReportAccess } from "@/lib/access";
-import { batchIdLabel, marketplaceName } from "@/lib/notice";
 import styles from "./ReportLock.module.css";
 
 type Props = {
@@ -8,8 +7,6 @@ type Props = {
   access: Extract<ReportAccess, { allowed: false }>;
   /** The nation currently on screen. */
   nation: string;
-  /** Marketplace keys present in the queue, e.g. ["amazon", "temu"]. */
-  marketplaces: string[];
   /** How many listings sit behind the lock. Shown so the value is concrete. */
   count: number;
   /**
@@ -19,14 +16,6 @@ type Props = {
    */
   variant?: "banner" | "inline";
 };
-
-/** "Amazon", or "Amazon and Temu". */
-function marketplaceList(keys: string[]): string {
-  const names = keys.map(marketplaceName);
-  if (names.length === 0) return "the marketplace";
-  if (names.length === 1) return names[0];
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-}
 
 function Padlock({ className }: { className?: string }) {
   return (
@@ -61,12 +50,9 @@ function Padlock({ className }: { className?: string }) {
 export default function ReportLock({
   access,
   nation,
-  marketplaces,
   count,
   variant = "banner",
 }: Props) {
-  const mpList = marketplaceList(marketplaces);
-  const single = marketplaces.length === 1;
   const plural = count === 1 ? "listing" : "listings";
   const inline = variant === "inline";
   const cls = inline ? `${styles.lock} ${styles.inline}` : styles.lock;
@@ -98,7 +84,7 @@ export default function ReportLock({
               {theirs ? `You're signed in for ${theirs}` : "Wrong nation"}
             </h2>
             <p className={styles.body}>
-              A report comes from the nation whose mark is being used, so a{" "}
+              A report comes from the nation whose mark is being used. A{" "}
               {theirs ?? "different nation"} account can&rsquo;t file for {nation}.
             </p>
           </div>
@@ -151,8 +137,7 @@ export default function ReportLock({
           <div>
             <h2 className={styles.title}>Sign in to prepare this notice</h2>
             <p className={styles.body}>
-              You sign it under penalty of perjury, so it has to come from someone who works for{" "}
-              {nation}.
+              You sign it under penalty of perjury, so it has to come from someone at {nation}.
             </p>
           </div>
         </div>
@@ -169,10 +154,10 @@ export default function ReportLock({
         <div>
           <h2 className={styles.title}>Reporting is for {nation} staff</h2>
           <p className={styles.body}>
-            Anyone can read this page. Filing is different: you sign the notice under penalty of
-            perjury, so it has to come from someone who works for {nation}. With an account, the{" "}
-            {count} {plural} above become one {single ? batchIdLabel(marketplaces[0]) : "identifier"}{" "}
-            list and a single notice you can paste into {mpList}, instead of {count} filed by hand.
+            Anyone can read this page. Filing is different. A takedown notice is sworn under
+            penalty of perjury, so it has to come from someone at {nation}. An account gives you
+            all {count} {plural} as one paste-ready list, with the notice written for you. That
+            is one filing instead of {count}.
           </p>
         </div>
       </div>
@@ -180,9 +165,8 @@ export default function ReportLock({
       {ways}
 
       <p className={styles.foot}>
-        Free. Enter your nation&rsquo;s email address and we send you a link to set a password —
-        the domain is what tells us which nation you work for. If {nation} isn&rsquo;t recognised
-        yet, contact the 𐒻𐒼𐓂 Lab.
+        Free. Sign up with your nation&rsquo;s email address and we&rsquo;ll send you a link. If
+        {" "}{nation} isn&rsquo;t listed yet, contact the 𐒻𐒼𐓂 Lab.
       </p>
     </section>
   );

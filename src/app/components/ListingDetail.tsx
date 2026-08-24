@@ -159,7 +159,6 @@ export default function ListingDetail({ match, tribe, sessionUser, access }: Pro
         <ReportLock
           access={access}
           nation={tribeName}
-          marketplaces={[listing.marketplace]}
           count={1}
           variant="inline"
         />

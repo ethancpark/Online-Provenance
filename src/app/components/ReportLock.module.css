@@ -7,6 +7,9 @@
   background: var(--paper-warm);
   border: 1px solid var(--rule-strong);
   padding: 24px;
+  /* Width of the padlock plus its gap. The icon hangs to the left and
+     everything else lines up in one column beside it. */
+  --indent: 36px;
 }
 
 .head {
@@ -43,6 +46,7 @@
 /* ---------- the way in ---------- */
 
 .actions {
+  margin-left: var(--indent);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -73,6 +77,7 @@
 .secondary:hover { color: var(--clay-dark); }
 
 .foot {
+  margin-left: var(--indent);
   font-family: var(--font-label);
   font-size: 12.5px;
   line-height: 1.6;
@@ -95,4 +100,8 @@
 
 @media (max-width: 800px) {
   .lock { padding: 20px 16px; }
+  /* Too little width to keep a hanging icon; everything goes flush left. */
+  .lock { --indent: 0px; }
+  .head { grid-template-columns: 1fr; gap: 10px; }
+  .icon { display: none; }
 }
