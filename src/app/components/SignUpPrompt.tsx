@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./SignUpPrompt.module.css";
 
-const DISMISS_KEY = "op.signup-prompt.dismissed";
+// Versioned. The first release of this dialog lived on the landing page and
+// wrote "op.signup-prompt.dismissed"; anyone who dismissed it there would
+// never see this one, since it is a different dialog in a different place.
+// Bump the suffix whenever the prompt changes enough to be worth showing again.
+const DISMISS_KEY = "op.signup-prompt.monitor.v1";
 
 /**
  * A one-time invitation shown on the monitor to signed-out visitors.
