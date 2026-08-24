@@ -36,6 +36,11 @@ export default function LandingPage({
   sessionUser,
 }: Props) {
   const top = [...tribeCounts].sort((a, b) => b.count - a.count).slice(0, 5);
+  // A signed-in person goes straight to their own nation rather than to
+  // whichever nation happens to have the most listings.
+  const monitorHref = sessionUser?.nation
+    ? `/dashboard?tribe=${encodeURIComponent(sessionUser.nation)}`
+    : "/dashboard";
 
   return (
     <main className={styles.page}>
@@ -48,8 +53,8 @@ export default function LandingPage({
           <a href="#how">How it works</a>
           <a href="#about">About</a>
           <AccountNav user={sessionUser} />
-          <Link href="/dashboard" className={styles.navButton}>
-            Open the monitor
+          <Link href={monitorHref} className={styles.navButton}>
+            {sessionUser?.nation ? "Open your monitor" : "Open the monitor"}
           </Link>
         </nav>
       </header>
@@ -72,8 +77,8 @@ export default function LandingPage({
       {/* 3 — Action band */}
       <section className={styles.ledeBand}>
         <div className={styles.ledeCtas}>
-          <Link href="/dashboard" className={styles.ctaSolid}>
-            See what we found
+          <Link href={monitorHref} className={styles.ctaSolid}>
+            {sessionUser?.nation ? `See what we found for ${sessionUser.nation}` : "See what we found"}
           </Link>
           <a href="#map" className={styles.ctaText}>
             Where it&rsquo;s happening

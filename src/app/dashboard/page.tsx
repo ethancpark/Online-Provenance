@@ -22,14 +22,22 @@ export default async function Home({ searchParams }: PageProps) {
 
   const tribeList = (tribes ?? []) as Tribe[];
 
-  // Pick a default tribe — the URL param wins, otherwise the first tribe
-  // that has any matches (so the demo isn't empty on first load).
+  // Which nation this page opens on, in order of who is asking:
+  //   1. the URL — someone followed a link or used the dropdown
+  //   2. the signed-in person's own nation — this is their desk, and landing
+  //      on somebody else's nation is both confusing and the wrong default for
+  //      a tool where acting on a nation's behalf is scoped to that nation
+  //   3. the busiest nation, so a signed-out visitor still sees real evidence
   let selectedTribe: Tribe | null = null;
   if (tribeParam) {
     selectedTribe = tribeList.find((t) => t.name === tribeParam) ?? null;
   }
 
-  // If no URL param, find the first tribe with matches
+  if (!selectedTribe && sessionUser?.tribe_id) {
+    selectedTribe = tribeList.find((t) => t.id === sessionUser.tribe_id) ?? null;
+  }
+
+  // Otherwise fall back to the tribe with the most matches
   if (!selectedTribe) {
     const { data: tribeWithMatches } = await supabase
       .from("tribe_summary")
