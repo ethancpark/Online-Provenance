@@ -173,6 +173,17 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches, ses
           </section>
         )}
 
+        {/* One quiet line, only for someone signed in who has not opted in yet.
+            The setting lives on /account; this is what makes it findable. */}
+        {sessionUser && !sessionUser.monthly_email && (
+          <p className={styles.emailPrompt}>
+            <span className={styles.emailPromptDot} aria-hidden="true" />
+            Want these in your inbox? Get a monthly email of new listings using
+            {sessionUser.nation ? ` the ${sessionUser.nation}` : " your nation's"} seal.{" "}
+            <Link href="/account">Turn it on</Link>
+          </p>
+        )}
+
         <BulkReport matches={matches} tribe={selectedTribe} sessionUser={sessionUser} access={access} />
 
         <div className={styles.grid}>

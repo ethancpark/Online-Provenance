@@ -1,0 +1,166 @@
+/* Account settings. Same paper/ink language as the dashboard: flat, square,
+   hairline rules, clay reserved for the one state that means something. */
+
+.shell { min-height: 100vh; background: var(--paper); }
+
+.masthead { background: var(--ink); }
+.mastIn {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 18px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--ink-on-dark);
+  text-decoration: none;
+}
+.topRight { display: flex; align-items: center; gap: 22px; }
+.topLink {
+  font-family: var(--font-label);
+  font-size: 13.5px;
+  color: #b5ab9e;
+  text-decoration: none;
+}
+.topLink:hover { color: var(--ink-on-dark); }
+
+.body { max-width: 720px; margin: 0 auto; padding: 44px 40px 80px; }
+
+.head { margin-bottom: 30px; }
+.eyebrow {
+  font-family: var(--font-label);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 38px;
+  letter-spacing: -0.02em;
+  margin: 8px 0 0;
+  color: var(--ink);
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+  font-family: var(--font-label);
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+/* ---------- cards ---------- */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+/* Subscribed: a clay edge, so the live state is visible at a glance from
+   across the page rather than only from the switch itself. */
+.cardOn { border-left: 3px solid var(--clay); }
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  margin: 0;
+  color: var(--ink);
+}
+.cardBody {
+  font-family: var(--font-label);
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 8px 0 0;
+  max-width: 56ch;
+}
+.cardBody strong { color: var(--ink); }
+
+.toggleRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ---------- the switch ----------
+   Square, like everything else. The knob travels; the track fills with clay. */
+.switch {
+  position: relative;
+  flex: none;
+  width: 62px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper-tint);
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.switch:disabled { opacity: 0.6; cursor: default; }
+.switchOn { background: var(--clay); border-color: var(--clay); }
+.knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  background: var(--panel);
+  transition: transform 0.14s ease;
+}
+.switchOn .knob { transform: translateX(30px); }
+
+/* State in words as well as colour — never colour alone. */
+.state {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--font-label);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: var(--rule-strong);
+}
+.dotOn { background: var(--clay); }
+
+.secondary {
+  display: inline-block;
+  margin-top: 16px;
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: 14px;
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  color: var(--ink);
+  padding: 11px 18px;
+  text-decoration: none;
+}
+.secondary:hover { background: var(--paper-warm); }
+
+.error {
+  font-family: var(--font-label);
+  font-size: 13px;
+  color: var(--clay);
+  margin: 12px 0 0;
+}
+
+@media (max-width: 720px) {
+  .mastIn, .body { padding-left: 20px; padding-right: 20px; }
+  .toggleRow { grid-template-columns: 1fr; gap: 18px; }
+  .title { font-size: 30px; }
+}

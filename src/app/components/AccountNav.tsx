@@ -13,6 +13,7 @@ export type SessionUser = {
   /** The nation this account belongs to. Null for lab admins, by schema constraint. */
   tribe_id: string | null;
   nation: string | null;
+  monthly_email: boolean;
 } | null;
 
 const ROLE_LABEL: Record<NonNullable<SessionUser>["role"], string> = {
@@ -100,6 +101,9 @@ export default function AccountNav({
             </div>
           </div>
 
+          <Link href="/account" className={styles.item} role="menuitem" onClick={() => setOpen(false)}>
+            Account &amp; email updates
+          </Link>
           {user.role === "lab_admin" && (
             <Link href="/admin" className={styles.item} role="menuitem" onClick={() => setOpen(false)}>
               Accounts

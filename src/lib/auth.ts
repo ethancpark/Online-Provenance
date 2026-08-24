@@ -11,6 +11,8 @@ export type Profile = {
   role: UserRole;
   tribe_id: string | null;
   status: AccountStatus;
+  /** Opted in to the monthly digest. Off unless the person turned it on. */
+  monthly_email: boolean;
 };
 
 /** The signed-in user's profile, or null. Suspended accounts resolve to null. */
@@ -21,13 +23,22 @@ export async function getProfile(): Promise<Profile | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data } = await supabase
+  const COLUMNS = "id,email,full_name,job_title,role,tribe_id,status";
+  // monthly_email arrives with supabase/monthly-email.sql. Until that has been
+  // run, asking for it errors and every signed-in person would look signed out,
+  // so fall back to the columns that certainly exist. Deploy order stops being
+  // load-bearing. Safe to simplify once the migration is applied everywhere.
+  let { data } = await supabase
     .from("profiles")
-    .select("id,email,full_name,job_title,role,tribe_id,status")
+    .select(`${COLUMNS},monthly_email`)
     .eq("id", user.id)
     .maybeSingle();
+  if (!data) {
+    ({ data } = await supabase.from("profiles").select(COLUMNS).eq("id", user.id).maybeSingle());
+  }
 
-  const profile = (data as Profile | null) ?? null;
+  const raw = data as (Omit<Profile, "monthly_email"> & { monthly_email?: boolean }) | null;
+  const profile: Profile | null = raw ? { ...raw, monthly_email: raw.monthly_email ?? false } : null;
   if (!profile || profile.status === "suspended") return null;
   return profile;
 }
@@ -88,5 +99,12 @@ export async function getSessionUser() {
     const { data } = await supabase.from("tribes").select("name").eq("id", p.tribe_id).maybeSingle();
     nation = (data as { name: string } | null)?.name ?? null;
   }
-  return { full_name: p.full_name, email: p.email, role: p.role, tribe_id: p.tribe_id, nation };
+  return {
+    full_name: p.full_name,
+    email: p.email,
+    role: p.role,
+    tribe_id: p.tribe_id,
+    nation,
+    monthly_email: p.monthly_email,
+  };
 }

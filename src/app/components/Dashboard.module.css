@@ -649,3 +649,34 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Monthly-email prompt. Deliberately a single line, not a card: it is an offer,
+   not the reason anyone opened this page. Disappears once they opt in. */
+.emailPrompt {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 13px 16px;
+  background: var(--paper-warm);
+  border: 1px solid var(--rule);
+  font-family: var(--font-label);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.emailPromptDot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  background: var(--clay);
+  transform: translateY(-1px);
+}
+.emailPrompt a {
+  color: var(--clay);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.emailPrompt a:hover { color: var(--clay-dark); }
