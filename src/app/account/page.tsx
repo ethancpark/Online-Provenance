@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getProfile, getSessionUser } from "@/lib/auth";
+import { getPublicClient } from "@/lib/supabase";
 import AccountNav from "../components/AccountNav";
 import MonthlyEmailToggle from "./MonthlyEmailToggle";
 import styles from "./account.module.css";
@@ -16,6 +17,16 @@ export default async function AccountPage() {
   const profile = await getProfile();
   if (!profile) redirect("/login?next=/account");
   const sessionUser = await getSessionUser();
+
+  // Only needed when the account has no nation of its own to report on.
+  let tribes: { id: string; name: string }[] | undefined;
+  if (!profile.tribe_id) {
+    const { data } = await getPublicClient()
+      .from("tribes")
+      .select("id,name")
+      .order("name", { ascending: true });
+    tribes = (data ?? []) as { id: string; name: string }[];
+  }
 
   return (
     <div className={styles.shell}>
@@ -47,6 +58,8 @@ export default async function AccountPage() {
           initial={profile.monthly_email}
           email={profile.email}
           nation={sessionUser?.nation ?? null}
+          tribes={tribes}
+          followedTribeId={profile.monthly_email_tribe_id}
         />
 
         <section className={styles.card}>

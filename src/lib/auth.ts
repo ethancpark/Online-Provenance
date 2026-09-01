@@ -13,6 +13,8 @@ export type Profile = {
   status: AccountStatus;
   /** Opted in to the monthly digest. Off unless the person turned it on. */
   monthly_email: boolean;
+  /** Nation to follow, for accounts that have none of their own (lab admins). */
+  monthly_email_tribe_id: string | null;
 };
 
 /** The signed-in user's profile, or null. Suspended accounts resolve to null. */
@@ -30,15 +32,25 @@ export async function getProfile(): Promise<Profile | null> {
   // load-bearing. Safe to simplify once the migration is applied everywhere.
   let { data } = await supabase
     .from("profiles")
-    .select(`${COLUMNS},monthly_email`)
+    .select(`${COLUMNS},monthly_email,monthly_email_tribe_id`)
     .eq("id", user.id)
     .maybeSingle();
   if (!data) {
     ({ data } = await supabase.from("profiles").select(COLUMNS).eq("id", user.id).maybeSingle());
   }
 
-  const raw = data as (Omit<Profile, "monthly_email"> & { monthly_email?: boolean }) | null;
-  const profile: Profile | null = raw ? { ...raw, monthly_email: raw.monthly_email ?? false } : null;
+  type Raw = Omit<Profile, "monthly_email" | "monthly_email_tribe_id"> & {
+    monthly_email?: boolean;
+    monthly_email_tribe_id?: string | null;
+  };
+  const raw = data as Raw | null;
+  const profile: Profile | null = raw
+    ? {
+        ...raw,
+        monthly_email: raw.monthly_email ?? false,
+        monthly_email_tribe_id: raw.monthly_email_tribe_id ?? null,
+      }
+    : null;
   if (!profile || profile.status === "suspended") return null;
   return profile;
 }

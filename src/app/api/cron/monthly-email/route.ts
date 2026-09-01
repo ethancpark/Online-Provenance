@@ -28,6 +28,7 @@ type Subscriber = {
   id: string;
   email: string;
   tribe_id: string | null;
+  monthly_email_tribe_id: string | null;
   monthly_email_last_sent_at: string | null;
   tribes: { name: string } | null;
 };
@@ -87,10 +88,9 @@ export async function POST(req: Request) {
 
   const { data, error } = await admin
     .from("profiles")
-    .select("id,email,tribe_id,monthly_email_last_sent_at,tribes(name)")
+    .select("id,email,tribe_id,monthly_email_tribe_id,monthly_email_last_sent_at,tribes(name)")
     .eq("monthly_email", true)
-    .eq("status", "active")
-    .not("tribe_id", "is", null);
+    .eq("status", "active");
 
   if (error) {
     return NextResponse.json({ error: `Could not read subscribers: ${error.message}` }, { status: 500 });
@@ -103,10 +103,18 @@ export async function POST(req: Request) {
   const failed: { email: string; reason: string }[] = [];
 
   for (const sub of subscribers) {
-    const nation = sub.tribes?.name ?? "your nation";
+    // Own nation wins, so a tribal account cannot redirect its digest
+    // elsewhere; the followed nation is only for accounts without one.
+    const tribeId = sub.tribe_id ?? sub.monthly_email_tribe_id;
+    if (!tribeId) {
+      skipped.push(`${sub.email} (no nation set)`);
+      continue;
+    }
     try {
+      const { data: t } = await admin.from("tribes").select("name").eq("id", tribeId).maybeSingle();
+      const nation = sub.tribes?.name ?? t?.name ?? "your nation";
       const since = windowStart(sub.monthly_email_last_sent_at, now);
-      const digest = await buildDigest(admin, sub.tribe_id!, nation, since);
+      const digest = await buildDigest(admin, tribeId, nation, since);
 
       if (digest.newCount === 0) {
         skipped.push(`${sub.email} (nothing new)`);
