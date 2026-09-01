@@ -69,17 +69,15 @@ export default function SignupPage() {
           <p className={styles.sub}>
             {done.nation ? (
               <>
-                We matched your address to <strong>{done.nation}</strong>. Open the link we sent to{" "}
-                <strong>{email}</strong> and choose a password — that finishes your account.
+                Matched to <strong>{done.nation}</strong>. Open the link we sent to{" "}
+                <strong>{email}</strong> to set your password.
               </>
             ) : (
               done.message
             )}
           </p>
           <p className={styles.note}>
-            The link lasts 24 hours and works once. Nothing after a few minutes? Check your spam
-            folder — and if your nation filters outside mail, ask IT to allow messages from
-            Supabase.
+            The link works once and expires in 24 hours. Check spam if it doesn&rsquo;t arrive.
           </p>
           {error && <p className={styles.error}>{error}</p>}
           <p className={styles.footLink}>
@@ -101,8 +99,7 @@ export default function SignupPage() {
       <form className={styles.card} onSubmit={onSubmit}>
         <h1 className={styles.title}>Create an account</h1>
         <p className={styles.sub}>
-          For staff of the Tribal nations we monitor. Use your nation&rsquo;s email address — the
-          domain is how we know which nation you work for.
+          For staff of the Tribal nations we monitor. Use your nation&rsquo;s email address.
         </p>
 
         <label className={styles.label} htmlFor="email">Work email</label>
@@ -127,7 +124,7 @@ export default function SignupPage() {
           onChange={(e) => setJobTitle(e.target.value)}
         />
         <p className={styles.hint}>
-          Your name and title sign the notices you file, so they appear as you type them.
+          Your name and title appear on the notices you file.
         </p>
 
         {error && <p className={styles.error}>{error}</p>}
@@ -136,8 +133,7 @@ export default function SignupPage() {
           {busy ? "Checking…" : "Email me a link"}
         </button>
         <p className={styles.hint} style={{ margin: "14px 0 0" }}>
-          You pick your password on the page that link opens. Clicking it is how we confirm the
-          address is really yours.
+          We&rsquo;ll email you a link to set your password.
         </p>
 
         <hr className={styles.divider} />
