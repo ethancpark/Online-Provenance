@@ -6,6 +6,24 @@ import { withinSendLimit, TOO_MANY } from "@/lib/rateLimit";
 type Body = { email: string; full_name?: string; job_title?: string };
 
 /**
+ * Named people who may sign up as lab staff, from an address that belongs to
+ * no Tribal nation.
+ *
+ * Kept in the environment rather than the database or this file, for two
+ * reasons. lab_admin can read every account on the system, so granting it
+ * should require a deploy and not a click. And these are real people's
+ * addresses, which do not belong in a public repository.
+ *
+ * Set LAB_ADMIN_EMAILS to a comma-separated list.
+ */
+function labAdminAllowlist(): string[] {
+  return (process.env.LAB_ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+/**
  * Self-service signup, gated on the email domain belonging to a Tribal nation.
  *
  * Public signup is intentionally DISABLED in Supabase: the anon key cannot
@@ -33,6 +51,33 @@ export async function POST(req: Request) {
   // Throttle before doing anything that sends mail.
   if (!(await withinSendLimit(admin, email, req))) {
     return NextResponse.json({ error: TOO_MANY }, { status: 429 });
+  }
+
+  // Lab staff first: they are named individually, so no domain can stand in
+  // for the check. Everyone else has to belong to a nation.
+  if (labAdminAllowlist().includes(email)) {
+    const { data: created, error } = await admin.auth.admin.inviteUserByEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/set-password`,
+    });
+    // A lab admin belongs to no nation — the profiles constraint requires
+    // tribe_id to be null for this role.
+    if (!error && created?.user) {
+      await admin.from("profiles").insert({
+        id: created.user.id,
+        email,
+        full_name: body.full_name ?? null,
+        job_title: body.job_title ?? null,
+        role: "lab_admin",
+        tribe_id: null,
+        status: "invited",
+      });
+    }
+    // Same reply whether or not the account already existed.
+    return NextResponse.json({
+      ok: true,
+      nation: null,
+      message: "Check your email for a link to finish setting up your account.",
+    });
   }
 
   // Match the domain, or any subdomain of it (mail.cherokee.org).
