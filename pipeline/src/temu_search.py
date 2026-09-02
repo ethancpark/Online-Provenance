@@ -100,8 +100,22 @@ def _map_item(item: dict, query: str) -> TemuListing | None:
     )
 
 
+# Which backend fetches Temu. "playwright" drives a signed-in browser locally
+# and costs nothing; "apify" bills $0.01 per result through the actor.
+TEMU_BACKEND = os.getenv("TEMU_BACKEND", "playwright").strip().lower()
+
+
 def search(query: str, *, max_results: int = 20, retries: int = 1) -> list[TemuListing]:
-    """Run one Temu search through the Apify actor, return parsed listings."""
+    """Run one Temu search, return parsed listings."""
+    if TEMU_BACKEND == "playwright":
+        from src.temu_playwright import search as pw_search
+
+        return pw_search(query, max_results=max_results, retries=retries)
+    return _search_apify(query, max_results=max_results, retries=retries)
+
+
+def _search_apify(query: str, *, max_results: int = 20, retries: int = 1) -> list[TemuListing]:
+    """The paid path: one Temu search through the Apify actor."""
     if not APIFY_TOKEN:
         raise RuntimeError("Missing APIFY_TOKEN. Set it in pipeline/.env.")
 

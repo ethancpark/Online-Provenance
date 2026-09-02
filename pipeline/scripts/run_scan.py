@@ -389,12 +389,20 @@ def run_scan(
         if name_filter:
             print("(skipping Temu dragnet: it always scans across all tribes)")
         else:
-            left_usd = apify_usd_left()
+            # The browser backend costs nothing, so the Apify credit guard
+            # would block a free run for no reason.
+            if os.getenv("TEMU_BACKEND", "playwright").strip().lower() == "playwright":
+                queries = dragnet_queries_for_today()
+                print(f"\n=== Temu dragnet ({len(queries)} queries, local browser, $0) ===")
+                run_temu_dragnet(client, tribes, max_per_query, stats, queries=queries)
+                left_usd = None
+            else:
+                left_usd = apify_usd_left()
             # Cost the whole dragnet up front. Checking a flat reserve instead
             # let a run start with $0.45 left and spend $0.50, which is how the
             # balance reached -$0.34 and locked Temu out for the rest of the
             # cycle. Project it, and either the run fits or it does not start.
-            queries = dragnet_queries_for_today()
+            queries = dragnet_queries_for_today() if left_usd is not None else []
             need_usd = round(len(queries) * max_per_query * APIFY_USD_PER_RESULT, 4)
             if left_usd is not None and left_usd < need_usd + APIFY_RESERVE_USD:
                 msg = (f"temu SKIPPED — needs ~${need_usd} "
@@ -402,9 +410,8 @@ def run_scan(
                        f"${left_usd} left (free allowance resets monthly)")
                 print(f"\n{msg}\n")
                 skipped.append(msg)
-            else:
-                print(f"\n=== Temu dragnet (~${need_usd} of "
-                      f"${left_usd if left_usd is not None else '?'} available) ===")
+            elif left_usd is not None:
+                print(f"\n=== Temu dragnet (~${need_usd} of ${left_usd} available) ===")
                 run_temu_dragnet(client, tribes, max_per_query, stats, queries=queries)
 
     print("\n=== Scan complete ===")
