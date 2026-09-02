@@ -30,7 +30,6 @@ type Subscriber = {
   tribe_id: string | null;
   monthly_email_tribe_id: string | null;
   monthly_email_last_sent_at: string | null;
-  tribes: { name: string } | null;
 };
 
 async function sendViaResend(to: string, subject: string, html: string, text: string) {
@@ -88,7 +87,11 @@ export async function POST(req: Request) {
 
   const { data, error } = await admin
     .from("profiles")
-    .select("id,email,tribe_id,monthly_email_tribe_id,monthly_email_last_sent_at,tribes(name)")
+    // No tribes(name) embed here: profiles has two foreign keys to tribes
+    // (tribe_id and monthly_email_tribe_id), so PostgREST cannot tell which
+    // one to follow and errors. The name is resolved per subscriber below,
+    // from whichever id actually applies.
+    .select("id,email,tribe_id,monthly_email_tribe_id,monthly_email_last_sent_at")
     .eq("monthly_email", true)
     .eq("status", "active");
 
@@ -112,7 +115,7 @@ export async function POST(req: Request) {
     }
     try {
       const { data: t } = await admin.from("tribes").select("name").eq("id", tribeId).maybeSingle();
-      const nation = sub.tribes?.name ?? t?.name ?? "your nation";
+      const nation = t?.name ?? "your nation";
       const since = windowStart(sub.monthly_email_last_sent_at, now);
       const digest = await buildDigest(admin, tribeId, nation, since);
 
