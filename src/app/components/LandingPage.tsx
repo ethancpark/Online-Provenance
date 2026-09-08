@@ -103,13 +103,7 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* 5 — About */}
-      <section className={styles.aboutBand} id="about">
-        <AboutProject className={styles.about} />
-        <p className={styles.aboutMeta}>𐒻𐒼𐓂 Lab — Indigenous Politics Lab, Emory University</p>
-      </section>
-
-      {/* 6 — Map */}
+      {/* 5 — Map */}
       <section className={styles.mapSection} id="map">
         <div className={styles.mapHead}>
           <h2 className={styles.h2}>Where it&rsquo;s happening</h2>
@@ -132,7 +126,7 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* 7 — How it works */}
+      {/* 6 — How it works */}
       <section className={styles.how} id="how">
         <div className={styles.howHead}>
           <h2 className={styles.howHeading}>How it works</h2>
@@ -149,6 +143,12 @@ export default function LandingPage({
           ))}
         </div>
       </section>
+      {/* 7 — About */}
+      <section className={styles.aboutBand} id="about">
+        <AboutProject className={styles.about} />
+        <p className={styles.aboutMeta}>𐒻𐒼𐓂 Lab — Indigenous Politics Lab, Emory University</p>
+      </section>
+
     </main>
   );
 }

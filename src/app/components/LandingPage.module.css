@@ -429,7 +429,14 @@
   /* Hero: 640px of fixed height is most of a phone screen before any content.
      The headline's clamp floor was 44px, which is why it broke mid-phrase. */
   .hero { height: 420px; }
-  .heroPhoto { grid-template-columns: repeat(4, 1fr); }
+  /* 4 columns gave 98px tiles, and object-fit: cover crops a flag photo that
+     small down to a fragment of a word — "SEAL O", "REA". Three columns is
+     ~130px, enough that each tile reads as a product. */
+  .heroPhoto { grid-template-columns: repeat(3, 1fr); }
+  /* 60 images load but only about a dozen fit in a 420px hero; the rest are
+     clipped by overflow. Dropping them from layout means the lazy ones are
+     never fetched on a phone. */
+  .heroPhoto img:nth-child(n + 25) { display: none; }
   .heroHeadline {
     font-size: clamp(1.9rem, 8.6vw, 44px);
     line-height: 1.02;
