@@ -311,9 +311,9 @@
   margin: 0;
 }
 .howNote {
-  font-family: var(--font-label);
-  font-size: 13px;
-  line-height: 1.65;
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.68;
   color: #b5ab9e;
   margin: 0;
   justify-self: end;
@@ -483,9 +483,11 @@
   .affectedNum { font-size: 18px; }
   .affectedName { font-size: 16px; }
 
-  .how { padding-top: 48px; padding-bottom: 48px; }
-  .howHead { margin-bottom: 32px; gap: 18px; }
-  .step { margin-bottom: 26px; }
-  .stepTitle { font-size: 24px; }
-  .stepBody { font-size: 16px; line-height: 1.55; }
+  .how { padding-top: 36px; padding-bottom: 36px; }
+  .howHead { margin-bottom: 22px; gap: 12px; }
+  .howNote { font-size: 16px; line-height: 1.55; }
+  .step { margin-bottom: 0; padding-top: 16px; }
+  .step + .step { margin-top: 18px; }
+  .stepTitle { font-size: 20px; margin-bottom: 6px; }
+  .stepBody { font-size: 15.5px; line-height: 1.5; }
 }
