@@ -429,14 +429,20 @@
   /* Hero: 640px of fixed height is most of a phone screen before any content.
      The headline's clamp floor was 44px, which is why it broke mid-phrase. */
   .hero { height: 420px; }
-  /* 4 columns gave 98px tiles, and object-fit: cover crops a flag photo that
-     small down to a fragment of a word — "SEAL O", "REA". Three columns is
-     ~130px, enough that each tile reads as a product. */
-  .heroPhoto { grid-template-columns: repeat(3, 1fr); }
-  /* 60 images load but only about a dozen fit in a 420px hero; the rest are
-     clipped by overflow. Dropping them from layout means the lazy ones are
-     never fetched on a phone. */
-  .heroPhoto img:nth-child(n + 25) { display: none; }
+  /* Denser, not bigger. Fewer/larger tiles seem like they should show the
+     products better, but the opposite is true: at 3-4 columns a tile is large
+     enough to read as a single product yet object-fit: cover has cropped it to
+     a fragment of a word — "GREAT", "F THE C", "SEAL OF". At 5 columns the
+     tiles are ~78px, small enough that the eye reads a wall of many products
+     rather than one broken one, and because these seals are circular and
+     centred in the source photos, a square crop keeps the whole seal. Around
+     twenty nations are identifiable at once, which is what the headline
+     claims. Checked at 3, 5 and 6 columns on a 390px screen. */
+  .heroPhoto { grid-template-columns: repeat(5, 1fr); }
+  /* 5 columns of 78px fills the 420px hero in about 5.4 rows, so 30 tiles
+     covers it with a little slack for taller phones. The rest are dropped from
+     layout, and being lazy they are never fetched — 30 requests, not 60. */
+  .heroPhoto img:nth-child(n + 31) { display: none; }
   .heroHeadline {
     font-size: clamp(1.9rem, 8.6vw, 44px);
     line-height: 1.02;
