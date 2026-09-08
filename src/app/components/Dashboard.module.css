@@ -680,3 +680,41 @@
   white-space: nowrap;
 }
 .emailPrompt a:hover { color: var(--clay-dark); }
+
+/* ---------- Phones ----------
+   The top bar is a single flex row of wordmark, live badge, About, View site
+   and the account menu. On a 390px screen every one of those wraps: the
+   wordmark onto two lines, "Live · updated daily" onto three. */
+@media (max-width: 640px) {
+  .mastIn,
+  .body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .topBar {
+    gap: 12px;
+    padding: 14px 0;
+  }
+  .wordmark {
+    font-size: 17px;
+    white-space: nowrap;
+  }
+  .topRight { gap: 14px; }
+  .topLink { white-space: nowrap; font-size: 13px; }
+  /* Decoration, and the worst offender — three lines for two words. The scan
+     cadence is stated in "How it works" on the home page anyway. */
+  .live { display: none; }
+
+  .eyebrow { font-size: 11px; }
+  .nationName { font-size: clamp(1.75rem, 9vw, 40px); line-height: 1.05; }
+  .identity { gap: 18px; }
+  .identityMeta { gap: 10px; font-size: 13px; }
+
+  .counts { gap: 0; }
+  .countNum { font-size: clamp(2rem, 11vw, 46px); }
+  .countLabel { font-size: 12px; }
+
+  .grid { gap: 20px; }
+  .about { padding: 20px 16px; }
+}

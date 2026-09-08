@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HotspotMap, { type TribeCount } from "./HotspotMap";
+import AboutProject from "./AboutProject";
 import AccountNav, { type SessionUser } from "./AccountNav";
 import styles from "./LandingPage.module.css";
 
@@ -102,19 +103,10 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* 5 — Credits band */}
-      <section className={styles.credits} id="about">
-        <p className={styles.creditText}>
-          Online Provenance is a free tool built by Anish Thota, Ethan Park, and Dr. Elise
-          Blasingame, a professor and citizen of the Osage Nation.{" "}
-          <em>
-            It is and will remain completely free — our only goal is to make it useful to Native
-            communities.
-          </em>
-        </p>
-        <div className={styles.creditMeta}>
-          <p>𐒻𐒼𐓂 Lab — Indigenous Politics Lab, Emory University</p>
-        </div>
+      {/* 5 — About */}
+      <section className={styles.aboutBand} id="about">
+        <AboutProject className={styles.about} />
+        <p className={styles.aboutMeta}>𐒻𐒼𐓂 Lab — Indigenous Politics Lab, Emory University</p>
       </section>
 
       {/* 6 — Map */}

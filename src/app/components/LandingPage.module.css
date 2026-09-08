@@ -182,36 +182,49 @@
   color: var(--text-muted);
 }
 
-/* ---------- 5. Credits ---------- */
-.credits {
-  display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 72px;
-  padding: 60px 64px;
+/* ---------- 5. About ---------- */
+/* Same words as the dashboard's About, set at the home page's scale: a full
+   band rather than a card, and a measure that stays readable at 17px. */
+.aboutBand {
+  padding: 64px;
   border-bottom: 1px solid var(--rule);
 }
-.creditText {
+.about h2 {
   font-family: var(--font-display);
-  font-size: clamp(1.35rem, 2.2vw, 30px);
-  line-height: 1.48;
-  margin: 0;
+  font-weight: 500;
+  font-size: clamp(2rem, 4.3vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  margin: 0 0 20px;
 }
-.creditText em {
+.about h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 24px;
+  margin: 30px 0 10px;
+}
+.about p {
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.68;
+  color: var(--text-secondary);
+  max-width: 74ch;
+  margin: 0 0 14px;
+}
+.about a {
   color: var(--clay);
-  font-style: italic;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(168, 70, 44, 0.4);
 }
-.creditMeta {
+.about a:hover { text-decoration-color: var(--clay); }
+.aboutMeta {
   font-family: var(--font-label);
   font-size: 13px;
-  line-height: 1.6;
   color: var(--text-muted);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 6px;
-}
-.creditMeta p {
-  margin: 0;
+  margin: 28px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
 }
 
 /* ---------- 6. Map ---------- */
@@ -334,7 +347,7 @@
   .header,
   .ledeBand,
   .stats,
-  .credits,
+  .aboutBand,
   .mapSection,
   .how {
     padding-left: 28px;
@@ -345,7 +358,6 @@
     margin-right: 28px;
   }
   .ledeBand,
-  .credits,
   .mapHead,
   .howHead {
     grid-template-columns: 1fr;
@@ -379,4 +391,94 @@
   .nav a:not(.navButton) {
     display: none;
   }
+}
+
+/* ---------- Phones ----------
+   The 1000px block above is a tablet layout: it stacks the grids but keeps
+   desktop type sizes and 28px gutters, which on a 390px screen wraps the
+   wordmark, the nav button and the headline onto lines of two or three words. */
+@media (max-width: 640px) {
+  .header,
+  .ledeBand,
+  .stats,
+  .aboutBand,
+  .mapSection,
+  .how {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  /* Header: the two items have ~350px between them, so both have to shrink
+     and neither may wrap. */
+  .header {
+    padding-top: 16px;
+    padding-bottom: 16px;
+    gap: 12px;
+  }
+  .wordmark {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  .navButton {
+    font-size: 13px;
+    padding: 9px 13px;
+    white-space: nowrap;
+  }
+  .nav { gap: 14px; }
+
+  /* Hero: 640px of fixed height is most of a phone screen before any content.
+     The headline's clamp floor was 44px, which is why it broke mid-phrase. */
+  .hero { height: 420px; }
+  .heroPhoto { grid-template-columns: repeat(4, 1fr); }
+  .heroHeadline {
+    font-size: clamp(1.9rem, 8.6vw, 44px);
+    line-height: 1.02;
+    max-width: none;
+    margin: 0 20px 32px;
+  }
+  /* The bleed either side of the highlight is proportional, so at small sizes
+     it crowds the line beside it. */
+  .highlight {
+    box-shadow: 0.16em 0 0 var(--clay), -0.16em 0 0 var(--clay);
+  }
+
+  .ledeBand { padding-top: 22px; padding-bottom: 22px; }
+  .ledeCtas { gap: 18px; }
+  .ctaSolid {
+    width: 100%;
+    font-size: 15px;
+    padding: 15px 20px;
+  }
+
+  /* Stats: three stacked 96px numerals ran to most of a screen on their own. */
+  .stat { padding: 26px 0 22px; }
+  .statNum { font-size: clamp(2.6rem, 13vw, 64px); }
+  .statLabel { margin-top: 8px; font-size: 14px; }
+
+  .aboutBand { padding-top: 40px; padding-bottom: 40px; }
+  .about h3 { font-size: 20px; margin-top: 24px; }
+  .about p { font-size: 16px; line-height: 1.6; }
+
+  .mapSection { padding-top: 44px; padding-bottom: 44px; }
+  .mapCaption { font-size: 16px; line-height: 1.55; }
+  /* 520px reserved a screen and a half of blank space under a small map. */
+  .mapHolder { min-height: 0; }
+
+  /* This was a wrapping flex row, so it dealt names out two-up then one-up
+     depending on their length. A list is a list. */
+  .affected {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .affectedItem { gap: 10px; }
+  .affectedNum { font-size: 18px; }
+  .affectedName { font-size: 16px; }
+
+  .how { padding-top: 48px; padding-bottom: 48px; }
+  .howHead { margin-bottom: 32px; gap: 18px; }
+  .step { margin-bottom: 26px; }
+  .stepTitle { font-size: 24px; }
+  .stepBody { font-size: 16px; line-height: 1.55; }
 }
