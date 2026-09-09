@@ -443,6 +443,17 @@
      covers it with a little slack for taller phones. The rest are dropped from
      layout, and being lazy they are never fetched — 30 requests, not 60. */
   .heroPhoto img:nth-child(n + 31) { display: none; }
+  /* Fit the whole product in the square instead of cropping to fill it. cover
+     guarantees no gaps but decides for you which part of the photo to throw
+     away, and on a flag or a sticker that is usually the half with the seal on
+     it — the tiles read "REA", "THE", "SEAL", "CH L". contain keeps every
+     product whole and centred; the letterboxing sits on a warm ground and
+     reads as a grid rather than as damage. */
+  .heroPhoto img {
+    object-fit: contain;
+    background: var(--paper-tint);
+    padding: 3px;
+  }
   .heroHeadline {
     font-size: clamp(1.9rem, 8.6vw, 44px);
     line-height: 1.02;
