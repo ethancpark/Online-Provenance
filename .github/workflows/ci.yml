@@ -25,7 +25,16 @@ jobs:
           # tree and `npm ci` refuses the committed lockfile as out of sync.
           node-version: "22"
           cache: npm
-      - run: npm ci
+      # npm install, not npm ci. The lockfile is generated on macOS and npm
+      # does not record the transitive dependencies of packages it skips as
+      # linux-only, so `npm ci` on a Linux runner refuses a tree it cannot
+      # complete — "Missing: @emnapi/runtime from lock file". Regenerating with
+      # --os=linux satisfied a local dry-run but not the runner, whose npm
+      # resolves differently again. install honours the lockfile for versions
+      # and fills in the platform gaps, which is the right trade for a project
+      # this size; the alternative is maintaining a Linux-generated lockfile
+      # nobody here can produce.
+      - run: npm install --no-audit --no-fund
       - run: npx tsc --noEmit
       - run: npx eslint src
       # The build catches prerender errors that tsc and eslint both miss.
