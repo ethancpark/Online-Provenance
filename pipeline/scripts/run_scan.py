@@ -153,9 +153,27 @@ def _title_confirms(title: str, tribe_name: str) -> bool:
     return True
 
 
+# A title that names another institution outright. Unlike _RIVAL_ENTITY_RE,
+# which only weighs in when the name matched, this vetoes a strong image score
+# too: CLIP scored the Oklahoma state flag at 0.60-0.63 against the Ottawa
+# Tribe's reference, and a listing called "Oklahoma State Flag" is not that
+# nation's mark however similar the picture looks.
+#
+# "Souvenir" is deliberately not here. A souvenir shop selling a tribal seal is
+# exactly the infringement this tool is looking for.
+_NOT_A_TRIBAL_MARK_RE = re.compile(
+    r"\b(state\s+flag|state\s+seal|universit(?:y|ies)|college|collegiate|ncaa)\b",
+    re.I,
+)
+
+
 def _evaluate(title: str, tribe_name: str, match):
     """(store?, confidence, band): image-only path or title-confirmed path."""
     sim = match.confidence
+    # Checked before the image path, so a picture that merely resembles the
+    # mark cannot carry a listing that says in words it belongs to someone else.
+    if title and _NOT_A_TRIBAL_MARK_RE.search(title):
+        return False, round(sim, 3), match.confidence_band
     if sim >= IMAGE_ONLY_MIN:
         return True, round(sim, 3), match.confidence_band
     if sim >= IMAGE_TEXT_FLOOR and _title_confirms(title, tribe_name):

@@ -35,6 +35,7 @@ from src.db import get_client  # noqa: E402
 # Imported from run_scan so this cannot drift from what the scanner does.
 from scripts.run_scan import (  # noqa: E402
     TEXT_CONFIRMED_CONFIDENCE,
+    _NOT_A_TRIBAL_MARK_RE,
     _title_confirms,
 )
 
@@ -71,15 +72,24 @@ def main() -> int:
 
     doomed = []
     for m in rows:
-        # Only the title-confirmed path. An image match stands on its own.
-        if abs(float(m["confidence"]) - TEXT_CONFIRMED_CONFIDENCE) > 1e-6:
-            continue
         listing = m.get("listings") or {}
         title = listing.get("title") or ""
         nation = ((listing.get("tribes") or {}) or {}).get("name", "")
-        # The whole rule, not one clause of it, so this keeps pace with the
-        # scanner as the rule grows.
-        if nation and not _title_confirms(title, nation):
+        if not nation:
+            continue
+
+        # The stored confidence says which path let the match in, and each has
+        # its own test. A title-confirmed row carries the fixed 0.72, so its
+        # original image score is gone and only the title can be re-judged.
+        title_path = abs(float(m["confidence"]) - TEXT_CONFIRMED_CONFIDENCE) <= 1e-6
+        if title_path:
+            rejected = not _title_confirms(title, nation)
+        else:
+            # An image match stands on its own unless the title names another
+            # institution outright.
+            rejected = bool(_NOT_A_TRIBAL_MARK_RE.search(title))
+
+        if rejected:
             doomed.append({
                 "id": m["id"],
                 "nation": nation,
