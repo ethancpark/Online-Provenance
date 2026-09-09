@@ -1,5 +1,5 @@
 """
-Remove stored matches that the rival-entity rule now rejects.
+Remove stored matches the title rule no longer accepts.
 
 The title-confirmation rule accepts a weak image score when a listing's title
 names the tribe and says "flag" or "seal". 56 of 132 nations reduce to a single
@@ -16,10 +16,11 @@ This applies the same rule to what is already stored. It only touches matches
 that came through the title path — a strong image match is left alone, whatever
 its title says, because that is a different claim.
 
-    python3 -m scripts.prune_rival_entity_matches            # report only
-    python3 -m scripts.prune_rival_entity_matches --apply    # delete
+    python3 -m scripts.prune_misattributed_matches            # report only
+    python3 -m scripts.prune_misattributed_matches --apply    # delete
 
-Backs up every row it removes to scripts/pruned_matches.json first.
+Every removed row is appended to scripts/pruned_matches.json, never
+overwritten — a second run must not erase the record of the first.
 """
 
 import argparse
@@ -34,7 +35,7 @@ from src.db import get_client  # noqa: E402
 # Imported from run_scan so this cannot drift from what the scanner does.
 from scripts.run_scan import (  # noqa: E402
     TEXT_CONFIRMED_CONFIDENCE,
-    _RIVAL_ENTITY_RE,
+    _title_confirms,
 )
 
 BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pruned_matches.json")
@@ -75,8 +76,10 @@ def main() -> int:
             continue
         listing = m.get("listings") or {}
         title = listing.get("title") or ""
-        if _RIVAL_ENTITY_RE.search(title):
-            nation = ((listing.get("tribes") or {}) or {}).get("name", "?")
+        nation = ((listing.get("tribes") or {}) or {}).get("name", "")
+        # The whole rule, not one clause of it, so this keeps pace with the
+        # scanner as the rule grows.
+        if nation and not _title_confirms(title, nation):
             doomed.append({
                 "id": m["id"],
                 "nation": nation,
@@ -104,9 +107,18 @@ def main() -> int:
         print("\nreport only — re-run with --apply to delete")
         return 0
 
+    # Append. Overwriting would destroy the record of an earlier prune, which
+    # is the one thing this file exists for.
+    existing = []
+    if os.path.exists(BACKUP):
+        try:
+            with open(BACKUP) as fh:
+                existing = json.load(fh)
+        except Exception:  # noqa: BLE001
+            existing = []
     with open(BACKUP, "w") as fh:
-        json.dump(doomed, fh, indent=2)
-    print(f"\nbacked up to {BACKUP}")
+        json.dump(existing + doomed, fh, indent=2)
+    print(f"\nappended {len(doomed)} row(s) to {BACKUP} ({len(existing) + len(doomed)} total)")
 
     removed = 0
     for d in doomed:

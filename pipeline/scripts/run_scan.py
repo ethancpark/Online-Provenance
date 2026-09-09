@@ -98,6 +98,31 @@ _RIVAL_ENTITY_RE = re.compile(
 )
 
 
+# Names whose dominant meaning is a place that is not the nation. When a
+# nation's identifying tokens rest on one of these, the name in a title is not
+# evidence on its own: "Miami City Flag", "Narragansett Rhode Island Sticker"
+# and "Coeur d'Alene Idaho T-Shirt" all name the city, not the tribe.
+#
+# Pueblo names where the pueblo IS the place — Sandia, Jemez, San Carlos — are
+# deliberately absent, or a genuine "Bandera Sandia Flags" would be thrown out.
+# Tribal-family words are absent too; the test below already recognises them.
+_SHARED_PLACE_NAMES = {
+    "delaware", "miami", "omaha", "ottawa", "peoria", "seneca", "cheyenne",
+    "wichita", "kansas", "iowa", "narragansett", "coeur", "alene", "modoc",
+    "yuma", "tacoma", "tulsa", "biloxi",
+}
+
+# Something in the title that says this is a Tribal item at all.
+_TRIBAL_CONTEXT_RE = re.compile(
+    r"\b(tribes?|tribal|nations?|indian|indians|indigenous|native|band|bands|"
+    r"pueblo|rancheria|reservation|chippewa|ojibwe|sioux|choctaw|chickasaw|creek|"
+    r"muscogee|seminole|navajo|paiute|shoshone|pomo|yakama|potawatomi|odawa|"
+    r"oneida|laguna|cherokee|apache|comanche|kiowa|osage|ponca|pawnee|arapaho|"
+    r"blackfeet)\b",
+    re.I,
+)
+
+
 def _title_confirms(title: str, tribe_name: str) -> bool:
     """
     True if the title says it's a flag/seal product AND names the tribe by its
@@ -117,7 +142,15 @@ def _title_confirms(title: str, tribe_name: str) -> bool:
     if not sig:
         return False
     need = sig[:2]  # leading identifying tokens of the official name
-    return all(w in toks for w in need)
+    if not all(w in toks for w in need):
+        return False
+
+    # A nation named after a place it shares needs the title to say, somewhere,
+    # that this is a Tribal item. Without that, "Miami Pennant" and "Nebraska
+    # Omaha Mavericks Banner" satisfy every other test.
+    if any(tok in _SHARED_PLACE_NAMES for tok in need):
+        return bool(_TRIBAL_CONTEXT_RE.search(title))
+    return True
 
 
 def _evaluate(title: str, tribe_name: str, match):
