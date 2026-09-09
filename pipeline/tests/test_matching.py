@@ -15,7 +15,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from scripts.run_scan import (  # noqa: E402
+from src.matching_rules import (  # noqa: E402
     _evaluate,
     _names_another_nation,
     _title_confirms,

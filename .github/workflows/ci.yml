@@ -1,0 +1,53 @@
+name: CI
+
+# Runs on every push and pull request. Deliberately cheap and offline: no
+# Supabase, no scraper credentials, no network. It checks the things that can
+# be checked without them, which is most of what breaks.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web — types, lint, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx eslint src
+      # The build catches prerender errors that tsc and eslint both miss.
+      - name: Build
+        run: npm run build
+        env:
+          # Placeholders: the build only needs these to exist, and nothing here
+          # reaches a real project.
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder
+
+  matching:
+    name: Pipeline — matching rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # No pip install. The rules were moved into src/matching_rules.py, which
+      # imports only os and re, so this needs nothing beyond the interpreter —
+      # verified by running the suite with torch, PIL, requests, supabase and
+      # playwright all blocked.
+      - name: Matching rules
+        run: python -m tests.test_matching
+        working-directory: pipeline

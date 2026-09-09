@@ -33,7 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.db import get_client  # noqa: E402
 
 # Imported from run_scan so this cannot drift from what the scanner does.
-from scripts.run_scan import (  # noqa: E402
+from src.matching_rules import (  # noqa: E402
     TEXT_CONFIRMED_CONFIDENCE,
     _NOT_A_TRIBAL_MARK_RE,
     _names_another_nation,
