@@ -68,6 +68,9 @@
 .primary:hover { background: #221e1a; }
 
 .secondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   font-family: var(--font-label);
   font-size: 14px;
   color: var(--clay);

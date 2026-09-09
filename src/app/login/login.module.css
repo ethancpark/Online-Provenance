@@ -110,6 +110,9 @@
   gap: 12px;
 }
 .labelLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   font-family: var(--font-label);
   font-size: 13px;
   color: var(--clay);
@@ -193,6 +196,9 @@
   flex-direction: column;
 }
 .back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   display: inline-flex;
   align-items: baseline;
   gap: 8px;

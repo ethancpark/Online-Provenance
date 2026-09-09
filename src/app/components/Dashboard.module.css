@@ -53,6 +53,9 @@
   background: var(--status-live);
 }
 .topLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   background: none;
   border: 0;
   padding: 0;
@@ -116,6 +119,9 @@
   color: var(--cream);
 }
 .usptoLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   color: var(--clay-light);
   text-decoration: underline;
   text-underline-offset: 4px;

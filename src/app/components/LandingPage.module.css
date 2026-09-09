@@ -134,6 +134,9 @@
   background: #f4e9dd;
 }
 .ctaText {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   font-family: var(--font-label);
   font-weight: 600;
   font-size: 15px;

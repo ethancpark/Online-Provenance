@@ -7,6 +7,9 @@
 }
 
 .signIn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   color: #5f574e;
   text-decoration: none;
 }
