@@ -36,7 +36,9 @@ from src.db import get_client  # noqa: E402
 from scripts.run_scan import (  # noqa: E402
     TEXT_CONFIRMED_CONFIDENCE,
     _NOT_A_TRIBAL_MARK_RE,
+    _names_another_nation,
     _title_confirms,
+    register_nations,
 )
 
 BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pruned_matches.json")
@@ -48,6 +50,11 @@ def main() -> int:
     args = ap.parse_args()
 
     client = get_client()
+    # The cross-nation check needs to know every nation that exists, not just
+    # the ones with matches.
+    register_nations(
+        [t["name"] for t in (client.table("tribes").select("name").execute().data or [])]
+    )
     # PostgREST caps a response at 1000 rows, so a single select silently reads
     # only the first page and the prune would miss everything past it.
     rows = []
@@ -88,6 +95,10 @@ def main() -> int:
             # An image match stands on its own unless the title names another
             # institution outright.
             rejected = bool(_NOT_A_TRIBAL_MARK_RE.search(title))
+        # Either way: a title naming a different nation's mark is that nation's
+        # to act on, not this one's.
+        if not rejected and _names_another_nation(title, nation):
+            rejected = True
 
         if rejected:
             doomed.append({

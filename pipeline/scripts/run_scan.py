@@ -167,12 +167,53 @@ _NOT_A_TRIBAL_MARK_RE = re.compile(
 )
 
 
+# Every monitored nation's identifying tokens, filled in at the start of a scan
+# by register_nations(). Empty outside a scan, and the check below then does
+# nothing, so importing this module in isolation stays safe.
+_NATION_SIGNATURES: dict[str, list[str]] = {}
+
+
+def register_nations(names) -> None:
+    """Tell the matcher which nations exist, so it can spot a title naming
+    somebody else's mark."""
+    _NATION_SIGNATURES.clear()
+    for n in names:
+        sig = _name_tokens(n)[:2]
+        if sig:
+            _NATION_SIGNATURES[n] = sig
+
+
+def _names_another_nation(title: str, tribe_name: str) -> str | None:
+    """The nation this title actually names, when that is not this one.
+
+    The worst thing this tool can do is handed a nation a notice for somebody
+    else's mark: "Chickasaw Nation Great Seal Flag" was filed under Mississippi
+    Band of Choctaw, and a Mandan, Hidatsa and Arikara flag under Blackfeet.
+    Both are real infringements — of a different nation's seal, which this
+    nation has no standing to swear to.
+    """
+    if not title or not _NATION_SIGNATURES:
+        return None
+    toks = set(re.sub(r"[^a-z0-9 ]", " ", title.lower()).split())
+    mine = _NATION_SIGNATURES.get(tribe_name) or []
+    if mine and all(w in toks for w in mine):
+        return None  # it names this nation; that is the ordinary case
+    for other, sig in _NATION_SIGNATURES.items():
+        if other != tribe_name and all(w in toks for w in sig):
+            return other
+    return None
+
+
 def _evaluate(title: str, tribe_name: str, match):
     """(store?, confidence, band): image-only path or title-confirmed path."""
     sim = match.confidence
     # Checked before the image path, so a picture that merely resembles the
     # mark cannot carry a listing that says in words it belongs to someone else.
     if title and _NOT_A_TRIBAL_MARK_RE.search(title):
+        return False, round(sim, 3), match.confidence_band
+    # Somebody else's seal, however well it matched this nation's reference.
+    other = _names_another_nation(title, tribe_name)
+    if other:
         return False, round(sim, 3), match.confidence_band
     if sim >= IMAGE_ONLY_MIN:
         return True, round(sim, 3), match.confidence_band
@@ -406,6 +447,29 @@ def run_temu_dragnet(client, tribes, max_per_query, stats, queries=None) -> None
             if not match:
                 continue
             tribe = tribe_by_asset[match.reference_asset_id]
+
+            # The dragnet assigns by image, and a seal can resemble another
+            # nation's closely enough to land on the wrong desk — a Chickasaw
+            # Nation flag was filed under Mississippi Band of Choctaw. When the
+            # title names a nation we monitor, that nation owns the claim, so
+            # hand it over rather than dropping a real infringement.
+            named = _names_another_nation(listing.title, tribe["name"])
+            if named:
+                rightful = next((t for t in tribes if t["name"] == named), None)
+                rightful_asset = next(
+                    (a for a in (rightful or {}).get("reference_assets") or [] if a.get("embedding")),
+                    None,
+                )
+                if rightful and rightful_asset:
+                    print(f"  [temu]   reassigning to {named} (its name is in the title)")
+                    tribe = rightful
+                    match.reference_asset_id = rightful_asset["id"]
+                else:
+                    # We know whose it is but cannot file it under them, so it
+                    # is nobody's to claim here.
+                    stats["suppressed"] += 1
+                    continue
+
             store, conf, band = _evaluate(listing.title, tribe["name"], match)
             if not store:
                 stats["suppressed"] += 1
@@ -423,6 +487,10 @@ def run_scan(
 ) -> dict:
     client = get_client()
     tribes = _tribes_with_reference_assets(client, name_filter)
+    # Name-filtered runs would otherwise only know about one nation and could
+    # not tell that a title names a different one, so always register them all.
+    all_names = [t["name"] for t in (client.table("tribes").select("name").execute().data or [])]
+    register_nations(all_names or [t["name"] for t in tribes])
     print(f"Scanning with {len(tribes)} tribe(s) that have reference assets\n")
     print(f"  (storing matches with confidence >= {MATCH_MIN_CONFIDENCE:.2f})\n")
 
