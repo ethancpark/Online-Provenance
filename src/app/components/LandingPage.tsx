@@ -65,7 +65,7 @@ export default function LandingPage({
         <div className={styles.heroPhoto} aria-hidden="true">
           {heroImages.map((src, i) => (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img key={i} src={src} alt="" loading={i < 20 ? "eager" : "lazy"} />
+            <img key={i} src={src} alt="" loading={i < 25 ? "eager" : "lazy"} />
           ))}
         </div>
         <div className={styles.heroScrim} aria-hidden="true" />

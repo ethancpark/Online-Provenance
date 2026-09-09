@@ -467,6 +467,13 @@
   .heroPhoto img {
     object-fit: contain;
     padding: 3px;
+    /* Every tile carries its own ground, a shade off the ink behind it. An
+       image that has not arrived — or never arrives — then still reads as a
+       cell in the wall rather than as nothing, so the hero is a full grid from
+       the first paint instead of a void with products collected at the bottom.
+       This is not the warm tint that made it a beige slab; it is close enough
+       to the ink that a loaded tile still sits on a dark ground. */
+    background: #38312c;
   }
   .heroHeadline {
     font-size: clamp(1.9rem, 8.6vw, 44px);
