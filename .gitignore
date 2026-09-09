@@ -29,3 +29,7 @@ next-env.d.ts
 
 # OS
 .DS_Store
+
+# Claude Code: share the dev-server config, keep personal settings out.
+.claude/settings.local.json
+.claude/settings.json

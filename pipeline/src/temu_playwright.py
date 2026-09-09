@@ -62,6 +62,15 @@ class TemuBlocked(RuntimeError):
     """Temu served a login wall or a page with no products."""
 
 
+class TemuNotConfigured(TemuBlocked):
+    """Neither a session nor a proxy is set up.
+
+    Separate from TemuBlocked because it is a setup problem, not a per-query
+    one: repeating it once per query in a dragnet is fifteen identical lines
+    saying the same thing.
+    """
+
+
 def _proxy_config() -> dict | None:
     server = os.getenv("TEMU_PROXY_SERVER", "").strip()
     if not server:
@@ -158,7 +167,7 @@ def search(
     proxy = _proxy_config()
     have_session = os.path.exists(SESSION_PATH)
     if not proxy and not have_session:
-        raise TemuBlocked(
+        raise TemuNotConfigured(
             "No Temu session and no proxy configured. Either run\n"
             "  python3 -m scripts.save_temu_session\n"
             "or set TEMU_PROXY_SERVER in pipeline/.env."

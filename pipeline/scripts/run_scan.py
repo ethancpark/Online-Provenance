@@ -424,6 +424,7 @@ def run_temu_dragnet(client, tribes, max_per_query, stats, queries=None) -> None
     # request, so a run that is being blocked should stop after a few pages
     # rather than work through every query discovering the same wall.
     from src.temu_budget import Budget, BudgetExceeded
+    from src.temu_playwright import TemuNotConfigured
 
     budget = Budget()
 
@@ -434,6 +435,10 @@ def run_temu_dragnet(client, tribes, max_per_query, stats, queries=None) -> None
         except BudgetExceeded as e:
             print(f"  [temu] {e}")
             print(f"  [temu] stopping the dragnet early; {budget.summary()}")
+            break
+        except TemuNotConfigured as e:
+            # Setup, not bad luck — every remaining query would say this too.
+            print(f"\n  [temu] {e}\n")
             break
         except Exception as e:
             print(f"  [temu] search failed: {e}")
