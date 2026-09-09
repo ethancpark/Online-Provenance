@@ -25,6 +25,11 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches, ses
   const router = useRouter();
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(matches[0]?.id ?? null);
   const [aboutOpen, setAboutOpen] = useState(false);
+  // On a phone the two columns stack, which buried the detail panel — and with
+  // it the Amazon link, the match score and the reporting flow — under every
+  // listing in the queue. There it opens over the page instead; on desktop it
+  // stays the right-hand column and this flag does nothing.
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const sortedTribes = [...tribes].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -159,14 +164,26 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches, ses
           <ReviewQueue
             matches={matches}
             selectedMatchId={selectedMatch?.id ?? null}
-            onSelect={setSelectedMatchId}
+            onSelect={(id) => {
+              setSelectedMatchId(id);
+              setDetailOpen(true);
+            }}
           />
-          <ListingDetail
-            match={selectedMatch}
-            tribe={selectedTribe}
-            sessionUser={sessionUser}
-            access={access}
-          />
+          <div className={detailOpen ? `${styles.detailWrap} ${styles.detailOpen}` : styles.detailWrap}>
+            <button
+              type="button"
+              className={styles.detailBack}
+              onClick={() => setDetailOpen(false)}
+            >
+              ← Back to the queue
+            </button>
+            <ListingDetail
+              match={selectedMatch}
+              tribe={selectedTribe}
+              sessionUser={sessionUser}
+              access={access}
+            />
+          </div>
         </div>
       </div>
     </div>

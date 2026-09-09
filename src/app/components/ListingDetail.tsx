@@ -84,33 +84,18 @@ export default function ListingDetail({ match, tribe, sessionUser, access }: Pro
 
   return (
     <div className={`${styles.panel} ${styles.detail}`}>
-      <span className={styles.detailLabel}>Compare to the registered seal</span>
+      <span className={styles.detailLabel}>The flagged listing</span>
 
-      <div>
-        <div className={styles.compare}>
-          <div>
-            <div className={styles.frame}>
-              {asset.image_url ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={asset.image_url} alt={asset.description} />
-              ) : (
-                <span className={styles.frameEmpty}>No reference image</span>
-              )}
-            </div>
-            <div className={styles.caption}>Registered seal</div>
-          </div>
-          <div>
-            <div className={`${styles.frame} ${styles.frameFlagged}`}>
-              {listing.image_url ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={listing.image_url} alt={listing.title} />
-              ) : (
-                <span className={styles.frameEmpty}>No listing photo</span>
-              )}
-            </div>
-            <div className={`${styles.caption} ${styles.captionFlagged}`}>Flagged listing</div>
-          </div>
-        </div>
+      {/* The side-by-side against the registered seal is gone at the team's
+          request — the listing itself is what a reviewer acts on, and the
+          match score already carries the comparison. */}
+      <div className={styles.listingShot}>
+        {listing.image_url ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src={listing.image_url} alt={listing.title} />
+        ) : (
+          <span className={styles.frameEmpty}>No listing photo</span>
+        )}
       </div>
 
       <div className={styles.confidence}>

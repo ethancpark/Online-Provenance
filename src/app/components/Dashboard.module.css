@@ -199,6 +199,14 @@
   gap: 32px;
   align-items: start;
 }
+/* On desktop this wrapper does nothing: the detail is simply the right column.
+   The phone rules below turn it into a panel over the page. */
+.detailWrap {
+  min-width: 0;
+}
+.detailBack {
+  display: none;
+}
 .panel {
   background: var(--panel);
   border: 1px solid var(--rule);
@@ -360,26 +368,20 @@
   letter-spacing: 0.04em;
   color: var(--text-muted);
 }
-.compare {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-.frame {
-  height: 270px;
-  background: var(--paper-tint);
-  border: 1px solid var(--rule);
+/* The flagged listing, on its own. Contain rather than cover: a product photo
+   cropped to fill tells you less than the whole frame, and this is the thing a
+   reviewer is deciding about. */
+.listingShot {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background: var(--paper-tint);
+  border: 1px solid var(--rule);
 }
-.frameFlagged {
-  border-color: var(--clay-border);
-}
-.frame img {
-  width: 100%;
-  height: 100%;
+.listingShot img {
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 .frameEmpty {
@@ -387,18 +389,7 @@
   font-size: 13px;
   color: var(--text-faint);
 }
-.caption {
-  margin-top: 10px;
-  text-align: center;
-  font-family: var(--font-label);
-  font-size: 13px;
-  color: var(--text-muted);
-}
-.captionFlagged {
-  color: var(--clay);
-}
 
-/* confidence block */
 .confidence {
   background: var(--clay);
   padding: 22px 24px;
@@ -717,4 +708,57 @@
 
   .grid { gap: 20px; }
   .about { padding: 20px 16px; }
+}
+
+/* ---------- Phones: the detail becomes a panel, not a column ----------
+   Stacking a two-column master/detail puts the detail under the whole queue.
+   With 54 listings that is thousands of pixels of scrolling before you reach
+   the Amazon link or the reporting flow, so on a phone tapping a listing
+   opens it over the page and the queue keeps its scroll position behind. */
+@media (max-width: 900px) {
+  .detailWrap {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    background: var(--paper);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 16px 32px;
+    /* Off-screen and inert until a listing is chosen. */
+    /* Shown and hidden outright, with no transition. A slide looked nicer, but
+       whether the panel is reachable at all then depends on an animation
+       completing — and it did not: visibility is a discrete property, so
+       giving it a duration pinned the panel at hidden, and the transform
+       transition could sit unfinished. This is the only route to the Amazon
+       link and the reporting flow on a phone, so it does not get to be
+       conditional on animation timing. */
+    display: none;
+  }
+  /* Compounded rather than a bare .detailOpen: same-specificity rules rely on
+     source order, and that proved unreliable through the CSS-module pipeline —
+     the class landed on the element and the rule was in the sheet, but the
+     panel stayed hidden. 0-2-0 cannot lose to .detailWrap. */
+  .detailWrap.detailOpen {
+    display: block;
+  }
+  /* Sticky so the way out is always in reach, however long the panel runs. */
+  .detailBack {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    width: calc(100% + 32px);
+    margin: 0 -16px 12px;
+    padding: 15px 16px;
+    text-align: left;
+    background: var(--paper);
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-label);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .detail { border: 0; padding-left: 0; padding-right: 0; }
 }
