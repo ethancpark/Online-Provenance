@@ -438,7 +438,15 @@
      centred in the source photos, a square crop keeps the whole seal. Around
      twenty nations are identifiable at once, which is what the headline
      claims. Checked at 3, 5 and 6 columns on a 390px screen. */
-  .heroPhoto { grid-template-columns: repeat(5, 1fr); }
+  .heroPhoto {
+    grid-template-columns: repeat(5, 1fr);
+    /* The tiles take about six seconds to arrive over a phone connection, and
+       until they do the hero is whatever colour sits behind them. On the warm
+       tint that read as a broken beige slab; on ink it reads as a dark hero
+       with the headline on it, which is a finished-looking page on its own,
+       and the products then fill in over it. */
+    background: var(--ink);
+  }
   /* 5 columns of 78px fills the 420px hero in about 5.4 rows, so 30 tiles
      covers it with a little slack for taller phones. The rest are dropped from
      layout, and being lazy they are never fetched — 30 requests, not 60. */
@@ -451,7 +459,6 @@
      reads as a grid rather than as damage. */
   .heroPhoto img {
     object-fit: contain;
-    background: var(--paper-tint);
     padding: 3px;
   }
   .heroHeadline {
