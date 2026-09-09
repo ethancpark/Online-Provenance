@@ -44,7 +44,19 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false, // don't advertise the framework
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      {
+        // Vercel serves public/ with `max-age=0, must-revalidate`, so the hero
+        // wall was revalidated on every single visit — on a phone that is the
+        // hero arriving late on the second and tenth visit as much as on the
+        // first. The wall's filename carries a hash of its own bytes
+        // (build_hero_wall.py), so a new wall is a new URL and this can be
+        // immutable without ever serving a stale one.
+        source: "/hero/wall-:sheet",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+    ];
   },
 };
 

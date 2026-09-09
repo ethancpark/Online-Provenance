@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HERO_WALL } from "@/lib/heroImages";
 import HotspotMap, { type TribeCount } from "./HotspotMap";
 import AboutProject from "./AboutProject";
 import AccountNav, { type SessionUser } from "./AccountNav";
@@ -9,9 +10,10 @@ type Props = {
   tribesAffected: number;
   totalListings: number;
   tribeCounts: TribeCount[];
-  heroImages: string[];
   sessionUser: SessionUser;
 };
+
+const n = (v: number) => v.toLocaleString("en-US");
 
 const STEPS = [
   {
@@ -33,7 +35,6 @@ export default function LandingPage({
   tribesAffected,
   totalListings,
   tribeCounts,
-  heroImages,
   sessionUser,
 }: Props) {
   const top = [...tribeCounts].sort((a, b) => b.count - a.count).slice(0, 5);
@@ -60,19 +61,39 @@ export default function LandingPage({
         </nav>
       </header>
 
-      {/* 2 — Hero. The wallpaper is real flagged merchandise, in full colour. */}
+      {/* 2 — Hero. The wallpaper is real flagged merchandise, in full colour.
+          One image per orientation rather than sixty tiles: sixty tiles is 25
+          requests before a phone has any hero at all, and it left the hero an
+          empty dark slab for seconds on cellular. A single sheet either
+          arrives or does not. The portrait sheet is taller than the hero on
+          purpose — the wall is cut off by the bottom edge instead of ending in
+          a tidy block, because sixty products is a sample of the flagged
+          listings, not all of them. */}
       <section className={styles.hero}>
-        <div className={styles.heroPhoto} aria-hidden="true">
-          {heroImages.map((src, i) => (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img key={i} src={src} alt="" loading={i < 25 ? "eager" : "lazy"} />
-          ))}
-        </div>
+        <picture className={styles.heroPhoto}>
+          <source media="(max-width: 1000px)" type="image/webp" srcSet={HERO_WALL.portrait.webp} />
+          <source media="(max-width: 1000px)" srcSet={HERO_WALL.portrait.jpg} />
+          <source type="image/webp" srcSet={HERO_WALL.landscape.webp} />
+          {/* alt="" rather than aria-hidden: the wall is decoration, and an
+              <img> inside <picture> is the element that carries that. */}
+          <img src={HERO_WALL.landscape.jpg} alt="" fetchPriority="high" decoding="async" />
+        </picture>
         <div className={styles.heroScrim} aria-hidden="true" />
-        <h1 className={styles.heroHeadline}>
-          Every product behind this text is selling{" "}
-          <span className={styles.highlight}>a tribe&rsquo;s seal.</span>
-        </h1>
+        <div className={styles.heroText}>
+          <h1 className={styles.heroHeadline}>
+            Every product behind this text is selling{" "}
+            <span className={styles.highlight}>a tribe&rsquo;s seal.</span>
+          </h1>
+          {/* The wall shows sixty. The point of the hero is the number it is
+              drawn from, so the hero says both. */}
+          <p className={styles.heroCount}>
+            <strong>{n(totalListings)}</strong> listings across{" "}
+            <strong>{n(tribesAffected)}</strong> nations.{" "}
+            <span className={styles.heroCountTail}>
+              This wall shows {HERO_WALL.tiles} of them.
+            </span>
+          </p>
+        </div>
       </section>
 
       {/* 3 — Action band */}
@@ -90,15 +111,15 @@ export default function LandingPage({
       {/* 4 — Stat band */}
       <section className={styles.stats}>
         <div className={styles.stat}>
-          <div className={`${styles.statNum} ${styles.statNumClay}`}>{totalListings}</div>
+          <div className={`${styles.statNum} ${styles.statNumClay}`}>{n(totalListings)}</div>
           <div className={styles.statLabel}>Listings flagged</div>
         </div>
         <div className={styles.stat}>
-          <div className={styles.statNum}>{tribesAffected}</div>
+          <div className={styles.statNum}>{n(tribesAffected)}</div>
           <div className={styles.statLabel}>Nations affected</div>
         </div>
         <div className={styles.stat}>
-          <div className={styles.statNum}>{tribesMonitored}</div>
+          <div className={styles.statNum}>{n(tribesMonitored)}</div>
           <div className={styles.statLabel}>Nations monitored</div>
         </div>
       </section>
@@ -119,7 +140,7 @@ export default function LandingPage({
           <span className={styles.affectedLabel}>Most affected</span>
           {top.map((t) => (
             <span key={t.name} className={styles.affectedItem}>
-              <span className={styles.affectedNum}>{t.count}</span>
+              <span className={styles.affectedNum}>{n(t.count)}</span>
               <span className={styles.affectedName}>{t.name}</span>
             </span>
           ))}

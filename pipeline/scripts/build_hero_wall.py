@@ -1,0 +1,150 @@
+"""
+Compose the landing page's hero tiles into single-file walls.
+
+The page used to lay 60 <img> tiles into a CSS grid. On a phone that is 25
+image requests before the hero has anything in it, and because Vercel serves
+public/ with `max-age=0, must-revalidate` they are re-requested on every visit,
+not just the first. The result is a hero that is an empty dark slab for several
+seconds on cellular — which is what a phone screenshot of the page shows.
+
+One request cannot half-arrive. These sheets are the whole wall baked into a
+single image per orientation, so the hero is either absent or complete, and the
+filenames carry a content hash so they can be served immutable and never
+re-requested at all.
+
+Two shapes, because the story is different in each. Portrait is the one that
+matters: a phone screen is where "how many products are there?" has to be
+answered, so the portrait sheet is 6 columns by 10 rows and is cropped by the
+viewport rather than fitted to it — the wall runs off the bottom edge instead
+of ending in a tidy block.
+
+Run directly to recompose from the tiles already in public/hero/:
+
+    cd pipeline && python3 -m scripts.build_hero_wall
+
+build_hero_images.py calls this after it refreshes the tiles.
+"""
+
+import hashlib
+import io
+import os
+import re
+
+from PIL import Image
+
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+TILE_DIR = os.path.join(ROOT, "public", "hero")
+MANIFEST = os.path.join(ROOT, "src", "lib", "heroImages.ts")
+
+# Tile ground and the seam between tiles, from tokens.css. A tile whose product
+# is a tall flag or a narrow sticker is letterboxed onto GROUND rather than
+# cropped to fill, so no seal is cut in half; the seam is the page's ink, so the
+# wall reads as a grid of separate products rather than one continuous photo.
+GROUND = (0x38, 0x31, 0x2C)
+SEAM = (0x2B, 0x26, 0x22)
+
+# Layouts: (columns, rows, tile edge in px). The tile edge is ~2x the size the
+# tile actually renders at — 65px on a 390px phone, 128px on a wide desktop.
+PORTRAIT = (6, 10, 132)
+LANDSCAPE = (12, 5, 168)
+
+SEAM_PX = 4      # at 132px tiles this is the 2px gap the grid used to have
+INSET = 0.09     # padding inside each tile, as a fraction of the tile edge
+QUALITY = 74
+
+
+def _tiles() -> list[Image.Image]:
+    names = sorted(n for n in os.listdir(TILE_DIR) if re.fullmatch(r"hero-\d+\.jpg", n))
+    if not names:
+        raise SystemExit(f"no hero-NN.jpg tiles in {TILE_DIR} — run build_hero_images first")
+    return [Image.open(os.path.join(TILE_DIR, n)).convert("RGB") for n in names]
+
+
+def _compose(tiles: list[Image.Image], cols: int, rows: int, edge: int) -> Image.Image:
+    sheet = Image.new("RGB", (cols * edge, rows * edge), SEAM)
+    inner = edge - SEAM_PX
+    pad = int(inner * INSET)
+    box = inner - 2 * pad
+
+    for i in range(cols * rows):
+        # Fewer tiles than cells is normal — the wall repeats rather than
+        # leaving holes, and the repeat is offset by a prime so the same
+        # product never lands directly under itself.
+        src = tiles[(i + 7 * (i // len(tiles))) % len(tiles)]
+        cell = Image.new("RGB", (inner, inner), GROUND)
+        fitted = src.copy()
+        fitted.thumbnail((box, box), Image.LANCZOS)
+        cell.paste(fitted, ((inner - fitted.width) // 2, (inner - fitted.height) // 2))
+        col, row = i % cols, i // cols
+        sheet.paste(cell, (col * edge + SEAM_PX // 2, row * edge + SEAM_PX // 2))
+
+    return sheet
+
+
+def _write(sheet: Image.Image, stem: str, fmt: str, ext: str) -> tuple[str, int]:
+    buf = io.BytesIO()
+    if fmt == "WEBP":
+        sheet.save(buf, "WEBP", quality=QUALITY, method=6)
+    else:
+        sheet.save(buf, "JPEG", quality=QUALITY, optimize=True, progressive=True)
+    data = buf.getvalue()
+
+    # The hash is what lets next.config.ts serve these immutable: a recomposed
+    # wall is a new URL, so no cache anywhere has to be told about it.
+    digest = hashlib.sha256(data).hexdigest()[:8]
+    name = f"{stem}.{digest}.{ext}"
+    for old in os.listdir(TILE_DIR):
+        if old.startswith(f"{stem}.") and old.endswith(f".{ext}") and old != name:
+            os.remove(os.path.join(TILE_DIR, old))
+    with open(os.path.join(TILE_DIR, name), "wb") as fh:
+        fh.write(data)
+    return f"/hero/{name}", len(data)
+
+
+def main() -> int:
+    tiles = _tiles()
+    print(f"{len(tiles)} tiles from public/hero/\n")
+
+    out: dict[str, dict[str, str]] = {}
+    meta: dict[str, tuple[int, int]] = {}
+    for label, (cols, rows, edge) in (("portrait", PORTRAIT), ("landscape", LANDSCAPE)):
+        sheet = _compose(tiles, cols, rows, edge)
+        out[label] = {}
+        for fmt, ext in (("WEBP", "webp"), ("JPEG", "jpg")):
+            path, size = _write(sheet, f"wall-{label}", fmt, ext)
+            out[label][ext] = path
+            print(f"  {path}  {sheet.width}x{sheet.height}  {size / 1024:5.1f}KB")
+        meta[label] = (cols, rows)
+
+    with open(MANIFEST, "w") as fh:
+        fh.write(
+            "// Generated by pipeline/scripts/build_hero_wall.py — do not edit.\n"
+            "//\n"
+            "// The landing page's hero is one image per orientation, not a grid of\n"
+            "// sixty. Sixty tiles meant 25 requests before a phone had any hero at\n"
+            "// all, repeated on every visit; a single sheet either arrives or does\n"
+            "// not, and the hash in the filename lets it be cached immutable.\n"
+            "//\n"
+            "// Re-run pipeline/scripts/build_hero_images.py to refresh from recent\n"
+            "// scans, or build_hero_wall.py to recompose from the tiles on disk.\n"
+            "export const HERO_WALL = {\n"
+        )
+        for label in ("portrait", "landscape"):
+            cols, rows = meta[label]
+            fh.write(
+                f"  {label}: {{\n"
+                f'    webp: "{out[label]["webp"]}",\n'
+                f'    jpg: "{out[label]["jpg"]}",\n'
+                f"    columns: {cols},\n"
+                f"    rows: {rows},\n"
+                f"  }},\n"
+            )
+        fh.write(f"  tiles: {len(tiles)},\n")
+        fh.write("} as const;\n")
+
+    print(f"\n  -> {MANIFEST}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -60,20 +60,25 @@
   align-items: flex-end;
   overflow: hidden;
 }
+/* One image, not a grid of sixty. The tiling is composed into the file by
+   pipeline/scripts/build_hero_wall.py, so the wall cannot arrive in pieces and
+   the browser cannot be left holding an empty hero while 25 requests land.
+   The ink ground shows only until the single request completes. */
 .heroPhoto {
   position: absolute;
   inset: 0;
-  display: grid;
-  /* Denser than the reference's 10 columns: the handoff assumed a single
-     photograph, and we compose the grid from real listing images, so smaller
-     tiles read as one textured field rather than a gallery of logos. */
-  grid-template-columns: repeat(12, 1fr);
-  grid-auto-rows: 1fr;
+  display: block;
+  background: var(--ink);
 }
 .heroPhoto img {
+  display: block;
   width: 100%;
   height: 100%;
+  /* cover, so the sheet is cropped by the hero rather than letterboxed into
+     it. Cropping a wall costs nothing — it cuts the outer tiles, which is what
+     makes the wall read as continuing past the frame. */
   object-fit: cover;
+  object-position: center top;
 }
 .heroScrim {
   position: absolute;
@@ -84,9 +89,12 @@
   background: rgba(43, 38, 34, 0.34), var(--hero-scrim);
   background: var(--hero-scrim), rgba(43, 38, 34, 0.34);
 }
-.heroHeadline {
+.heroText {
   position: relative;
   z-index: 2;
+  width: 100%;
+}
+.heroHeadline {
   font-family: var(--font-display);
   font-weight: 500;
   font-size: clamp(2.75rem, 7.4vw, 104px);
@@ -95,8 +103,26 @@
   color: var(--cream);
   max-width: 17ch;
   text-wrap: balance;
-  margin: 0 64px 56px;
+  margin: 0 64px;
 }
+/* The stat band below gives the number as a figure. Here it is a sentence,
+   because the wall has to say what it is a sample of: sixty tiles left to
+   speak for themselves read as "sixty products". */
+.heroCount {
+  font-family: var(--font-label);
+  font-size: 17px;
+  line-height: 1.45;
+  color: rgba(253, 246, 238, 0.82);
+  /* The count carries the block's bottom offset — the headline's old 56px sat
+     between the two lines and read as two unrelated pieces of text. */
+  margin: 18px 64px 56px;
+  max-width: 46ch;
+}
+.heroCount strong {
+  color: var(--cream);
+  font-weight: 600;
+}
+
 /* The highlight extends past the glyph edges rather than hugging them. */
 .highlight {
   background: var(--clay);
@@ -388,13 +414,25 @@
   .step {
     margin-bottom: 34px;
   }
-  .heroPhoto {
-    grid-template-columns: repeat(5, 1fr);
-    /* Explicit rows rather than 1fr. With more tiles than fit, 1fr stopped
-       dividing the hero evenly and sized rows to 111px, so only 3.8 of them
-       landed inside 420px and the remainder showed as dead ground. Five rows
-       of 84px is exactly 420. */
-    grid-auto-rows: 84px;
+  /* Below 1000px the <picture> has already switched to the portrait sheet
+     (6 columns x 10 rows) — a 12-wide sheet cropped to a narrow hero would
+     have shown half a dozen columns and lost the sense of quantity.
+
+     Height, on a screen held upright, is the whole argument. At 420px the wall
+     was five rows of products: a decorative strip, and a reader counts it as
+     "about twenty things". The number it stands for is four figures, so the
+     wall takes most of the screen and the sheet is taller than the hero — it
+     is cut off by the bottom edge instead of ending in a tidy block. On a
+     390x844 phone that is nine and a half rows of six, ~57 products at once,
+     with the cut row saying there are more. 74svh leaves the clay band and its
+     button above the fold; svh rather than vh so a visible browser toolbar
+     cannot push the button off. The 720px cap stops a tall tablet from
+     turning the tiles into a gallery of a few large ones. */
+  .hero { height: 74vh; }
+  .hero { height: min(74svh, 720px); }
+  .heroCount {
+    margin-left: 28px;
+    margin-right: 28px;
   }
   .nav a:not(.navButton) {
     display: none;
@@ -434,55 +472,37 @@
   }
   .nav { gap: 14px; }
 
-  /* Hero: 640px of fixed height is most of a phone screen before any content.
-     The headline's clamp floor was 44px, which is why it broke mid-phrase. */
-  .hero { height: 420px; }
-  /* Denser, not bigger. Fewer/larger tiles seem like they should show the
-     products better, but the opposite is true: at 3-4 columns a tile is large
-     enough to read as a single product yet object-fit: cover has cropped it to
-     a fragment of a word — "GREAT", "F THE C", "SEAL OF". At 5 columns the
-     tiles are ~78px, small enough that the eye reads a wall of many products
-     rather than one broken one, and because these seals are circular and
-     centred in the source photos, a square crop keeps the whole seal. Around
-     twenty nations are identifiable at once, which is what the headline
-     claims. Checked at 3, 5 and 6 columns on a 390px screen. */
-  .heroPhoto {
-    grid-template-columns: repeat(5, 1fr);
-    /* The tiles take about six seconds to arrive over a phone connection, and
-       until they do the hero is whatever colour sits behind them. On the warm
-       tint that read as a broken beige slab; on ink it reads as a dark hero
-       with the headline on it, which is a finished-looking page on its own,
-       and the products then fill in over it. */
-    background: var(--ink);
-  }
-  /* 5 columns of 78px fills the 420px hero in about 5.4 rows, so 30 tiles
-     covers it with a little slack for taller phones. The rest are dropped from
-     layout, and being lazy they are never fetched — 30 requests, not 60. */
-  /* 5 columns x 5 rows fills the hero exactly, so 25 is the whole wall and
-     anything past it is a request for a tile nobody sees. */
-  .heroPhoto img:nth-child(n + 26) { display: none; }
-  /* Fit the whole product in the square instead of cropping to fill it. cover
-     guarantees no gaps but decides for you which part of the photo to throw
-     away, and on a flag or a sticker that is usually the half with the seal on
-     it — the tiles read "REA", "THE", "SEAL", "CH L". contain keeps every
-     product whole and centred; the letterboxing sits on a warm ground and
-     reads as a grid rather than as damage. */
-  .heroPhoto img {
-    object-fit: contain;
-    padding: 3px;
-    /* Every tile carries its own ground, a shade off the ink behind it. An
-       image that has not arrived — or never arrives — then still reads as a
-       cell in the wall rather than as nothing, so the hero is a full grid from
-       the first paint instead of a void with products collected at the bottom.
-       This is not the warm tint that made it a beige slab; it is close enough
-       to the ink that a loaded tile still sits on a dark ground. */
-    background: #38312c;
+  /* The wall on a phone is mostly white product photography, so the desktop
+     scrim leaves the headline and the count sitting on near-white tiles. This
+     one is close to opaque under the text and still clears by half height, so
+     the top two thirds of the wall keep their colour. */
+  .heroScrim {
+    background:
+      linear-gradient(
+        to top,
+        rgba(43, 38, 34, 0.95) 0%,
+        rgba(43, 38, 34, 0.9) 30%,
+        rgba(43, 38, 34, 0.5) 52%,
+        rgba(43, 38, 34, 0.2) 100%
+      ),
+      rgba(43, 38, 34, 0.24);
   }
   .heroHeadline {
     font-size: clamp(1.9rem, 8.6vw, 44px);
     line-height: 1.02;
     max-width: none;
-    margin: 0 20px 32px;
+    margin: 0 20px 0;
+  }
+  .heroCount {
+    font-size: 14.5px;
+    line-height: 1.4;
+    margin: 12px 20px 26px;
+    max-width: none;
+  }
+  /* Left to wrap, the second sentence broke after "shows" and left "60." alone
+     on the last line — the one word in the sentence that has to land. */
+  .heroCountTail {
+    display: block;
   }
   /* The bleed either side of the highlight is proportional, so at small sizes
      it crowds the line beside it. */
