@@ -105,12 +105,16 @@ def _map_item(item: dict, query: str) -> TemuListing | None:
 TEMU_BACKEND = os.getenv("TEMU_BACKEND", "playwright").strip().lower()
 
 
-def search(query: str, *, max_results: int = 20, retries: int = 1) -> list[TemuListing]:
-    """Run one Temu search, return parsed listings."""
+def search(query: str, *, max_results: int = 20, retries: int = 1, budget=None) -> list[TemuListing]:
+    """Run one Temu search, return parsed listings.
+
+    `budget` is shared across a whole dragnet so the allowance and the
+    blocked-page breaker apply to the run, not to each query in isolation.
+    """
     if TEMU_BACKEND == "playwright":
         from src.temu_playwright import search as pw_search
 
-        return pw_search(query, max_results=max_results, retries=retries)
+        return pw_search(query, max_results=max_results, retries=retries, budget=budget)
     return _search_apify(query, max_results=max_results, retries=retries)
 
 

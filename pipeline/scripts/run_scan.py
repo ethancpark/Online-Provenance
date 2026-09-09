@@ -328,10 +328,21 @@ def run_temu_dragnet(client, tribes, max_per_query, stats, queries=None) -> None
         queries = dragnet_queries_for_today()
     print(f"=== Temu dragnet ({len(queries)} queries today, {len(all_assets)} reference assets) ===")
 
+    # One allowance for the whole dragnet. Residential proxies bill per
+    # request, so a run that is being blocked should stop after a few pages
+    # rather than work through every query discovering the same wall.
+    from src.temu_budget import Budget, BudgetExceeded
+
+    budget = Budget()
+
     for query in queries:
         stats["queries"] += 1
         try:
-            listings = temu_search(query, max_results=max_per_query)
+            listings = temu_search(query, max_results=max_per_query, budget=budget)
+        except BudgetExceeded as e:
+            print(f"  [temu] {e}")
+            print(f"  [temu] stopping the dragnet early; {budget.summary()}")
+            break
         except Exception as e:
             print(f"  [temu] search failed: {e}")
             stats["failed_queries"] += 1

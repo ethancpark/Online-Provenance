@@ -1,41 +1,48 @@
 """
-Temu search via a real browser and a saved sign-in session. Free.
+Temu search by driving a real browser. No per-result billing.
 
-Replaces the Apify actor, which billed $0.01 per result. Nothing here costs
-anything: it drives a browser on your own machine, from your own residential
-connection, using your own Temu account.
+Replaces the Apify actor, which charged $0.01 per row.
 
-Why it has to be signed in. Temu's homepage is open, but search results are
-not — every anonymous configuration tested (headless shell, real Chrome
-headless, cold URL, session-warmed navigation) was redirected to "Temu |
-Login", and a network capture showed no product data reaching the page at all.
-The sitemap is 403 outside verified crawler IPs. A signed-in session is the
-only way in, and you need a free Temu account to file a report anyway.
+What actually blocks this, established by testing rather than assumed: Temu's
+homepage is open, but an anonymous session asking for search results is
+redirected to "Temu | Login" — verified with a headless shell, with real Chrome
+headless, cold and session-warmed, and a network capture showing no product
+data on the wire at all. sitemap-index.xml is 403 outside verified crawler IPs.
 
-Set up once:
-    python3 -m scripts.save_temu_session
+So there are two ways in, and this supports both:
 
-Then this module is a drop-in for temu_search.search().
+  session    a saved Temu login (scripts/save_temu_session.py). Free, and you
+             need a free Temu account to file a report anyway.
+  proxy      a residential exit, set through TEMU_PROXY_SERVER. Worth trying
+             anonymously, since the gate may be IP reputation as much as
+             session — but it costs per request, so the budget guard applies.
+
+Either can be used alone or together.
 
 Config (pipeline/.env):
-    TEMU_HEADLESS       "0" to watch it work; default headless
-    TEMU_PAGE_TIMEOUT   ms per navigation, default 60000
+    TEMU_PROXY_SERVER      e.g. http://gate.provider.com:7000
+    TEMU_PROXY_USERNAME    proxy auth, if any
+    TEMU_PROXY_PASSWORD
+    TEMU_HEADLESS          "0" to watch it work
+    TEMU_MAX_REQUESTS      per-run allowance, default 40
+    TEMU_QUERY_DELAY_S     pause between queries, default 6
 """
 
+import json
 import os
 import re
 import time
 from dataclasses import dataclass
 from urllib.parse import quote_plus
 
-SESSION_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                            ".temu_session.json")
+from src.temu_budget import Budget, BudgetExceeded
+
+SESSION_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".temu_session.json"
+)
 TEMU_BASE = "https://www.temu.com"
 HEADLESS = os.getenv("TEMU_HEADLESS", "1") != "0"
 PAGE_TIMEOUT = int(os.getenv("TEMU_PAGE_TIMEOUT", "60000"))
-
-# Temu is aggressive about rate. Pace navigations rather than discovering the
-# limit by getting the household IP blocked.
 DELAY_BETWEEN_QUERIES_S = float(os.getenv("TEMU_QUERY_DELAY_S", "6"))
 
 
@@ -51,18 +58,28 @@ class TemuListing:
     search_query: str
 
 
-class TemuSessionMissing(RuntimeError):
-    pass
+class TemuBlocked(RuntimeError):
+    """Temu served a login wall or a page with no products."""
 
 
-def _goods_id(href: str) -> str | None:
-    m = re.search(r"goods_id=(\d+)", href or "")
-    return m.group(1) if m else None
+def _proxy_config() -> dict | None:
+    server = os.getenv("TEMU_PROXY_SERVER", "").strip()
+    if not server:
+        return None
+    cfg: dict[str, str] = {"server": server}
+    user = os.getenv("TEMU_PROXY_USERNAME", "").strip()
+    pw = os.getenv("TEMU_PROXY_PASSWORD", "").strip()
+    if user:
+        cfg["username"] = user
+    if pw:
+        cfg["password"] = pw
+    return cfg
 
 
-# Runs inside the page. Temu's class names are hashed and change, so anchor on
-# the product link and walk out from it rather than on styling.
-_EXTRACT_JS = """
+# Runs in the page. Temu's class names are hashed and change without notice, so
+# this anchors on the product link — the one thing that cannot change without
+# breaking their own URLs — and walks out to the surrounding card.
+_EXTRACT_DOM = """
 () => {
   const out = [];
   const seen = new Set();
@@ -70,94 +87,180 @@ _EXTRACT_JS = """
     const href = a.getAttribute('href') || '';
     const m = href.match(/goods_id=(\\d+)/);
     if (!m || seen.has(m[1])) continue;
-    const card = a.closest('div') || a;
+    let card = a, hops = 0;
+    while (card.parentElement && hops < 4) {
+      if ((card.innerText || '').trim().length > 20) break;
+      card = card.parentElement; hops++;
+    }
     const img = a.querySelector('img') || card.querySelector('img');
     const text = (card.innerText || '').trim();
     const price = (text.match(/\\$\\s?[\\d,]+(?:\\.\\d{2})?/) || [null])[0];
     let title = (img && (img.getAttribute('alt') || '').trim()) || '';
-    if (!title) title = text.split('\\n').find(l => l.trim().length > 15) || '';
+    if (!title) title = (text.split('\\n').find(l => l.trim().length > 15) || '').trim();
     if (!title) continue;
     seen.add(m[1]);
     out.push({
-      goods_id: m[1],
-      title: title.slice(0, 300),
-      price,
+      goods_id: m[1], title: title.slice(0, 300), price,
       image_url: img ? (img.getAttribute('src') || img.getAttribute('data-src')) : null,
-      href,
     });
   }
   return out;
 }
 """
 
+# Fallback: Temu ships an initial-state blob in a <script>. When the DOM is
+# virtualised, or lazily rendered below the fold, the blob still holds rows the
+# DOM has not painted.
+_GOODS_RE = re.compile(
+    r'"goods_id"\s*:\s*"?(\d{6,})"?.{0,400}?"goods_name"\s*:\s*"((?:[^"\\]|\\.){3,300})"',
+    re.S,
+)
+_IMG_RE = re.compile(r'"(?:hd_thumb_url|thumb_url|image_url)"\s*:\s*"([^"]+)"')
 
-def search(query: str, *, max_results: int = 20, retries: int = 1) -> list[TemuListing]:
-    """One Temu search through a signed-in browser. Same shape as temu_search.search()."""
-    if not os.path.exists(SESSION_PATH):
-        raise TemuSessionMissing(
-            "No Temu session. Run: python3 -m scripts.save_temu_session"
+
+def _from_blob(html: str, query: str) -> list[TemuListing]:
+    found: dict[str, TemuListing] = {}
+    for m in _GOODS_RE.finditer(html):
+        gid, raw_title = m.group(1), m.group(2)
+        if gid in found:
+            continue
+        try:
+            title = json.loads(f'"{raw_title}"')
+        except Exception:  # noqa: BLE001
+            title = raw_title
+        img = _IMG_RE.search(html, m.end(), m.end() + 600)
+        found[gid] = TemuListing(
+            marketplace="temu",
+            marketplace_id=gid,
+            title=title[:300],
+            seller=None,
+            price=None,
+            listing_url=f"{TEMU_BASE}/goods.html?goods_id={gid}",
+            image_url=img.group(1) if img else None,
+            search_query=query,
         )
+    return list(found.values())
+
+
+def search(
+    query: str,
+    *,
+    max_results: int = 20,
+    retries: int = 1,
+    budget: Budget | None = None,
+) -> list[TemuListing]:
+    """One Temu search. Same shape as the Apify path it replaces."""
     from playwright.sync_api import sync_playwright
 
-    print(f"  [temu] browser search: {query!r}")
-    results: list[TemuListing] = []
+    budget = budget or Budget()
+    budget.check()
 
-    with sync_playwright() as p:
-        try:
-            browser = p.chromium.launch(channel="chrome", headless=HEADLESS)
-        except Exception:
-            browser = p.chromium.launch(headless=HEADLESS)
-        ctx = browser.new_context(
-            storage_state=SESSION_PATH,
-            viewport={"width": 1440, "height": 950},
-            locale="en-US",
-            timezone_id="America/Chicago",
+    proxy = _proxy_config()
+    have_session = os.path.exists(SESSION_PATH)
+    if not proxy and not have_session:
+        raise TemuBlocked(
+            "No Temu session and no proxy configured. Either run\n"
+            "  python3 -m scripts.save_temu_session\n"
+            "or set TEMU_PROXY_SERVER in pipeline/.env."
         )
-        ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>undefined})")
+
+    how = "session+proxy" if (proxy and have_session) else ("proxy" if proxy else "session")
+    print(f"  [temu] {query!r} via {how}")
+
+    results: list[TemuListing] = []
+    with sync_playwright() as p:
+        launch: dict = {"headless": HEADLESS}
+        if proxy:
+            launch["proxy"] = proxy
+        try:
+            browser = p.chromium.launch(channel="chrome", **launch)
+        except Exception:  # noqa: BLE001
+            browser = p.chromium.launch(**launch)
+
+        ctx_args: dict = {
+            "viewport": {"width": 1440, "height": 950},
+            "locale": "en-US",
+            "timezone_id": "America/Chicago",
+        }
+        if have_session:
+            ctx_args["storage_state"] = SESSION_PATH
+        ctx = browser.new_context(**ctx_args)
+        ctx.add_init_script(
+            "Object.defineProperty(navigator,'webdriver',{get:()=>undefined})"
+        )
         page = ctx.new_page()
+        # Images are the bulk of the bytes and none of the data. On a metered
+        # residential proxy that is most of the bill.
+        page.route(
+            re.compile(r"\.(png|jpe?g|gif|webp|svg|woff2?|mp4)(\?|$)"),
+            lambda route: route.abort(),
+        )
+
         try:
             url = f"{TEMU_BASE}/search_result.html?search_key={quote_plus(query)}"
             for attempt in range(retries + 1):
+                budget.check()
                 page.goto(url, wait_until="domcontentloaded", timeout=PAGE_TIMEOUT)
-                page.wait_for_timeout(6000)
-                # Products load lazily; nudge the page.
+                page.wait_for_timeout(5000)
                 for _ in range(3):
                     page.mouse.wheel(0, 2200)
-                    page.wait_for_timeout(1800)
+                    page.wait_for_timeout(1500)
 
-                if "login" in page.title().lower():
-                    if attempt < retries:
-                        print("  [temu]   session looked signed-out; retrying")
-                        page.wait_for_timeout(4000)
-                        continue
-                    raise TemuSessionMissing(
-                        "Temu redirected to login — the saved session has expired. "
-                        "Re-run: python3 -m scripts.save_temu_session"
+                title = page.title()
+                blocked = "login" in title.lower()
+                items = [] if blocked else page.evaluate(_EXTRACT_DOM)
+                if not items and not blocked:
+                    items = []  # fall through to the blob
+
+                for item in items:
+                    results.append(
+                        TemuListing(
+                            marketplace="temu",
+                            marketplace_id=item["goods_id"],
+                            title=item["title"],
+                            seller=None,
+                            price=item.get("price"),
+                            listing_url=f"{TEMU_BASE}/goods.html?goods_id={item['goods_id']}",
+                            image_url=item.get("image_url"),
+                            search_query=query,
+                        )
                     )
+                if not results and not blocked:
+                    results = _from_blob(page.content(), query)
+                    if results:
+                        print(f"  [temu]   DOM was empty; recovered {len(results)} from the page blob")
 
-                for item in page.evaluate(_EXTRACT_JS):
-                    gid = item["goods_id"]
-                    results.append(TemuListing(
-                        marketplace="temu",
-                        marketplace_id=gid,
-                        title=item["title"],
-                        seller=None,          # not shown on the search grid
-                        price=item.get("price"),
-                        listing_url=f"{TEMU_BASE}/goods.html?goods_id={gid}",
-                        image_url=item.get("image_url"),
-                        search_query=query,
-                    ))
-                break
+                budget.spent(ok=bool(results))
+                if results:
+                    break
+                if blocked:
+                    print(f"  [temu]   blocked (title={title!r})")
+                if attempt < retries:
+                    page.wait_for_timeout(4000)
         finally:
             browser.close()
 
-    print(f"  [temu]   parsed {len(results)} listings")
+    if not results:
+        raise TemuBlocked(
+            f"No products for {query!r}. "
+            + ("The saved session may have expired — re-run scripts/save_temu_session.py."
+               if have_session else "Try a residential proxy, or sign in and save a session.")
+        )
+
+    print(f"  [temu]   {len(results)} listings  [{budget.summary()}]")
     time.sleep(DELAY_BETWEEN_QUERIES_S)
     return results[:max_results]
 
 
 if __name__ == "__main__":
-    for r in search("native american tribe flag", max_results=5):
-        print(f"\n  {r.title[:80]}")
-        print(f"    id={r.marketplace_id} price={r.price}")
-        print(f"    {r.listing_url}")
+    import sys
+
+    q = sys.argv[1] if len(sys.argv) > 1 else "native american tribe flag"
+    try:
+        for r in search(q, max_results=5):
+            print(f"\n  {r.title[:80]}")
+            print(f"    id={r.marketplace_id}  price={r.price}")
+            print(f"    {r.listing_url}")
+    except (TemuBlocked, BudgetExceeded) as e:
+        print(f"\n  {e}")
+        raise SystemExit(1)
