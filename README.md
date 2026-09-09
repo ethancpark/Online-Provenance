@@ -47,9 +47,15 @@ dashboard simply reads the latest snapshot.
   monitor at `/dashboard`.
 - **Data** — Supabase (Postgres + pgvector) holds tribes, reference embeddings,
   listings, matches, and drafts.
-- **Pipeline** — Python: marketplace scraping (via ScraperAPI), CLIP image matching
-  (ViT-B/32, via open_clip), and reference-mark sourcing.
-- **Drafting** — the Anthropic Claude API writes the takedown and legal notices.
+- **Pipeline** — Python: Amazon via Bright Data's Web Unlocker, Temu via a
+  browser scraper (`src/temu_playwright.py`), CLIP image matching (ViT-B/32, via
+  open_clip), and reference-mark sourcing.
+- **Notices** — generated from templates in `src/lib/notice.ts`. Deliberately not
+  written by a language model: a document signed under penalty of perjury should
+  say the same thing every time, and every clause §512(c)(3) requires has to be
+  present by construction rather than by luck.
+- **Accounts** — Supabase Auth, with row-level security on every table. Signup is
+  gated on the email domain belonging to a Tribal nation.
 
 ## Running it locally
 
@@ -59,7 +65,9 @@ dashboard simply reads the latest snapshot.
 npm install
 # add .env.local:
 #   NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
-#   SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY
+#   SUPABASE_SERVICE_ROLE_KEY
+# optional: CRON_SECRET and RESEND_API_KEY for the monthly digest,
+#           LAB_ADMIN_EMAILS to let named lab staff sign up
 npm run dev          # http://localhost:3000
 ```
 
@@ -69,10 +77,14 @@ npm run dev          # http://localhost:3000
 cd pipeline
 pip install -r requirements.txt
 # add pipeline/.env:
-#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SCRAPER_API_KEY
+#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, BRIGHTDATA_API_TOKEN
 python -m scripts.seed_tribes               # load tribes + USPTO links
 python -m scripts.discover_reference_images # source seal/flag reference images
 python -m scripts.run_scan --marketplace amazon   # scan, match, store
+
+# Temu needs a signed-in browser session, or a residential proxy:
+python -m scripts.save_temu_session
+python -m scripts.run_scan --marketplace temu
 ```
 
 The database schema lives in `supabase/schema.sql`.
@@ -80,9 +92,10 @@ The database schema lives in `supabase/schema.sql`.
 ## Project layout
 
 ```
-src/         Next.js app — landing page and dashboard
+src/         Next.js app — landing page, dashboard, accounts, notices
 pipeline/    Python — scraping, CLIP matching, sourcing, USPTO lookups
-supabase/    database schema
+supabase/    database schema and migrations, run in order
+public/      reference seals and the hero tiles, both served locally
 design.md    the visual design specification
 ```
 
@@ -90,12 +103,17 @@ design.md    the visual design specification
 
 This is an honest prototype, not a finished product.
 
-- **Marketplaces.** Amazon scanning works end to end. Temu and Alibaba guard their
-  pages aggressively; a scraper that can get past their bot protection (e.g. a
-  dedicated Temu actor) is the next piece.
-- **Coverage.** The tool currently tracks the 50 largest tribes by enrollment, with
-  verified reference marks for about 36 of them. The rest simply aren't published
-  anywhere we can pull automatically — those need to be added by hand.
+- **Marketplaces.** Amazon scanning works end to end. Temu serves search results
+  only to a signed-in session — verified against a headless shell, real Chrome,
+  and its sitemap — so its scraper drives a browser with a saved login, or a
+  residential proxy. Alibaba is not covered.
+- **Coverage.** 132 Tribal nations, each with at least one verified reference seal
+  or flag and a CLIP embedding. Marks that aren't published anywhere machine-
+  readable were added by hand.
+- **Attribution.** A seal can resemble another nation's closely enough to be
+  matched to the wrong one. Where a listing's title names a nation we monitor,
+  that nation owns the claim — a notice filed for someone else's mark would be
+  worse than a missed listing.
 - **Confidence is a signal, not a verdict.** A match score tells a human reviewer
   where to look; it is not a legal determination of infringement.
 - **Nothing is sent automatically.** The tool drafts. People decide.

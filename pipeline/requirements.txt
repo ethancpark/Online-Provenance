@@ -13,6 +13,4 @@ open-clip-torch>=2.26
 Pillow>=10.0
 numpy>=2.0
 
-# Anthropic for takedown notice generation
-anthropic>=0.39
 playwright>=1.48
