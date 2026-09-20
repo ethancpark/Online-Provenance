@@ -38,10 +38,13 @@ export async function POST(req: Request) {
   });
 
   // The same answer either way, including when Supabase itself errored.
+  // No promise about how long it lasts: the expiry is a Supabase dashboard
+  // setting, not something this file can see, and the copy claiming 24 hours
+  // outlived a default of one.
   return NextResponse.json({
     ok: true,
     message:
       "If that address has an account, a link to set a new password is on its way. " +
-      "It expires in 24 hours.",
+      "It can only be used once, so open it from this device if you can.",
   });
 }

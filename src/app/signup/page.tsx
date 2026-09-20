@@ -77,7 +77,7 @@ export default function SignupPage() {
             )}
           </p>
           <p className={styles.note}>
-            The link works once and expires in 24 hours. Check spam if it doesn&rsquo;t arrive.
+            The link works once. Check spam if it doesn&rsquo;t arrive.
           </p>
           {error && <p className={styles.error}>{error}</p>}
           <p className={styles.footLink}>
