@@ -3,7 +3,11 @@
 Context for picking this up in a fresh session.
 
 **Repo** `~/tribal-logo-scrapper-shipasap` → github.com/ethancpark/Online-Provenance
-**Live** https://onlineprovenance.vercel.app (Vercel, auto-deploys from `main`)
+**Live** https://onlineprovenance.com (Vercel, auto-deploys from `main`)
+The `onlineprovenance.vercel.app` host still answers and is what the project
+was built on. The canonical origin is the apex domain: it is what
+`NEXT_PUBLIC_SITE_URL` and Supabase's Site URL must both say, because every
+auth link is built from them.
 
 ---
 

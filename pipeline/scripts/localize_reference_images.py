@@ -40,7 +40,7 @@ PUBLIC_DIR = os.path.join(
     "public", "reference",
 )
 BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reference_url_backup.json")
-UA = "OnlineProvenance/1.0 (+https://onlineprovenance.vercel.app; reference image archival)"
+UA = "OnlineProvenance/1.0 (+https://onlineprovenance.com; reference image archival)"
 EXT_BY_TYPE = {"image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif",
                "image/svg+xml": ".svg", "image/webp": ".webp"}
 

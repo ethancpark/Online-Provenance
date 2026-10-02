@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   const params = new URL(req.url).searchParams;
   const dry = params.get("dry") === "1";
   const preview = params.get("preview");
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://onlineprovenance.vercel.app";
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://onlineprovenance.com";
   const admin = getServerClient();
 
   // ?preview=<nation> renders the mail in the browser for any nation, whether

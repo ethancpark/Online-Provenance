@@ -31,8 +31,8 @@ page verifies nothing; the token is spent only when someone presses the button
 on it. Scanners follow links. They do not press buttons.
 
 `{{ .SiteURL }}` is the project's **Site URL** under Authentication → URL
-Configuration. It must be `https://onlineprovenance.vercel.app` (no trailing
-slash) or these links will point at the wrong host.
+Configuration. It must be `https://onlineprovenance.com` (no trailing slash,
+and the apex — not `www`) or these links will point at the wrong host.
 
 ## Reset password
 

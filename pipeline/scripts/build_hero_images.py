@@ -42,7 +42,7 @@ TILE_COUNT = 60
 # (132px portrait, 168px landscape). 260 leaves it room to work from.
 MAX_EDGE = 260
 QUALITY = 78
-UA = "OnlineProvenance/1.0 (+https://onlineprovenance.vercel.app)"
+UA = "OnlineProvenance/1.0 (+https://onlineprovenance.com)"
 
 
 def main() -> int:
