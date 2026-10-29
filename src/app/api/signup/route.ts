@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerClient } from "@/lib/supabase";
+import { getPublicClient, getServerClient } from "@/lib/supabase";
 import { emailDomain } from "@/lib/auth";
 import { withinSendLimit, TOO_MANY } from "@/lib/rateLimit";
 
@@ -37,6 +37,55 @@ function labAdminAllowlist(): string[] {
  * human grants — domain control proves employment, not authority to speak for
  * a sovereign government.
  */
+/**
+ * Invite someone, or — if they are already registered — send them a link to
+ * set a new password instead.
+ *
+ * An invitation to an address that already has an account is refused by
+ * Supabase, and this route answers "check your email" regardless, because a
+ * reply that differed would be a way to ask which Tribal nation's staff are
+ * registered here. The result was a sentence that was simply untrue. Anyone
+ * already in auth.users — invited once, never finished choosing a password —
+ * was told on every later attempt that mail was on its way, and none was sent.
+ * "Send the link again" posts to this same route, so it could not recover
+ * either; the button was dead for exactly the people who needed it.
+ *
+ * A recovery link does the same job as an invitation — both land on
+ * /set-password and both end with a password — so sending one is not a
+ * workaround, it is the correct mail for someone who already exists. It leaks
+ * nothing: anyone can already ask for a recovery mail from /forgot-password,
+ * and the reply here is unchanged.
+ *
+ * Returns the new user when one was created, so the caller can write a profile
+ * row for them.
+ */
+async function inviteOrRecover(
+  admin: ReturnType<typeof getServerClient>,
+  email: string,
+  redirectTo: string,
+): Promise<{ user: { id: string } | null }> {
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
+  if (!error) return { user: data?.user ?? null };
+
+  const exists =
+    error.code === "email_exists" ||
+    error.status === 422 ||
+    /already.*regist/i.test(error.message);
+
+  if (!exists) {
+    console.error(`[signup] inviteUserByEmail failed for ${emailDomain(email)}: ${error.message}`);
+    return { user: null };
+  }
+
+  const { error: rErr } = await getPublicClient().auth.resetPasswordForEmail(email, {
+    redirectTo: `${redirectTo}?mode=reset`,
+  });
+  if (rErr) {
+    console.error(`[signup] recovery fallback failed for ${emailDomain(email)}: ${rErr.message}`);
+  }
+  return { user: null };
+}
+
 export async function POST(req: Request) {
   const body = (await req.json()) as Body;
   const email = (body.email ?? "").trim().toLowerCase();
@@ -56,14 +105,16 @@ export async function POST(req: Request) {
   // Lab staff first: they are named individually, so no domain can stand in
   // for the check. Everyone else has to belong to a nation.
   if (labAdminAllowlist().includes(email)) {
-    const { data: created, error } = await admin.auth.admin.inviteUserByEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/set-password`,
-    });
+    const { user: created } = await inviteOrRecover(
+      admin,
+      email,
+      `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/set-password`,
+    );
     // A lab admin belongs to no nation — the profiles constraint requires
     // tribe_id to be null for this role.
-    if (!error && created?.user) {
+    if (created) {
       await admin.from("profiles").insert({
-        id: created.user.id,
+        id: created.id,
         email,
         full_name: body.full_name ?? null,
         job_title: body.job_title ?? null,
@@ -102,34 +153,11 @@ export async function POST(req: Request) {
   }
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const { data: created, error } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${site}/set-password`,
-  });
+  const { user: created } = await inviteOrRecover(admin, email, `${site}/set-password`);
 
-  if (error) {
-    // The reply stays the same either way: never confirm whether an address
-    // already has an account — that would let anyone enumerate which tribal
-    // staff are registered.
-    //
-    // But it is not the same either way to US. "Already registered" and "the
-    // mail provider refused to send" produce an identical screen reading
-    // "check your email", and for a while the second one was happening and
-    // nobody could tell, because this branch discarded the reason. A person
-    // who never receives the link cannot sign in, reports that sign-in is
-    // broken, and there is nothing anywhere to look at. Log it.
-    console.error(
-      `[signup] inviteUserByEmail failed for ${emailDomain(email)}: ${error.message}`,
-    );
-    return NextResponse.json({
-      ok: true,
-      nation: hit.tribes?.name ?? null,
-      message: "Check your email for a link to finish setting up your account.",
-    });
-  }
-
-  if (created?.user) {
+  if (created) {
     await admin.from("profiles").insert({
-      id: created.user.id,
+      id: created.id,
       email,
       full_name: body.full_name ?? null,
       job_title: body.job_title ?? null,
