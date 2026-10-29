@@ -33,9 +33,16 @@ export async function POST(req: Request) {
   }
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  await getPublicClient().auth.resetPasswordForEmail(email, {
+  const { error } = await getPublicClient().auth.resetPasswordForEmail(email, {
     redirectTo: `${site}/set-password?mode=reset`,
   });
+  // The caller is told the same thing whether or not this worked, so the only
+  // record that it did not is this line. Supabase refusing to send — a rate
+  // limit on the built-in mailer, a redirect host that is not on the allow
+  // list — otherwise looks exactly like a delivered mail that never arrives.
+  if (error) {
+    console.error(`[reset] resetPasswordForEmail failed: ${error.message}`);
+  }
 
   // The same answer either way, including when Supabase itself errored.
   // No promise about how long it lasts: the expiry is a Supabase dashboard

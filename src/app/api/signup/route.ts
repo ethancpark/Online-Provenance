@@ -107,8 +107,19 @@ export async function POST(req: Request) {
   });
 
   if (error) {
-    // Never confirm whether an address already has an account — that would
-    // let anyone enumerate which tribal staff are registered.
+    // The reply stays the same either way: never confirm whether an address
+    // already has an account — that would let anyone enumerate which tribal
+    // staff are registered.
+    //
+    // But it is not the same either way to US. "Already registered" and "the
+    // mail provider refused to send" produce an identical screen reading
+    // "check your email", and for a while the second one was happening and
+    // nobody could tell, because this branch discarded the reason. A person
+    // who never receives the link cannot sign in, reports that sign-in is
+    // broken, and there is nothing anywhere to look at. Log it.
+    console.error(
+      `[signup] inviteUserByEmail failed for ${emailDomain(email)}: ${error.message}`,
+    );
     return NextResponse.json({
       ok: true,
       nation: hit.tribes?.name ?? null,
