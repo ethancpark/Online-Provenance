@@ -33,6 +33,13 @@ this project.
 - **Amazon**: working, 264 Bright Data credits/sweep, ~26% of the free 5,000/month
 - **Temu**: SKIPPED for weeks — Apify's $5/month credit is exhausted. Biggest functional gap.
 - **Accounts**: 1 (Ethan, `lab_admin`). Nobody else has used the tool yet.
+- **Weekly meeting report** (branch `feature/new-automated-report-email`): opt-in on
+  /account, emailed Mondays 14:00 UTC by `.github/workflows/weekly-report.yml` with
+  the listings spreadsheet attached (`src/lib/reportWorkbook.ts`). Staff of a nation
+  (or lab_admin) can also download any date range from the dashboard (`/api/report`).
+  **To go live:** run `supabase/weekly-report.sql`; Resend + CRON_SECRET are the
+  ones the monthly digest already uses. Check a file first with
+  `POST /api/cron/weekly-report?preview=Osage%20Nation`, then a `dry_run` dispatch.
 
 ## Costs — $0/month
 

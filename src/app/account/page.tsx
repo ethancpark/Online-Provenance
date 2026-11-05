@@ -4,6 +4,7 @@ import { getProfile, getSessionUser } from "@/lib/auth";
 import { getPublicClient } from "@/lib/supabase";
 import AccountNav from "../components/AccountNav";
 import MonthlyEmailToggle from "./MonthlyEmailToggle";
+import WeeklyReportToggle from "./WeeklyReportToggle";
 import styles from "./account.module.css";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,17 @@ export default async function AccountPage() {
           nation={sessionUser?.nation ?? null}
           tribes={tribes}
           followedTribeId={profile.monthly_email_tribe_id}
+        />
+
+        <WeeklyReportToggle
+          initial={profile.weekly_report}
+          email={profile.email}
+          nation={
+            sessionUser?.nation ??
+            tribes?.find((t) => t.id === profile.monthly_email_tribe_id)?.name ??
+            null
+          }
+          needsNation={!profile.tribe_id && !profile.monthly_email_tribe_id}
         />
 
         <section className={styles.card}>

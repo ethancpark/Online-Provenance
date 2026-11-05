@@ -9,6 +9,7 @@ import ReviewQueue from "./ReviewQueue";
 import ListingDetail from "./ListingDetail";
 import AccountNav, { type SessionUser } from "./AccountNav";
 import BulkReport from "./BulkReport";
+import ReportDownload from "./ReportDownload";
 import SignUpPrompt from "./SignUpPrompt";
 import AboutProject from "./AboutProject";
 import styles from "./Dashboard.module.css";
@@ -156,6 +157,10 @@ export default function Dashboard({ tribes, selectedTribe, summary, matches, ses
             {sessionUser.nation ? ` the ${sessionUser.nation}` : " your nation's"} seal.{" "}
             <Link href="/account">Turn it on</Link>
           </p>
+        )}
+
+        {access.allowed && selectedTribe && (
+          <ReportDownload tribeId={selectedTribe.id} nation={selectedTribe.name} />
         )}
 
         <BulkReport matches={matches} tribe={selectedTribe} sessionUser={sessionUser} access={access} />

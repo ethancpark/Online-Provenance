@@ -15,6 +15,8 @@ export type Profile = {
   monthly_email: boolean;
   /** Nation to follow, for accounts that have none of their own (lab admins). */
   monthly_email_tribe_id: string | null;
+  /** Opted in to the weekly meeting report. Off unless the person turned it on. */
+  weekly_report: boolean;
 };
 
 /** The signed-in user's profile, or null. Suspended accounts resolve to null. */
@@ -30,18 +32,19 @@ export async function getProfile(): Promise<Profile | null> {
   // run, asking for it errors and every signed-in person would look signed out,
   // so fall back to the columns that certainly exist. Deploy order stops being
   // load-bearing. Safe to simplify once the migration is applied everywhere.
-  let { data } = await supabase
-    .from("profiles")
-    .select(`${COLUMNS},monthly_email,monthly_email_tribe_id`)
-    .eq("id", user.id)
-    .maybeSingle();
-  if (!data) {
-    ({ data } = await supabase.from("profiles").select(COLUMNS).eq("id", user.id).maybeSingle());
+  // weekly_report (supabase/weekly-report.sql) gets the same treatment: each
+  // step drops only the newest optional columns, so a missing migration never
+  // costs an older setting.
+  let data: unknown = null;
+  for (const extra of [",monthly_email,monthly_email_tribe_id,weekly_report", ",monthly_email,monthly_email_tribe_id", ""]) {
+    ({ data } = await supabase.from("profiles").select(`${COLUMNS}${extra}`).eq("id", user.id).maybeSingle());
+    if (data) break;
   }
 
-  type Raw = Omit<Profile, "monthly_email" | "monthly_email_tribe_id"> & {
+  type Raw = Omit<Profile, "monthly_email" | "monthly_email_tribe_id" | "weekly_report"> & {
     monthly_email?: boolean;
     monthly_email_tribe_id?: string | null;
+    weekly_report?: boolean;
   };
   const raw = data as Raw | null;
   const profile: Profile | null = raw
@@ -49,6 +52,7 @@ export async function getProfile(): Promise<Profile | null> {
         ...raw,
         monthly_email: raw.monthly_email ?? false,
         monthly_email_tribe_id: raw.monthly_email_tribe_id ?? null,
+        weekly_report: raw.weekly_report ?? false,
       }
     : null;
   if (!profile || profile.status === "suspended") return null;

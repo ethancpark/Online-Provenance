@@ -1,0 +1,47 @@
+name: Weekly report email
+
+# Emails each opted-in account its nation's weekly listings report, with the
+# meeting spreadsheet attached. Runs Monday morning, the day after the Sunday
+# scan, so the report covers that sweep. Like the monthly digest, the work
+# happens in the app; this only pulls the trigger.
+#
+# Required repository secrets (the same ones the monthly digest uses):
+#   CRON_SECRET  — must match the same secret in the Vercel environment
+#   SITE_URL     — e.g. https://onlineprovenance.com
+on:
+  schedule:
+    - cron: "0 14 * * 1" # Mondays 14:00 UTC (8am Central in winter, 9am in summer)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and report without sending"
+        type: boolean
+        default: true
+
+concurrency:
+  group: weekly-report
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger the weekly report
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+          DRY: ${{ inputs.dry_run && '?dry=1' || '' }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$SITE_URL" ]; then
+            echo "::error::CRON_SECRET and SITE_URL repository secrets are required."
+            exit 1
+          fi
+          code=$(curl -sS -o response.json -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$SITE_URL/api/cron/weekly-report$DRY")
+          echo "HTTP $code"
+          cat response.json
+          echo
+          # 207 means some recipients failed; surface it without losing the report.
+          [ "$code" = "200" ] || { echo "::error::weekly report run returned $code"; exit 1; }
